@@ -119,11 +119,10 @@ ShowCustomFont: true  ## you can change custom font in `variable.styl` and `font
 fancybox: true        ## if you use gallery post or want use fancybox please set the value to true.
 totop: true           ## if you want to scroll to top in every post set the value to true
 
-
 #### Custom Search
 google_cse: 
-  enable: false
-  cx:   ## e.g. 018294693190868310296:abnhpuysycw your Custom Search ID.
+  enable: true
+  cx: 018064724956493455226:vgnrglj_q-e   ## e.g. 018294693190868310296:abnhpuysycw your Custom Search ID.
 ## https://www.google.com/cse/ 
 ## To enable the custom search You must create a "search" folder in '/source' and a "index.md" file
 ## set the 'front-matter' as
