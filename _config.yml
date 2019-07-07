@@ -4,11 +4,11 @@
 
 # Site
 title: Taogen's Blog
-subtitle: Life is short
-description: There is my personal blog. Focus on Java and web develop.
+subtitle:
+description: These is my personal blog. Focus on Java and Web Development.
 keywords:
 author: Taogen
-language: en
+language:
 timezone:
 
 # URL
@@ -73,11 +73,9 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-#landscape
-theme: phase 
+theme: jacman
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: 
-  repo: 
+  type:
