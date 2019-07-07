@@ -1,0 +1,6 @@
+<% if (site.categories.length){ %>
+<div class="category-block">
+  <h3 class="asidetitle"><%= __('categories') %></h3>
+     <%- list_categories(site.categories) %>
+</div>
+<% } %>
