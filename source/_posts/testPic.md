@@ -20,3 +20,8 @@ my picture
 
 ![alt](https://taogenjia.com/pic01.jpg)
 
+my picture2
+
+![alt](https://bog-1259597974.cos.ap-chengdu.myqcloud.com/jpg-01.jpg)
+
+-- END --
