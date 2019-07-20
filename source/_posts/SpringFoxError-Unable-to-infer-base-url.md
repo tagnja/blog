@@ -7,7 +7,7 @@ categories:
 tags: error
 ---
 
-### Operation
+### Background
 
 I want to use Swagger with Spring Boot, but the Swagger-UI can't work. Following it's my code.
 
