@@ -35,10 +35,11 @@ tags: Network
 
 客户端创建 TCP Socket，发送 HTTP GET 报文给服务器。首先需要 TCP 三次握手。
 
-- 客户但创建一个 TCP SYN 报文段，目标端口为 80。报文封装为 IP 报文，目标地址为服务器 IP 地址。最后封装为链路层报文，目标 MAC 地址为网关路由器 MAC 地址。
+- 客户但创建一个 TCP SYN 报文段，目标端口为 80。TCP 报文封装为 IP 报文，目标地址为服务器 IP 地址。最后封装为链路层报文，目标 MAC 地址为网关路由器 MAC 地址。
 - 路由器转发包含 TCP SYN 的 IP 报文给服务器。经过 ISP 内路由协议和 ISP 之间的路由协议，最终 IP 报文到达服务器。
 - 服务器响应一个 TCP SYNACK 报文。
 - 客户端收到 TCP SYNACK 报文，发送应答报文。TCP 连接成功建立。
-- 客户端浏览器创建 HTTP GET 报文，将HTTP报文写入Socket中，HTTP GET 报文称为 TCP 报文段的负载，IP 数据报发送给服务器。
-- 服务器通过Socket收到 HTTP GET 报文，然后创建一个 HTTP response 报文，把网页内容放到 HTTP 响应报文的 body 中。把报文发送给 Socket。
+- 客户端浏览器创建 HTTP GET 报文，将 HTTP 报文写入 Socket 中，HTTP GET 报文作为 TCP 报文段的负载，进而封装为 IP 报文，经过路由转发请求报文发送到服务器。
+- 服务器通过 Socket 收到 HTTP GET 请求报文，然后创建一个 HTTP response 报文，把网页内容放到 HTTP 响应报文的 body 中。把报文发送给 Socket。通过报文封装和路由转发，响应报文发送到客户端。
 - 客户端通过 Socket 收到收到 HTTP 响应报文，提取 HTTP 响应报文 body，显示网页。
+
