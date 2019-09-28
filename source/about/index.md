@@ -1,8 +1,26 @@
 ---
-title: About me
+title: About
 layout: page
 ---
 
-Hi, I'm Taogen.
+### 关于我
 
-I’ll share something interesting and my learning experience with you at this blog.
+一个普通的程序员，男，90后。喜欢读书和编程。喜欢研究技术的本质，热于分享。
+
+主要从事 Java Web 开发。
+
+不想过循规蹈矩的生活，也不愿将就。认为人活着需要有所追求。
+
+自知愚钝，但也想去创造属于我的可能。
+
+
+
+### 关于博客
+
+主要记录我的学习总结和思考。
+
+希望博客的文章对你有所帮助。
+
+
+
+感谢来访
