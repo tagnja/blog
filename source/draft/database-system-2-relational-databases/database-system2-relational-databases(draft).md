@@ -12,21 +12,29 @@
 
 关系型模型是如今商业数据处理应用程序的主要数据模型。关系型模型因其简单易用的特点被广泛使用。
 
+
+
 ### 关系型数据库的结构
 
 关系型数据库是一组**表**（Table）组成，每一个表分配一个唯一的名称。
 
 关系型模型中，术语**关系**（Relation）用于参考数据库的表，术语**元组**（Tuple）用于参考数据库的行，术语**属性**（Attribute）参考数据库的列。术语**关系实例**（Relation Instance）参考数据的实例。一个关系由多个元组构成。一个元组由多个属性值构成。每一个属性的取值范围称为**域**（Domain）。所有的属性的域是原子的、不可分的。null 值是一个特殊的值，它表示未知或者不存在。
 
+
+
 ### 数据库模式
 
 数据库的表现形式可以分为逻辑的和物理的。**数据库模式**（Database Schema）是数据库的逻辑设计。**数据库实例**（Database Instance）表示数据库某个时刻的数据的快照。数据库模式由一组属性和对应的域组成。
+
+
 
 ### 键
 
 我们必须有一种方法去区分一个关系中的不同的元组。**Superkey** 是一个或多个属性组合，它可以唯一的标识关系中的一个元组。如，在关系型数据库中我们常用 ID 来标识一个行记录。没有子集 Superkey 的 Superkey ，这种最小的 Superkey 称为 **候选键**（Candidate Key）。在数据库中我们使用术语**主键**（Primary Key）来表示数据库设计人员选择的候选键。在一个关系中的任何两个元组不允许出现相同的 key 属性值。
 
 一个关系 r1 的属性是另一个关系 r2 的主键，这个属性称为**外键**（Foreign Key）。**参考完整性约束**（Referential Integrity Constraint）表示一个外键属性值出现在参考关系中，它也必须出现在被参考的关系中。
+
+
 
 ### 模式图
 
@@ -44,6 +52,8 @@
 
 本篇接下来会详细的介绍以上数据库查询语言的用户。
 
+
+
 ### 关系型操作
 
 过程关系型查询语言提供了一组操作应用在一个关系或者多个关系中。关系查询的结果本身是一个关系，因此关系运算可以应用于查询结果以及给定的一组关系。具体的关系型操作的表达取决于具体的查询语言。
@@ -55,6 +65,8 @@
 ## 介绍 SQL
 
 有大量的数据库查询语言可以使用。SQL 是目前最广泛使用的一种查询语言。SQL 不仅能查询数据库，它也可以定义和修改数据库。
+
+
 
 ### SQL 语言概述
 
@@ -71,6 +83,8 @@ SQL 语言有多个部分：
 - 授权（Authorization）。DDL 包含语句可以指定关系和视图的访问权限。
 
 每个数据库系统实现的 SQL 与标准的 SQL 有一些小差异，但大部分是标准的，SQL 的功能组成也大致一样。特定的数据库系统中的不标准的 SQL 可以查阅数据库系统的用户手册的解释。
+
+
 
 ### SQL 数据定义
 
@@ -147,9 +161,173 @@ alter table r add A D;
 alter table r drop A;
 ```
 
-### SQL 查询操作
+
+
+### 基本的 SQL 查询操作
 
 基本的 SQL 查询语句有三个子句（Clause）：select，from 和 where。
+
+#### 一个关系中的查询
+
+使用 select from where 三个基本的子句进行单表查询
+
+```
+select name
+from instructor
+where salary > 70000;
+```
+
+使用关键字 `distinct` **去除重复的记录**，关键字 `all` 允许重复的结果。
+
+```
+select distinct dept name
+from instructor;
+```
+
+`select` 子句支持**算术表达式**
+
+```
+select ID, name, dept name, salary * 1.1
+from instructor;
+```
+
+`where` 子句支持**逻辑连词**，`and`, `or`, `not`
+
+```
+select name
+from instructor
+where dept name = ’Comp. Sci.’ and salary > 70000;
+```
+
+#### 多个关系的查询
+
+典型的多个关系的 SQL 查询语句
+
+```
+select A1, A2,..., An
+from r1, r2,...,rm
+where P;
+```
+
+多个关系的查询使用 `from` 子句指定查询哪些关系。
+
+`from` 子句多表查询的过程：
+
+1. 生成一个 `from` 子句中的所有关系的**笛卡尔乘积**（Cartesian Product）。
+
+2. 基于步骤1产生的结果，使用 `where` 子句的断言进行筛选元组。
+3. 基于步骤2产生的结果，输出 `select` 子句指定的属性。
+
+#### 多个关系的连接查询
+
+`natural join`：创建一个连接基于两个关系中相同名称的属性具有相同的属性值。连接后的关系中相同的属性只显示一次。`natural join` 一般默认是 inner join。
+
+`join` 和 `from` 多表查询可以得到相同的结果，但 join 写法更简洁。`natural join` 语句如下
+
+```
+select A1, A2,..., An
+from r1 natural join r2 natural join ... natural join rm
+where P;
+```
+
+`join` 的实现是通过将两个关系按特定属性排序后进行连接的,不会生成笛卡尔积，但是需要对关系表进行排序。`select...from` 一个是空间消耗，`join` 一个是时间消耗。
+
+
+
+### 其它基本的 SQL 查询操作
+
+#### 重命名
+
+ `as` 关键字可以：重命名结果关系中的属性名称，重命名 SQL 语句中的关系名称，如  `old-name as new-name`。新的名称可以称为**别名** （alias）。
+
+```
+select T.name as instructor name, S.course id
+from instructor as T, teaches as S
+where T.ID= S.ID;
+```
+
+#### 字符串操作
+
+**比较操作**：SQL 标准中字符串比较是区分大小写的，但是常见的数据库系统，如 MySQL 和 SQL Server 中不区分大小写。
+
+**字符串函数**：SQL 支持大量的字符串函数，如：转换大小写 upper(s), lower(s)，去除开始和结尾的空格 trim(s)。每个数据库系统中的字符串函数不一样，具体参照特定的数据库系统手册。
+
+**模式匹配**：可以使用 `like` 操作符进行字符串的模式匹配。字符串中的 `%` 匹配一个或多个任意字符，`_` 匹配任何一个字符。
+
+```
+select dept name
+from department
+where building like ’%Watson%’;
+```
+
+**转义符**：SQL 使用反斜杠 `\` 进行**转义字符**（Escape Character）。
+
+**正则表达式**：SQL 标准支持比 `like` 操作更强大的模式匹配，在 SQL 中可以使用正则表达式。
+
+#### select 子句中的属性规范
+
+符号 `*` 再 `select` 子句中表示一个关系的所有属性。 
+
+```
+select instructor.*
+from instructor, teaches
+where instructor.ID= teaches.ID;
+```
+
+#### 排序
+
+SQL 支持对一个关系中的元组进行排序，使用 order by 子句可以对查询结果的元组进行排序。
+
+```
+select name
+from instructor
+where dept name = ’Physics’
+order by name;
+```
+
+#### where 子句的断言
+
+SQL 中的 where 子句支持 `between` 操作符进行比较断言。between 可以代替 算术操作符 `>=`, `<=`
+
+```
+select name
+from instructor
+where salary between 90000 and 100000;
+```
+
+比较运算符可以支持元组，即多个属性按顺序比较。如， (a1, a2) < (b1, b2)，  (a1, a2) = (b1, b2)
+
+
+
+### 集合操作
+
+常见的**集合操作**（Set Operations）如：组合（union），相交（intersect）和排除（except）。集合操作默认去除重复的记录，添加 `all` 关键字，可以允许重复的记录。如 union all，intersect all， except all 等。一个组合操作的 SQL 语句例子如下：
+
+```
+(select course id
+from section
+where semester = ’Fall’ and year= 2009)
+union
+(select course id
+from section
+where semester = ’Spring’ and year= 2010);
+```
+
+
+
+### Null 值
+
+
+
+### 聚合函数
+
+
+
+### 嵌入查询
+
+
+
+### 修改数据库操作
 
 
 
