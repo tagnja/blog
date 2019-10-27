@@ -301,7 +301,7 @@ where salary between 90000 and 100000;
 
 ### 集合操作
 
-常见的**集合操作**（Set Operations）如：组合（union），相交（intersect）和排除（except）。集合操作默认去除重复的记录，添加 `all` 关键字，可以允许重复的记录。如 union all，intersect all， except all 等。一个组合操作的 SQL 语句例子如下：
+常见的**集合操作**（Set Operations）如：组合 `union`，相交`intersect` 和排除 `except`。集合操作默认去除重复的记录，添加 `all` 关键字，可以允许重复的记录。如 `union all`，`intersect all`， `except all` 等。一个组合操作的 SQL 语句例子如下：
 
 ```
 (select course id
@@ -317,9 +317,89 @@ where semester = ’Spring’ and year= 2010);
 
 ### Null 值
 
+Null 值在关系型操作中是一个特殊问题，Null 值表示的是未知或不存在。Null 值在算术操作，比较操作，和逻辑操作视为特殊情况。可以把 Null 值理解为一个未知的值。
+
+#### 算术操作
+
+算术操作中包含 null 的表达式，返回结果为 null。如 `null + 5  // result is null`. 表示的是： 未知 + 5，结果是未知。
+
+#### 比较操作
+
+比较操作包含 null 时，结果既不是 true 也不是 false，而是未知。返回结果为 null。如 `1 < null //result is null`。表示的是：1 是否小于未知，结果是未知。
+
+#### 逻辑操作
+
+`where` 子句中的逻辑连接是出现 null。
+
+- and. `true and null is null`, `false and null is false`, `null and null is null`
+- or. `true or null is true`, `false or null is null`, `null or null is null`
+- not. `not null is null`
+
+可以使用 select 子句去测试结果，如
+
+```
+select true and null; // return null
+select true or null; //return true
+```
+
+#### 测试属性值是否为空
+
+使用 `is null` 和 `is not null` 来测试值是否为空。不能用等号来测试属性属性是否为空，因为 `null = null // result is null`。一个 SQL 例子如下：
+
+```
+select name
+from instructor
+where salary is null;
+```
+
 
 
 ### 聚合函数
+
+**聚合函数**（Aggregate Function）是一个函数把一组值作为输入，返回一个值。SQL 提供5个内置聚合函数：
+
+- 平均值：avg
+- 最小值：min
+- 最大值：max
+- 总和：sum
+- 数量：count
+
+sum 和 avg 函数的输入必须是数字。其它的函数输入的可以是数字和非数字，如字符串。
+
+#### 基本的聚合
+
+```
+select avg (salary)
+from instructor;
+```
+
+```
+select count (distinct ID)
+from teaches
+```
+
+count(*) 表示查询一个关系的元组的数量。
+
+```
+select count (*)
+from course;
+```
+
+#### 分组聚合
+
+聚合函数不仅可以使用在单个元组集合中，也可以使用在多个元组集合中。SQL 使用 **group by 子句**进行分组。它根据 group by 子句指定的所有属性的相同属性值进行分组。一个分组聚合的 SQL 例子：
+
+```
+select dept_name, avg (salary) as avg salary
+from instructor
+group by dept_name;
+```
+
+> 注意事项：使用分组查询时，select 子句中出现的属性必须是 group by 中出现的属性。其它属性不能直接出现在 select 子句中，可以出现在聚合函数里。如，上面的 SQL，group by dept_name，所以 select 子句只能出现 dept_name 属性和聚合函数 `select dept_name, avg (salary)`。
+>
+> 原因：你对某些属性进行分组，目的只能是计算这些分组的聚合函数结果。在分组查询的结果中，分组的属性和未分组的属性是一对多的关系，无法在一行中表示，所以 select 子句中不允许出现不是 group by 的属性。
+
+#### Having 子句
 
 
 
@@ -344,3 +424,10 @@ where semester = ’Spring’ and year= 2010);
 
 
 //ending
+
+
+
+| 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | ---------- |
+| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />join, left join, right join, all join. <br />and, or, not <br />between, in <br />union, intersect, except <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() |            |
+
