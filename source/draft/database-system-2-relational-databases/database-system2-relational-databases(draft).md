@@ -401,13 +401,162 @@ group by dept_name;
 
 #### Having 子句
 
+having 子句使用聚合函数对分组进行过滤。SQL 语句例子如下：
+
+```
+select dept_name, avg (salary) as avg salary
+from instructor
+group by dept_name
+having avg(salary) > 42000;
+```
+
+一个分组查询包含 having 子句的查询处理过程：
+
+- 根据 from 子句得到关系的所有元组。
+- 如果 where 子句存在，则根据 where 子句的断言，过滤 from 子句中的结果。
+- 根据 group by 子句进行分组。
+- 根据 having 子句进行过滤分组。
+- 根据 select 子句中的聚合函数，得出每个分组的查询结果。
+
+#### 聚合函数中的 Null 和 Boolean 值
+
+Null 值
+
+除了 count() 之外的所有聚合函数，忽略 null 值的输入。
+
+```
+select sum(salary)
+from instructor;
+```
+
+上面 SQL 语句中的 sum(salary) ，如果分组中某个元组的 salary 属性值为 null，这个元组将被忽略。即 null 值不参与聚合函数的计算。
 
 
-### 嵌入查询
+
+### 嵌套子查询
+
+嵌套的子查询可以嵌套在 select 子句，from 子句，where 子句和 having 子句。
+
+#### 集合成员
+
+`in` 关键字可以测试一个值是否是一个集合的成员。这个集合是由 select 子句产生的。测试不是一个集合成员使用 `not in`
+
+```
+select distinct course_id
+from section
+where course id in (select course id
+		from section
+		where semester = ’Spring’ and year= 2010);
+```
+
+#### 集合对比
+
+测试一个值至少大于一个集合中的一个值使用 `> some` 关键字，测试大于一个集合中的所有值使用 `> all` 关键字。这个集合同样是 select 子句产生的。
+
+```
+select name
+from instructor
+where salary > some (select salary
+		from instructor
+		where dept name = ’Biology’);
+```
+
+#### 测试空关系
+
+使用 `exists` 关键字测试一个子查询的结果是否由存在元组。如果子查询结果为空，则返回 false，不为空返回 true。
+
+```
+select course id
+from section as S
+where semester = ’Fall’ and year= 2009 and
+	exists (select *
+		from section as T
+		where semester = ’Spring’ and year= 2010 and
+		S.course id= T.course id);
+```
+
+#### 测试是否存在重复元组
+
+使用 `unique` 关键字可以测试子查询是否存在重复的元组。存在重复返回 true，不存在则返回 false。`not unique` 测试是否不存在。
+
+```
+select T.course id
+from course as T
+where not unique (select R.course id
+	from section as R
+	where T.course id= R.course id and
+		R.year = 2009);
+```
+
+#### 子查询在 from 子句
+
+```
+select dept name, avg salary
+from (select dept name, avg (salary) as avg salary
+	from instructor
+	group by dept name)
+where avg salary > 42000;
+```
+
+#### with 子句
+
+with 子句可以定义一个临时的关系。
+
+```
+with max budget (value) as
+	(select max(budget)
+	from department)
+select budget
+from department, max budget
+where department.budget = max budget.value;
+```
+
+#### 标量子查询
+
+SQL 允许子查询嵌入 select 子句中，子查询必须返回一个元组中的一个属性，这个子查询称为标量子查询（ Scalar Subqueries）
+
+```
+select dept name,
+	(select count(*)
+	from instructor
+	where department.dept name = instructor.dept name)
+	as num instructors
+from department;
+```
 
 
 
 ### 修改数据库操作
+
+删除操作
+
+```
+delete from r
+where P;
+```
+
+插入操作
+
+```
+insert into course
+	values (’CS-437’, ’Database Systems’, ’Comp. Sci.’, 4);
+```
+
+插入元组基于一个查询的结果
+
+```
+insert into instructor (name, dept_name)
+	select name, dept_name
+	from student
+	where dept_name = ’Music’;
+```
+
+更新操作
+
+```
+update instructor
+set salary= salary * 1.05;
+```
 
 
 
@@ -429,5 +578,5 @@ group by dept_name;
 
 | 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数 |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | ---------- |
-| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />join, left join, right join, all join. <br />and, or, not <br />between, in <br />union, intersect, except <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() |            |
+| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />join, left join, right join, all join <br />and, or, not <br />between, in <br />union, intersect, except <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() |            |
 
