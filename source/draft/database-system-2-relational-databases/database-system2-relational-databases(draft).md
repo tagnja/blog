@@ -562,9 +562,337 @@ set salary= salary * 1.05;
 
 ## 中级的 SQL
 
+这部分主要介绍更复杂的 SQL：SQL查询，视图定义，事务，完整性约束，数据定义和授权。
+
+
+
+### join 表达式
+
+上面介绍的 natural join 是根据相同的属性名称自动 inner join。SQL 支持明确指定 join 的断言，即指定 join 的属性。除了 inner join 还有 outer join。如果没有指定是 inner 还是 outer，一般 join 是指 inner join。
+
+#### join 条件
+
+使用 on 关键字可以指定 join 要关联的属性。
+
+```
+select *
+from student join takes on student.ID= takes.ID;
+```
+
+#### outer join
+
+inner join 取的是两个关系表属性的交集，outer join 可以取某一个关系表的全部元组，或者两个关系表的全部元组，没有关联的元组其它属性用 null 表示。
+
+outer join 分为：
+
+- left outer join：保留 join 语句前面的那个关系表的所有元组。
+- right outer join：保留 join 语句后面的关系表的所有元组。
+- full outer join：保留两个关系的所有元组。
+
+outer join SQL 语句：
+
+```
+select *
+from student natural left outer join takes;
+```
+
+join 用在子查询中：
+
+```
+select *
+from (select *
+	from student
+	where dept name= ’Comp. Sci’)
+	natural full outer join
+	(select *
+	from takes
+	where semester = ’Spring’ and year = 2009);
+```
+
+使用 where 子句代替 on 的断言
+
+```
+select *
+from student left outer join takes on true
+where student.ID= takes.ID;
+```
+
+
+
+### 视图
+
+有时我们不希望所有的用户看到全部的逻辑模型。出于安全考虑我们需要对用户隐藏一些数据。我们可以创建一个个性化的关系集合给用户查询，而不用整个逻辑模型。SQL 允许一个通过一个查询定义一个虚拟关系表。这个关系包含查询的结果。虚拟关系不是预先计算和存储的，而是每当使用虚拟关系时通过执行查询计算的。**视图**（View）不是逻辑模型的一部分，而是一个虚拟关系使用户可见的。
+
+#### 视图的定义
+
+使用 create view 命令定义视图。
+
+```
+create view v as <query expression>
+```
+
+```
+create view faculty as
+select ID, name, dept_name
+from instructor;
+```
+
+#### 使用视图
+
+一旦我们定义了一个视图，我们可以使用视图名称作为一个虚拟关系。查询视图和正常的关系表查询是一样的。
+
+```
+select dept_name
+from faculty
+where name= ’Watson’;
+```
+
+#### 物化视图
+
+一些数据库系统允许视图关系被存储，当实际的关系改变时，视图是更新的，这样的视图称为**物化的视图**（Materialized View）。保持物化的视图更新的过程称为**物化视图维护**（Materialized View Maintenance），简称视图维护。
+
+视图维护可以是及时的，关系改变时视图立刻更新；也可以是懒惰的，当视图访问的时候更新视图；另外也可以周期的更新视图。
+
+如果用户频繁的使用视图，物化视图是有益的。视图可以快速的响应查询，避免读取大量的关系。物化视图可以带来好处，但也需要考虑它的不利因素，如存储空间的花费和更新操作需要的性能消耗。
+
+#### 更新视图
+
+修改视图关系一般是不允许的。有些数据库允许更新视图。
+
+
+
+### 事务
+
+事务是由一系列的查询和更新语句组成的一个逻辑单元。事务具有原子性。一个事务通过一个语句暗示开始，通过一个语句结束。结束一个事务有两种操作，一个是提交，一个是回滚，其中某个操作必须发生且仅有一个操作发生。事务执行中没有任何错误发生，最终会执行提交。事务执行中出现错误，会执行回滚操作，数据库的修改会回滚到最初的状态。
+
+当事务由多个 SQL 语句组成，单个 SQL 语句的自动提交需要关闭，使用应用程序接口，如 JDBC 或 ODBC 来处理事务和关闭事务自动提交。
+
+
+
+### 完整性约束
+
+完整性约束（Integrity Constraint）确保数据库的改变不会丢失数据的一致性。常见的完整性约束，如名称不能为空。不能存在相同的 ID。预算金额必须大于0等等。
+
+完整性约束通常是数据库模式（Schema）设计过程的一部分。完整性约束的声明是create table 创建关系的一部分。完整性约束可以使用 `alter table <table-name> add constraint` 语句添加到存在的关系中，当 alter 命令执行时，系统第一次会验证当前关系是否满足这个约束，不满足则拒绝这个添加约束命令。
+
+#### 单表的完整性约束
+
+单表的完整性约束有：
+
+- not null
+- unique
+- check
+
+```
+name varchar(20) not null
+phone varchar(15) not null unique
+age int check (age > 18)
+```
+
+#### 参考完整性约束
+
+参考完整性（Referential Integrity）它确保出现在一个关系中指定的属性，也出现在另一个关系属性中。
+
+foreign key 子句可以使用在 create table 语句中，定义个参考完整性约束。如：
+
+```
+foreign key (dept_name) references department
+```
+
+在 SQL 中，外键一般时参考另一个关系的主键。然而，只要参考候选键（Candidate Key）就行，如主键属性，或者唯一约束属性。
+
+当一个参考完整性约束违反时，这个语句时被拒绝执行的。然而，foreign key 子句可以指定如果一个删除或者更新操作在参考的关系违反约束，系统可以改变参考关系恢复约束，而不是拒绝执行。on delete cascade 子句在外键中声明，可以删除对应的参考关系元组，来满足约束。
+
+```
+foreign key (dept_name) references department 
+	on delete cascade 
+	on update cascade
+```
+
+SQL 也允许 foreign key 子句指定其它非 cascade 的动作。如使用 set null, set default 代替 cascade。
+
+如果存在跨多个关系的一串外键依赖关系，则该链一端的删除或更新会在整个链中传播。
+
+外键属性允许 Null 值，null 值自动满足参考完整性约束。
+
+#### 复杂的检查条件和断言
+
+SQL 支持**子查询在 check 子句**中，如
+
+```
+check (time slot id in (select time slot id from time slot))
+```
+
+复杂的检查条件是有用的，但是也是有性能消耗的。没次插入或更新都要进行检查。
+
+**断言**（Assertion） 是一个断言一个条件，数据库总是满足的。域约束和参考完整性约束是一个特殊形式的断言。断言的 SQL 形式如下：
+
+```
+create assertion <assertion-name> check <predicate>;
+```
+
+复杂的断言是耗费巨大的，使用时要谨慎。
+
+当前，没有一种广泛使用的数据库系统支持 check 子句中的子查询或断言。然而，相同的功能可以通过触发器实现。
+
+
+
+### SQL 数据类型和 Schema
+
+除了整数，浮点数和字符类型，SQL 还支持其它的内置数据类型。
+
+#### SQL 中的日期和时间类型
+
+- date：包含年月日等信息。
+- time：包含时分秒。
+- timestamp：date 和 time 的结合。
+
+日期和时间的值具体格式如下：
+
+```
+date ’2001-04-25’
+time ’09:30:00’
+timestamp ’2001-04-25 10:29:01.45’
+```
+
+SQL 支持提取时间或日期中的单独的字段。如，提取日期中的年或月。
+
+SQL 定义了一些函数取获取当前日期和时间。
+
+SQL 允许时间日期数据使用算术和比较操作。如 `select x - y` , `wher x < y`
+
+#### 默认值
+
+SQL 允许指定一个属性的默认值，通过 `default` 关键字进行指定。当插入语句没有给一个属性赋值时，则使用指定的默认值。
+
+```
+age int default 18
+```
+
+#### 创建索引
+
+索引（Index）是一个数据结构允许高效地查找属性值，而不用扫描一个关系中的所有元组。一个广泛使用的索引类型为 B+树索引。SQL 语言没有正式的定义索引的语法，大多数数据库系统支持索引创建语言如下：
+
+```
+create index studentID_index on student(ID);
+```
+
+#### 大对象类型
+
+很多当前的数据库应用需要存储特别大的属性，如一张图片，视频剪辑等等。SQL 提供大对象数据类型：character data (clob) 和 binary data (blob)，字母 lob 表示 Large Object。
+
+```
+book review clob(10KB)
+image blob(10MB)
+movie blob(2GB)
+```
+
+取出一个完整的大对象到内存中是不高效的或不实际的。SQL query 将取出大对象的 locator（定位器），通过 locator 处理对象。
+
+#### 用户自定义的类型
+
+SQL 支持创建用户自定义类型。有两种格式的类型：distinct types 和 structured data types。使用 create type 子句定义一个类型：
+
+```
+create type Dollars as numeric(12,2) final;
+```
+
+#### 创建表扩展
+
+SQL 支持创建一个与一个表相同 schema 的表，使用 `create table like` 语句。
+
+```
+create table temp instructor like instructor;
+```
+
+创建一个表包含一个查询的结果，使用 `create table as` 语句。如：
+
+```
+create table t1 as
+    (select *
+    from instructor
+    where dept name= ’Music’)
+with data;
+```
+
+with data 表示包含数据，然而很多实现默认包含数据，with data 子句可以忽略。
+
+#### Schema, Catalogs, and Environments
+
+数据库系统提供一个三层等级的命名关系。顶层是 catalog，它包含 schema，每个 schema 包含多个 SQL 对象如关系表，视图等。
+
+每个用户有一个默认的 catalog 和 schema。默认的 catalog 和 schema 为每个连接设置 SQL 环境的一部分，该环境还包括用户标识符（也称授权标识符）。所有常见的 SQL 语句都是在一个 schema 上下文中运行的。
+
+
+
+### 授权
+
+SQL 标准包含的权限（Privilege）有：select，insert，update和delete。所有权限使用 all privileges。当一个用户执行一个 查询或更新时，系统授权检查该用户是否有这个权限。如果没有则拒绝执行。最终的权限是通过数据库管理员给定的。
+
+#### 权限的授与和撤销
+
+grant 语句可以用来授予权限，权限可以授予给用户和角色。grant 语句格式如下：
+
+```
+grant <privilege list>
+on <relation name or view name>
+to <user/role list>;
+```
+
+一些授权的例子：
+
+```
+grant select on department to Amit, Satoshi;
+grant update (budget) on department to Amit, Satoshi;
+```
+
+revoke 语句可以用来撤销权限，revoke 语句格式和 grant 类似，撤销权限的例子：
+
+```
+revoke select on department from Amit, Satoshi;
+revoke update (budget) on department from Amit, Satoshi;
+```
+
+#### 角色
+
+在现实生活中，一些用户有相同的权限。管理源需要重复的为一个用户授予权限。为了解决这个问题可以使用角色来给用户授权。先把权限授予给角色，然后把角色授予给用户。这样可以方便的管理用户权限。
+
+创建一个角色语句的例子：
+
+```
+create role instructor;
+```
+
+给角色授予权限的例子：
+
+```
+grant select on takes
+to instructor;
+```
+
+把角色授权给用户的例子：
+
+```
+grant instructor to dean;
+```
+
+#### 权限的传递
+
+一个用户的权限授予给另一个用户。使用 with grant option 子句，如
+
+```
+grant select on department to Amit with grant option;
+```
+
 
 
 ## 高级的 SQL
+
+### 通过编程语言执行 SQL
+
+### 方法和存储过程
+
+### 触发器
 
 
 
@@ -572,11 +900,19 @@ set salary= salary * 1.05;
 
 
 
+### 关系代数
+
+### 元组关系演算
+
+### 域关系演算
+
+
+
 //ending
 
 
 
-| 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数 |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | ---------- |
-| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />join, left join, right join, all join <br />and, or, not <br />between, in <br />union, intersect, except <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() |            |
+| 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | -------------------------- |
+| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />join, left join, right join, all join <br />and, or, not <br />between, in <br />union, intersect, except <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() | upper()<br />lower()<br /> |
 
