@@ -3,7 +3,7 @@ title: Projects
 date: 2019-10-28 21:54:37
 ---
 
-业余时间做的一些小项目。
+业余时间开发的一些小玩意
 
 ## [hot-crawler](https://github.com/tagnja/hot-crawler)
 
