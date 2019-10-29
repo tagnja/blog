@@ -2,8 +2,6 @@
 
 
 
-// intro
-
 本篇将介绍关系型数据库，数据库查询语言（SQL 语言）和形式关系查询语言。你将了解关系性数据库的详细内容，SQL 语句的使用，以及形式关系查询语言的用法。
 
 
@@ -40,7 +38,7 @@
 
 数据库的主键和外键依赖可以通过**模式图**（Schema Diagram）来表示。每个关系用一个矩形表示，主键属性添加下划线，外键依赖表示为从外键属性出发的带箭头的线指向被参考的关系的主键属性。一个数据库模式图的例子，如下图所示。
 
-<img src="database-system-2-relational-model-1-database-schema-diagram.png" class="img-center">
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/database-system-2-relational-model-1-database-schema-diagram.png" class="img-center">
 
 ### 数据库查询语言
 
@@ -888,29 +886,293 @@ grant select on department to Amit with grant option;
 
 ## 高级的 SQL
 
-### 通过编程语言执行 SQL
+
+
+### 编程语言执行 SQL
+
+SQL 是一个强大的声明式查询语言。SQL 不是图灵完备的，数据库应用不能使用 SQL 开发。应用程序一般用 C, C++ 或 Java 实现，通过嵌入 SQL 来访问数据库。
+
+应用程序访问数据库的两种方式：
+
+- 动态的 SQL（Dynamic SQL）。程序在运行时构造一个 SQL 语句。通过应用程序接口提交 SQL 语句给数据库服务器，得到返回结果。常见的应用程序接口，如 JDBC 是 Java 语言连接数据库的应用程序接口。ODBC 是 C 语言的应用程序接口。
+- 嵌入的 SQL（Embedded SQL）。在程序编译之前，使用预处理器将 SQL 语句给数据库系统预编译和优化，将程序中的 SQL 语句代替合适的代码。
+
+#### JDBC
+
+**JDBC** （Java Database Connectivity）标准定义了一个应用程序接口（API），让 Java 程序能够连接数据库服务器。不同的数据库系统有不同的 JDBC 实现。
+
+JDBC 主要的操作：
+
+- 与数据库建立连接。
+- 传送 SQL 语句给数据库系统。
+- 取出 SQL 执行的结果。
+- 调用方法和存储过程。
+- 获取数据库元数据。
+- 执行事务。自动提交。
+
+
 
 ### 方法和存储过程
 
+**存储过程**（Procedure）和**方法**（Function）允许一系列 SQL 操作存储在数据库，通过 SQL 语句调用执行。
+
+它的优点：
+
+- 允许多个应用程序访问。
+
+- 一处修改多处使用，存储过程的逻辑改变，不需要修改其它应用程序。
+
+- 应用程序调用存储过程，而不是直接的修改数据库关系。
+
+SQL 标准定义了存储过程的语法标准，但是大部分数据库的实现是不标准的版本。
+
+#### 声明和调用方法和存储过程
+
+SQL 标准的方法和存储过程例子：
+
+```
+create function instructors_of (dept name varchar(20))
+	returns table (
+		ID varchar (5),
+		name varchar (20),
+		dept_name varchar (20),
+		salary numeric (8,2))
+return table
+	(select ID, name, dept name, salary
+	from instructor
+	where instructor.dept name = instructor of.dept name);
+```
+
+```
+create procedure dept_count_proc(in dept name varchar(20), out d_count integer)
+	begin
+		select count(*) into d count
+		from instructor
+		where instructor.dept name= dept count proc.dept name
+	end
+```
+
+调用存储过程的 SQL 语句。
+
+```
+declare d_count integer;
+call dept_count_proc(’Physics’, d_count);
+```
+
+存储过程和方法的不同：
+
+- 存储过程是预编译的对象。方法每次调用都要编译。
+- 存储过程有输入参数和输出参数，方法只有输入参数。
+- 存储过程不包含 return 语句，可以返回 0 个或多个值。方法有 return 语句，必须返回一个值，且仅有一个，基本类或者组合类型都可以。
+- 方法可以调用存储过程，反之不能。
+
+
+
 ### 触发器
 
+**触发器**（Trigger）是一个语句在触发事件时自动执行的。
+
+触发器的用途：
+
+- 实现一些完整性约束，当 SQL 的约束机制不能实现的。
+- 启动一些自动任务。
+
+定义触发器的 SQL 例子：
+
+```
+create trigger timeslot_check1 after insert on section
+referencing new row as nrow
+for each row
+when (nrow.time_slot_id not in (
+	select time_slot_id
+	from time_slot)) 
+begin
+	rollback
+end;
+```
+
+大部分数据库触发器实现的语法是不标准。具体的情况，需要参考具体数据库的用法。
+
+触发器可以设置启用或关闭。
+
+触发器应该小心使用，因为运行时检测到触发器错误会导致出发该触发器的操作语句执行失败。触发器是有用的，但是当存在替代方案时最好避免使用触发器。
 
 
-## 形式关系查询语言（Formal Relational Query Language）
+
+## 形式关系查询语言
+
+关系型查询语言（如 SQL 语言）是基于形式模型的。常见的形式关系查询语言（Formal Relational Query Language）如下：
+
+- 关系代数（Relational Algebra）
+- 元组关系演算（Tuple Relational Calculus）
+- 域关系演算（Domain Relational Calculus）
 
 
 
 ### 关系代数
 
+关系代数（Relational Algebra）是一个过程的查询语言。它有一组操作组成，把一个和多个关系作为输入，产生一个新的关系作为结果。
+
+基本的操作有：select，project，union，set difference，Cartesian product，rename。
+
+其它操作：set intersection，natural join，assignment。
+
+select
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/select.png" class="img-center">
+
+
+
+project
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/project.png" class="img-center">
+
+
+
+set union
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/set-union.png" class="img-center">
+
+
+
+set intersection
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/set-intersection.png" class="img-center">
+
+
+
+set difference
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/set-difference.png" class="img-center">
+
+
+
+Cartesian product
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/cartesian-product.png" class="img-center">
+
+
+
+rename
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/rename.png" class="img-center">
+
+
+
+natural join
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/natural-join.png" class="img-center">
+
+
+
+assignment
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/assignment.png" class="img-center">
+
+
+
+left/right/full outer join
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/left-join.png" class="img-center">
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/right-join.png" class="img-center">
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/full-join.png" class="img-center">
+
+
+
+arithmetic operations
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/arithmetic-operations.png" class="img-center">
+
+Aggregate functions
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/aggregate-functions-1.png" class="img-center">
+
+<img src="https://taogenjia.com/img/database-system-2-realtional-database/aggregate-functions-2.png" class="img-center">
+
+
+
 ### 元组关系演算
+
+元组关系演算（Tuple Relational Calculus）是一个非过程查询语言。一个元组关系演算的查询表示形式如下：
+
+```
+{t | P(t)}
+```
+
+t：表示所有的元组
+
+P：表示断言。
+
+t[A]：表示元组t中的属性A。
+
+t ∈ A：表示元组 t 在关系 r 中。
+
+元组关系演算查询表达式的使用例子：
+
+```
+{t | t ∈ instructor ∧ t[salary] > 80000}
+```
+
+```
+{t | ∃ s ∈ instructor (t[ID] = s[ID] ∧ s[salary] > 80000)}
+```
+
+```
+{t | ∃ r ∈ student (r[ID] = t[ID]) ∧
+	( ∀ u ∈ cour se (u[dept name] = “ Biology” ⇒
+		∃ s ∈ takes (t[ID] = s[ID]
+		∧ s[course id] = u[course id]))}
+```
+
+
 
 ### 域关系演算
 
+域关系演算（Domain Relational Calculus）是另一种关系演算的查询语言。它的表达形式如下：
+
+```
+{< x1, x2,..., xn > | P(x1, x2,..., xn)}
+```
+
+x1, x2,..., xn 表示域变量，P 表示操作公式。
+
+使用例子：
+
+```
+{< i, n, d,s > | < i, n, d,s > ∈ instructor ∧ s > 80000}
+```
+
+```
+{< n > | ∃ i, d,s (< i, n, d,s > ∈ instructor ∧ s > 80000)}
+```
 
 
-//ending
+
+无论是关系型代数，元组关系演算，还是域关系演算，每一个表达式都是由若干个基本操作组成的，所以，这三种形式关系查询表达式，可以互相转换。
+
+在数据库系统中，一个查询的 SQL 语句，必须先转换为关系代数查询表达式，然后执行相关查询操作。关系代数查询表达式是过程的，它明确了执行哪些基本的操作。
 
 
+
+## 小结
+
+SQL DDL
+
+- 定义表，完整性约束约束，参考完整性约束。
+- 添加/删除表字段、添加/删除表的约束。
+- 授权。
+- 定义存储过程、方法和触发器。
+
+SQL DML
+
+- 插入，修改，删除元组。
+
+SQL 查询
+
+- 基本的查询，select from where
+- 
 
 | 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数                 |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | -------------------------- |
