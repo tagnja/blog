@@ -102,7 +102,7 @@ SQL 语言由多个部分组成：
 - 每个关系的安全和授权信息。
 - 每个关系的物理存储结构。
 
-#### 基本类型
+**基本类型**
 
 SQL 标准支持大量的内置类型，包括：
 
@@ -122,7 +122,7 @@ char 和 varchar 等类型的字符串之间比较时，先转换为相同的长
 
 SQL 也支持 **nvarchar** 类型，它是字符串类型，它存储的是 Unicode 编码或者多语言数据。而 varchar存储的是 ASCII 数据。nvarchar 一个字符使用 2 个字节，varchar 一个字符使用 1 个字节。然而，很多数据库允许 Unicode （UTF-8）的数据存储在 varchar 类型中。
 
-#### 基本的模式定义
+**基本的模式定义**
 
 SQL 使用 create table 语句创建一个数据库的关系。如
 
@@ -172,7 +172,7 @@ alter table r drop A;
 
 基本的 SQL 查询语句有三个子句（Clause）：select，from 和 where。
 
-#### 一个关系中的查询
+**一个关系中的查询**
 
 使用 select from where 三个基本的子句进行单表查询
 
@@ -204,7 +204,7 @@ from instructor
 where dept_name = ’Comp. Sci.’ and salary > 70000;
 ```
 
-#### 多个关系的查询
+**多个关系的查询**
 
 典型的多个关系的 SQL 查询语句
 
@@ -223,7 +223,7 @@ where P;
 2. 基于步骤1产生的结果，使用 `where` 子句的断言进行筛选元组。
 3. 基于步骤2产生的结果，输出 `select` 子句指定的属性。
 
-#### 多个关系的连接查询
+**多个关系的连接查询**
 
 `natural join`：创建一个连接基于两个关系中相同名称的属性具有相同的属性值。连接后的关系中相同的属性只显示一次。`natural join` 一般默认是 inner join。
 
@@ -241,7 +241,7 @@ where P;
 
 ### 其它基本的 SQL 查询操作
 
-#### 重命名
+**重命名**
 
 `as` 关键字可以重命名结果关系中的属性名称，以及重命名 SQL 语句中的关系名称，如  `old-name as new-name`。新的名称可以称为**别名** （alias）。
 
@@ -251,7 +251,7 @@ from instructor as T, teaches as S
 where T.ID= S.ID;
 ```
 
-#### 字符串操作
+**字符串操作**
 
 **比较操作**：SQL 标准中字符串比较是区分大小写的，但是常见的数据库系统，如 MySQL 和 SQL Server 中不区分大小写。
 
@@ -269,7 +269,7 @@ where building like ’%Watson%’;
 
 **正则表达式**：SQL 标准支持比 `like` 操作更强大的模式匹配，在 SQL 中可以使用正则表达式。
 
-#### select 子句中的属性规范
+**select 子句中的属性规范**
 
 符号 `*` 再 `select` 子句中表示一个关系的所有属性。 
 
@@ -279,7 +279,7 @@ from instructor, teaches
 where instructor.ID= teaches.ID;
 ```
 
-#### 排序
+**排序**
 
 SQL 支持对一个关系中的元组进行排序，使用 order by 子句可以对查询结果的元组进行排序。
 
@@ -290,7 +290,7 @@ where dept name = ’Physics’
 order by name;
 ```
 
-#### where 子句的断言
+**where 子句的断言**
 
 SQL 中的 where 子句支持 `between` 操作符进行比较断言。between 可以代替 算术操作符 `>=`, `<=`
 
@@ -324,15 +324,15 @@ where semester = ’Spring’ and year= 2010);
 
 Null 值在关系型操作中是一个特殊问题，Null 值表示的是未知或不存在。Null 值在算术操作，比较操作，和逻辑操作视为特殊情况。可以把 Null 值理解为一个未知的值。
 
-#### 算术操作
+**算术操作**
 
 算术操作中包含 null 的表达式，返回结果为 null。如 `null + 5  // result is null`. 表示的是： 未知 + 5，结果是未知。
 
-#### 比较操作
+**比较操作**
 
 比较操作包含 null 时，结果既不是 true 也不是 false，而是未知。返回结果为 null。如 `1 < null //result is null`。表示的是：1 是否小于未知，结果是未知。
 
-#### 逻辑操作
+**逻辑操作**
 
 `where` 子句中的逻辑连接是出现 null。
 
@@ -347,7 +347,7 @@ select true and null; // return null
 select true or null; //return true
 ```
 
-#### 测试属性值是否为空
+**测试属性值是否为空**
 
 使用 `is null` 和 `is not null` 来测试值是否为空。不能用等号来测试属性属性是否为空，因为 `null = null // result is null`。一个 SQL 例子如下：
 
@@ -371,7 +371,7 @@ where salary is null;
 
 sum 和 avg 函数的输入必须是数字。其它的函数输入的可以是数字和非数字，如字符串。
 
-#### 基本的聚合
+**基本的聚合**
 
 ```
 select avg (salary)
@@ -390,7 +390,7 @@ select count (*)
 from course;
 ```
 
-#### 分组聚合
+**分组聚合**
 
 聚合函数不仅可以使用在单个元组集合中，也可以使用在多个元组集合中。SQL 使用 **group by 子句**进行分组。它根据 group by 子句指定的所有属性的相同属性值进行分组。一个分组聚合的 SQL 例子：
 
@@ -404,7 +404,7 @@ group by dept_name;
 >
 > 原因：对某些属性进行分组，目的只能是计算这些分组的聚合函数结果。在分组查询的结果中，分组的属性和未分组的属性是一对多的关系，无法在一行中表示，所以 select 子句中不允许出现不是 group by 的属性。
 
-#### Having 子句
+**Having 子句**
 
 having 子句使用聚合函数对分组进行过滤。SQL 语句例子如下：
 
@@ -423,7 +423,7 @@ having avg(salary) > 42000;
 - 根据 having 子句过滤分组。
 - 根据 select 子句中的聚合函数，得出每个分组的查询结果。
 
-#### 聚合函数中的 Null 和 Boolean 值
+**聚合函数中的 Null 和 Boolean 值**
 
 Null 值
 
@@ -442,7 +442,7 @@ from instructor;
 
 嵌套的子查询可以嵌套在 select 子句，from 子句，where 子句和 having 子句。
 
-#### 集合成员（Set Membership）
+**集合成员（Set Membership）**
 
 `in` 关键字可以测试一个值是否是一个集合的成员。这个集合是由 select 子句产生的。测试不是一个集合成员使用 `not in`关键字。
 
@@ -454,7 +454,7 @@ where course_id in (select course id
 		where semester = ’Spring’ and year= 2010);
 ```
 
-#### 集合对比（Set Comparison）
+**集合对比（Set Comparison）**
 
 测试一个值至少大于一个集合中的一个值使用 `> some` 关键字，测试大于一个集合中的所有值使用 `> all` 关键字。这个集合同样是 select 子句产生的。
 
@@ -466,7 +466,7 @@ where salary > some (select salary
 		where dept_name = ’Biology’);
 ```
 
-#### 测试空关系
+**测试空关系**
 
 使用 `exists` 关键字测试一个子查询的结果是否由存在元组。如果子查询结果为空，则返回 false，不为空则返回 true。
 
@@ -480,7 +480,7 @@ where semester = ’Fall’ and year= 2009 and
 		S.course_id= T.course_id);
 ```
 
-#### 测试是否存在重复元组
+**测试是否存在重复元组**
 
 使用 `unique` 关键字可以测试子查询是否存在重复的元组。存在重复返回 true，不存在则返回 false。`not unique` 测试是否不存在重复。
 
@@ -493,7 +493,7 @@ where not unique (select R.course_id
 		R.year = 2009);
 ```
 
-#### 子查询在 from 子句
+**子查询在 from 子句**
 
 ```
 select dept_name, avg_salary
@@ -503,7 +503,7 @@ from (select dept_name, avg (salary) as avg_salary
 where avg_salary > 42000;
 ```
 
-#### with 子句
+**with 子句**
 
 with 子句可以定义一个临时的关系。
 
@@ -516,7 +516,7 @@ from department, max_budget
 where department.budget = max_budget.value;
 ```
 
-#### 标量子查询
+**标量子查询**
 
 SQL 允许子查询嵌入 select 子句中，子查询必须返回一个元组中的一个属性，这个子查询称为标量子查询（ Scalar Subqueries）
 
@@ -575,7 +575,7 @@ set salary= salary * 1.05;
 
 上面介绍的 natural join 是根据相同的属性名称自动 inner join。SQL 支持明确指定 join 的断言，即指定 join 的属性。除了 inner join 还有 outer join。如果没有指定是 inner 还是 outer，一般 join 是指 inner join。
 
-#### join 条件
+**join 条件**
 
 使用 `on` 关键字可以指定 join 要关联的属性。
 
@@ -584,7 +584,7 @@ select *
 from student join takes on student.ID= takes.ID;
 ```
 
-#### outer join
+**outer join**
 
 inner join 取的是两个关系表属性的交集，outer join 可以取某一个关系表的全部元组，或者两个关系表的全部元组，没有关联的元组其它属性用 null 表示。
 
@@ -628,7 +628,7 @@ where student.ID= takes.ID;
 
 有时我们不希望用户看到全部的逻辑模型。出于安全考虑我们需要对用户隐藏一些数据。我们可以创建一个个性化的关系集合给用户查询，而不用整个逻辑模型。SQL 允许一个通过一个查询定义一个虚拟关系表。这个关系包含查询的结果。虚拟关系不是预先计算和存储的，而是每当使用虚拟关系时通过执行查询计算的。**视图**（View）不是逻辑模型的一部分，而是一个虚拟关系使用户可见的。
 
-#### 视图的定义
+**视图的定义**
 
 使用 `create view` 命令定义视图。表达式语法格式如下：
 
@@ -644,7 +644,7 @@ select ID, name, dept_name
 from instructor;
 ```
 
-#### 使用视图
+**使用视图**
 
 一旦我们定义了一个视图，我们可以使用视图名称作为一个虚拟关系。查询视图和查询正常的关系表是一样的。
 
@@ -654,7 +654,7 @@ from faculty
 where name= ’Watson’;
 ```
 
-#### 物化视图
+**物化视图**
 
 一些数据库系统允许视图关系被存储，当实际的关系改变时，视图是更新的，这样的视图称为**物化的视图**（Materialized View）。保持物化的视图更新的过程称为**物化视图维护**（Materialized View Maintenance），简称**视图维护**。
 
@@ -662,7 +662,7 @@ where name= ’Watson’;
 
 如果用户频繁的使用视图，物化视图是有益的。视图可以快速的响应查询，避免读取大量的关系。物化视图可以带来好处，但也需要考虑它的不利因素，如存储空间的花费和视图更新操作需要的性能消耗。
 
-#### 更新视图
+**更新视图**
 
 直接修改视图关系一般是不允许的。有些数据库允许更新视图。
 
@@ -682,7 +682,7 @@ where name= ’Watson’;
 
 完整性约束通常是数据库模式（Schema）设计过程的一部分。完整性约束的声明是 `create table` 创建关系的一部分。完整性约束可以使用 `alter table <table-name> add constraint` 语句添加到已存在的关系中，当 alter 命令执行时，系统第一次会验证当前关系是否满足这个约束，不满足则拒绝这个添加约束命令。
 
-#### 单表的完整性约束
+**单表的完整性约束**
 
 单表的完整性约束有：
 
@@ -696,7 +696,7 @@ phone varchar(15) not null unique
 age int check (age > 18)
 ```
 
-#### 参考完整性约束
+**参考完整性约束**
 
 参考完整性（Referential Integrity）它确保出现在一个关系中指定的属性值，也出现在另一个关系中。
 
@@ -722,7 +722,7 @@ SQL 也允许 foreign key 子句指定其它非 cascade 的动作。如使用 se
 
 外键属性允许 Null 值，null 值自动满足参考完整性约束。
 
-#### 复杂的检查条件和断言
+**复杂的检查条件和断言**
 
 SQL 支持**子查询在 check 子句**中，如
 
@@ -748,7 +748,7 @@ create assertion <assertion-name> check <predicate>;
 
 除了整数，浮点数和字符类型，SQL 还支持其它的内置数据类型。
 
-#### SQL 中的日期和时间类型
+**SQL 中的日期和时间类型**
 
 - date：包含年月日等信息。
 - time：包含时分秒。
@@ -768,7 +768,7 @@ SQL 定义了一些函数取获取当前日期和时间。如，current_date()�
 
 SQL 允许时间日期数据使用算术和比较操作。如 `select x - y` , `wher x < y`
 
-#### 默认值
+**默认值**
 
 SQL 允许指定一个属性的默认值，通过 `default` 关键字进行指定。当插入语句没有给一个属性赋值时，则使用指定的默认值。
 
@@ -776,7 +776,7 @@ SQL 允许指定一个属性的默认值，通过 `default` 关键字进行指�
 age int default 18
 ```
 
-#### 创建索引
+**创建索引**
 
 索引（Index）是一个数据结构允许高效地查找属性值，而不用扫描一个关系中的所有元组。一个广泛使用的索引类型为 B+树索引。SQL 语言没有正式的定义索引的语法，大多数数据库系统支持索引创建语言如下：
 
@@ -784,7 +784,7 @@ age int default 18
 create index studentID_index on student(ID);
 ```
 
-#### 大对象类型
+**大对象类型**
 
 很多当前的数据库应用需要存储特别大的属性，如一张图片，视频剪辑等等。SQL 提供大对象数据类型： `clob` (character data)和 `blob` (binary data)，其中字母 lob 表示 Large Object。
 
@@ -796,7 +796,7 @@ movie blob(2GB)
 
 取出一个完整的大对象到内存中是不高效的或不实际的。SQL query 将取出大对象的 locator（定位器），通过 locator 处理对象。
 
-#### 用户自定义的类型
+**用户自定义的类型**
 
 SQL 支持创建用户自定义类型。有两种格式的类型：distinct types 和 structured data types。使用 `create type` 子句定义一个类型：
 
@@ -804,7 +804,7 @@ SQL 支持创建用户自定义类型。有两种格式的类型：distinct type
 create type Dollars as numeric(12,2) final;
 ```
 
-#### 创建表扩展
+**创建表扩展**
 
 SQL 支持创建一个与某个表有相同的 schema 的表，使用 `create table ... like` 语句。
 
@@ -824,7 +824,7 @@ with data;
 
 with data 表示包含数据，然而很多数据库实现默认包含数据，with data 子句可以忽略。
 
-#### Schema, Catalogs, and Environments
+**Schema, Catalogs, and Environments**
 
 数据库系统提供了一个三层等级的命名关系。顶层是 catalog，它包含下一层的 schema，每个 schema 包含多个 SQL 对象如关系表，视图等。
 
@@ -836,7 +836,7 @@ with data 表示包含数据，然而很多数据库实现默认包含数据，w
 
 SQL 标准包含的权限（Privilege）有：select，insert，update和delete。所有权限使用 all privileges 表示。当一个用户执行一个 查询或更新时，系统授权检查该用户是否有这个权限。如果没有则拒绝执行。最终的权限是通过数据库管理员给定的。
 
-#### 权限的授与和撤销
+**权限的授与和撤销**
 
 `grant` 语句可以用来授予权限，权限可以授予给用户和角色。`grant` 语句格式如下：
 
@@ -860,7 +860,7 @@ revoke select on department from Amit, Satoshi;
 revoke update (budget) on department from Amit, Satoshi;
 ```
 
-#### 角色
+**角色**
 
 在现实生活中，一些用户有相同的权限。管理源需要重复的为某些用户授予权限。为了解决这个问题可以使用角色来给用户授权。先把权限授予给角色，然后把角色授予给用户。这样可以方便的管理用户权限。
 
@@ -883,7 +883,7 @@ to instructor;
 grant instructor to dean;
 ```
 
-#### 权限的传递
+**权限的传递**
 
 一个用户的权限授予给另一个用户。使用 `with grant option` 子句，如
 
@@ -906,7 +906,7 @@ SQL 是一个强大的声明式查询语言。SQL 不是图灵完备的，所以
 - 动态的 SQL（Dynamic SQL）。程序在运行时构造一个 SQL 语句。通过应用程序接口提交 SQL 语句给数据库服务器，得到返回结果。常见的应用程序接口，如 JDBC 是 Java 语言连接数据库的应用程序接口。ODBC 是 C 语言的应用程序接口。
 - 嵌入的 SQL（Embedded SQL）。在程序编译之前，使用预处理器将 SQL 语句给数据库系统预编译和优化，将程序中的 SQL 语句代替合适的代码。
 
-#### JDBC
+**JDBC**
 
 **JDBC** （Java Database Connectivity）标准定义了一个应用程序接口（API），让 Java 程序能够连接数据库服务器。不同的数据库系统有不同的 JDBC 实现。
 
@@ -935,7 +935,7 @@ JDBC 主要的操作：
 
 SQL 标准定义了存储过程的语法标准，但是大部分数据库的实现是不标准的版本。
 
-#### 声明和调用方法和存储过程
+**声明和调用方法和存储过程**
 
 SQL 标准的方法和存储过程例子：
 
