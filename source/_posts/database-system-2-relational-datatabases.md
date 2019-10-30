@@ -1214,4 +1214,7 @@ SQL DML 的查询总结
 
 
 
-（全文完）
+## References
+
+[1] Database System Concept (6th) by Avi Silberschatz, Henry F. Korth, and S. Sudarshan
+
