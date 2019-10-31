@@ -1208,9 +1208,9 @@ SQL 的细节实在是太多了，我们来小结一下。
 
 **SQL DML 的查询总结**
 
-| 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数                 |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | -------------------------- |
-| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />natural join, inner join, left join, right join, full join <br />union, intersect, except <br />between, in <br />like<br />and, or, not <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() | upper()<br />lower()<br /> |
+| 子句                                                         | 关键字                                                       | 聚合函数                                            | 字符串函数                                                   |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------------------ |
+| select<br />from<br />where<br />group by<br />having<br />order by | as<br />distinct, all <br />natural join, inner join, left join, right join, full join <br />union, intersect, except <br />between, in <br />like<br />and, or, not <br />limit | avg()<br />min()<br />max()<br />sum()<br />count() | length()<br />concat(str1, str2, ...)<br />concat_ws(separator, str1, str2, ...)<br />trim()<br />locate()<br />substring()<br />upper()<br />lower()<br />repeat()<br />reverse()<br />replace()<br />ascii()<br />bin()<br />hex() |
 
 
 
