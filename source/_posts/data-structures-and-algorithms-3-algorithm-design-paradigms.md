@@ -114,7 +114,7 @@ int fib(int n)
 
 ### 介绍贪心算法
 
-贪心算法（Greedy Algorithm）是一个算法范式。它在每个阶段做出局部最优选择，以寻求全局最优。
+贪心算法（Greedy Algorithm）是一个算法设计范式。它在每个阶段做出局部最优选择，以寻求全局最优。
 
 ### 解题步骤
 
@@ -130,6 +130,10 @@ int fib(int n)
 
 回溯是解决约束满足问题的重要工具。它可以快速测试是否能得出满足条件的有效结果。如填字游戏，数独，棋盘等问题。回溯算法通常比对所有对象的暴力枚举（Brute Force Enumeration）更有效率，因为它通过一个测试减少了很多候选对象。
 
+常见类型：
+
+- 路径选择。如：最短路径，是否存在路径，打印所有存在路径。这类问题的背景：迷宫，国际象棋，二维数组，图。
+
 ### 解题步骤
 
 1\. 判断是否是一个回溯问题。
@@ -140,7 +144,7 @@ int fib(int n)
 
 ### 例子
 
-N Quuens problem.
+N Queens problem.
 
 ```cpp
 #include <iostream>
@@ -294,7 +298,7 @@ dist[i][j] = | dist[i - 1][j - 1]              when X[i-1] == Y[j-1]
 
 
 
-References
+## References
 
 [1] [Dynamic programming - Wikipedia](https://en.wikipedia.org/wiki/Dynamic_programming)
 
