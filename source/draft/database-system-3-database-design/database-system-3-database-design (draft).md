@@ -112,6 +112,16 @@ E-R 图使用关系集到实体集之间的有向线（Directed Line）和无向
 
 更复杂的映射基数使用 l..h 表示，l 表示最小的基数，h 表示最大的基数。基数的值可以是 0 到无穷， * 表示无穷。常见的表示，如 1..1，0..* 。左边线上的基数表示右边实体集的参与数量，反之亦然。
 
+**弱实体集**
+
+一个实体集没有足够的属性去组成一个主键，即没有主键的实体集称为**弱实体集**（Week Entity Sets）。一个实体必须依赖另一个实体的属性才能完整，即实体需要添加其它实体的属性才能被唯一标识或者说能实现主键。
+
+为了使弱实体集有意义，它必须关联另一个实体集，称为**标识实体集**（Identifying Entity Set）或所有者实体集（owner entity set）。每个弱实体必须与一个标识实体相关联； 就是说，弱实体集依赖于标识实体集而存在。 标识实体集拥有它标识的弱实体集。 将弱实体集与标识实体集相关联的关系称为标识关系（Identifying Relationship）。如 section（课时） 必须依赖 course （课程）的 cource_id。
+
+<img src="https://taogenjia.com/img/database-system-3-database-design/database-system-3-database-design-4-week-entity-set.png" class="img-center" />
+
+
+
 更多的 E-R 图的表示，如：
 
 - 组合属性（Composite Attributes）
@@ -120,7 +130,6 @@ E-R 图使用关系集到实体集之间的有向线（Directed Line）和无向
 
 - 非二元关系集（Nonbinary Relationship Sets）
 
-- 弱实体集（Week Entity Sets）
 
 这些 E-R 表示的内容，不详细解释了，如有兴趣可查阅文章最后给出的参考书籍。
 
@@ -140,11 +149,99 @@ E-R 模型中的一个 Entity Set 的每个属性对应一个 Relation 的每个
 
 **强实体集的复杂属性的表示**
 
+组合属性（Composite Attributes）。组合属性中的每一个属性作为一个单独的属性。
 
+多值属性（Multivalued Attributes）。为多值属性单独创建一个表。如一个教师有多个手机号码，可以单独创建一个表 `instructor_phone (ID, phone number)`。
+
+派生属性（Derived Attributes）。派生是属性可以简单的对应表的属性。
+
+**弱实体集的表示**
+
+把依赖的实体集的属性与当前表属性组合成主键，同时为依赖的属性创建一个外键约束。
+
+**关系集的表示**
+
+- many-to-many。组合所有参与实体集的主键作为关系集的主键。
+
+- one-to-one。任意选一个实体集的主键作为关系集的主键。
+
+- many-to-one or one-to-many。选择 many 那一边的实体集的主键作为关系集的主键。
+- n-ary without any arrows edges。组合所有参与实体集的主键作为关系集的主键。
+- n-ary with an arrow edge。组合所有不在箭头那边的实体集的主键作为关系集的主键。
+
+**Schema 的冗余**
+
+连接弱实体集和强实体集的关系集的 schema 使多余的。E-R 图中的这一类关系集不需要出现在数据库关系型模型中。
+
+**Schema 的结合**
+
+one-to-one 中的关系集，可以结合在任一实体集的 schema 中。
+
+many-to-one or one-to-many 的关系集，可以结合在 many 那边的实体集的 schema 中。
+
+many-to-many 的关系集一般无法与实体集结合。
+
+一个实体集使用外键关联另一个实体集。
+
+不完全参与关系结合后的实体集，可以使用 null 表示不存在的关联。
+
+ 
 
 ### E-R 模型设计中的问题
 
+实体集和关系集不精确，可能有大量不同的方式定义实体集和关系集。我们讨论一些基本的 E-R 模型设计的问题。
+
+**Entity Sets versus Attributes**
+
+一个实体有多值属性，这个多值属性是设计为一个属性还是一个实体集？
+
+这需要看具体情况，如 instructor 实体集有一个多值属性 phone_number。如果这个多值属性的每个属性值需要维护额外的信息，如一个手机号码需要指定一个地点属性。这种情况下，多值属性需要设计成一个实体集 inst_phone(phone_number, location)， inst_phone 实体集与 instructor 实体集建立一个关系集。
+
+**Entity Sets versus Relationship Sets**
+
+一个对象应该表示为实体集还是关系集，这不总是很清晰的。
+
+如 学生（student） 实体集和课时（section）实体集之间的对象应该如何表示？可以表示为一个关系 take。也可以表示为 一个实体登记（registration） 和两个关系 section_reg 和 student_reg。
+
+一个对象是使用关系集还是实体集一个重要的参考准则：关系集是实体集之间的动作。
+
+**Binary versus n-ary Relationship Sets**
+
+多元关系集应该使用二元关系集代替。
+
+**Placement of Relationship Attributes**
+
+关系集的属性在结合的实体集中。如 instructor 和 student 之间是 one-to-many 的关系，其中关系集 advisor 有一个属性 date 表示成为一个学生的指导者的日期。在结合的时候这个属性可以放在 student 实体集中。
+
 ### 扩展的 E-R 特性
+
+**Specialization**
+
+实体集包含实体子集，这些子集在某种程度上不同于集合中的其它实体。
+
+设计子集实体集的过程称为 Specialization。一个例子如下图所示：
+
+<img src="https://taogenjia.com/img/database-system-3-database-design/database-system-3-database-design-5-specialization.png" class="img-center" />
+
+**Generalization**
+
+Generalization 是 specialization 的逆过程。不同的实体集通过共同的属性提取为父集实体集。
+
+**Attribute Inheritance**
+
+Specialization 和 Generalization 中的高层的实体集被底层实体集继承。
+
+**Constraints on Generalizations**
+
+////////////////////////////////////////////////////////////////////////（TODO）
+
+
+
+**Aggregation**
+
+E-R 模型中无法表示关系之间的关系。Aggregation 是一个把关系集作为更高层级的实体集的抽象。一个例子如下图所示：
+
+<img src="https://taogenjia.com/database-system-3-database-design/database-system-3-database-design-6-aggregation.png" class="img-center" />
 
 ### 其它的数据建模方式
 
