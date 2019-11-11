@@ -231,27 +231,87 @@ Generalization 是 specialization 的逆过程。不同的实体集通过共同�
 
 Specialization 和 Generalization 中的高层的实体集被底层实体集继承。
 
-**Constraints on Generalizations**
-
-////////////////////////////////////////////////////////////////////////（TODO）
-
-
-
 **Aggregation**
 
 E-R 模型中无法表示关系之间的关系。Aggregation 是一个把关系集作为更高层级的实体集的抽象。一个例子如下图所示：
 
 <img src="https://taogenjia.com/database-system-3-database-design/database-system-3-database-design-6-aggregation.png" class="img-center" />
 
+**Extended E-R Features Reduction to Relation Schemas**
+
+E-R 模型扩展特性 Generalization 如何在关系型 Schema 中表示
+
+第一种方式是，为更高层的实体集创建一个 schema，为每一个低层的实体集创建一个 schema，低层的 schema 属性由它特有的属性和高层的主键组成，添加一个外键约束，底层的 schema 主键参考高层 schema 的主键。如一个高层实体集下的两个低层实体集的关系型 schema 的例子：
+
+```
+person(ID, name, street, city)
+employee(ID, salary)
+student(ID, tot_cred)
+```
+
+第二种方式是，当实体集只有两层，而且分化是完全的。可以不创建高层的 schema，只是创建第二层的 schema，底层的 schema 的属性由高层的属性和自己特有的属性组成。如下：
+
+```
+employee(ID, name, street, city, salary)
+student(ID, name, street, city, tot_cred)
+```
+
+上面两种方式都是用高层的实体集的主键作为它们自己的主键。第二种方式的缺点是：1）没有创建高层的实体集的 schema，当一个关系集与高层实体集关联时，无法参考这个实体集。避免这个问题可以创建一个 person 表，只包含它的主键。2）如果是 overlapping generalization 即一个实体可以同时作为多个子对象，那么一些值会重复的存储在多个表中。3）如果 disjoint 是不完整的，如有的对象不属于任何一个子对象，那么第二种方式无法表示这个对象。
+
+E-R 模型扩展特性 Aggregation 如何在关系型 Schema 中表示
+
+把 aggregation 当作一个实体集。aggregation 的主键就是关系集的主键。
+
 ### 其它的数据建模方式
+
+E-R 图没有一个全球统一的标准，不同的地方可能使用不同的标志图形。E-R 图可以帮助我们对系统组件的数据表现进行建模。但是数据表现只有系统设计的一部分，系统设计还需要设计，如用户和系统的交互，系统的功能模块的规范等等。我们可以使用 UML （Unified Modeling Language）来表示系统的更多的设计。
 
 ### 数据库设计的其它方面
 
+Schema 的设计只是数据库设计中的一部分。其它方面的设计也不可忽略。
 
+- 数据约束和关系型数据库设计。除了属性和关系，还是大量的数据约束需要设计，如主键约束，外键约束，检查约束，断言，和触发器等等。
+- 使用需求。性能要求，如吞吐量（Throughput），响应时间（Response Time）。
+- 数据库授权。
+- 数据流工作流。
+- 考虑未来可能的变化。
 
 ## 关系型数据库设计和标准化
 
-### 好的关系设计的特点
+关系型数据库设计的目标是生成一组关系 schema 使得存储信息没有不必要的冗余，以及高效地取出信息。实现这个目标可以通过设计一个满足多个**范式**（Normal Form）的 schema。
+
+这里我们将基于**函数依赖**（Functional Dependencies）的概念介绍一种正式的关系数据库设计方法。 然后，我们根据函数依赖和其他类型的数据依赖定义范式。
+
+### 好的关系型设计的特点
+
+一个好的关系型数据库设计。
+
+- 不能出现太多的数据冗余，需要将冗余的信息属性进行适当的分解。
+- 不能过度的分解，使得丢失信息完整性。
+
+关系型数据库设计的核心在于：在保证数据完整性的情况下，如何减少数据的冗余。以及如何在性能和冗余之间权衡。
+
+### Functional Dependencies
+
+在介绍泛型之前，我们需要先了解什么是 functional dependencies。
+
+notion
+
+functional dependencies
+
+trivial
+
+closure
+
+### Formal Forms
+
+
+
+
+
+---
+
+
 
 ### 原子域和第一范式
 
