@@ -293,21 +293,112 @@ Schema 的设计只是数据库设计中的一部分。其它方面的设计也�
 
 ### Functional Dependencies
 
-在介绍泛型之前，我们需要先了解什么是 functional dependencies。
+在介绍范式之前，我们需要先了解什么是**函数依赖**（functional dependencies）。
 
-notion
+**Notations**
 
-functional dependencies
+- 使用 Greek Letters 表示 Functional Dependency 中的一组属性。如 α, β。
+- 使用小写 Roman Letter 加上在小括号中的大写 Roman Ltter 表示一个 relation schema，如 r(R)，其中大写字母 R 表示一组属性。Greek Letter 表示的一组属性可能是部分属性或者全部属性，Roman Letter 一般表示全部属性。
+- 一组属性组成的 superkey 使用 K 表示。我们可以说 K 是 r(R) 的一个 superkey。
+- 我们使用小写表示关系。如 *instructor*。在定义或者算法中，使用单个字符表示关系，如 r 。
 
-trivial
+**Functional Dependencies**
 
-closure
+设 schema 为 r(R),  α ⊆ R 且 β ⊆ R，存在以下两个定义：
+
+- 给定的一个 r(R) 的实例中，如果实例中的所有的元组对 t1 和 t2 满足：若 t1[α] = t2[α], 那么 t1[β] = t2[β]，则可以说这个实例满足 functional dependency α ⟶ β。 
+- 如果在schema r(R) 的每一个合法的实例中，都满足一个 functional dependency α ⟶ β，则可以说这个 functional dependency α ⟶ β holds on schema r(R)。
+
+使用 functional-dependency notation 表示一个 schema 的 superkey：如果 functional dependency K ⟶ R holds on r(R)，则 K 是 r(R) 的一个 superkey。
+
+具体的例子使用 functional dependency 表示 `inst_dept(ID, name, salary, dept_name, building, budge)` 的 superkey：
+
+```
+ID, dept_name ⟶ name, salary, building, budget
+```
+
+Functional Dependencies 有两种用途：
+
+1. 测试给定的 instance of relation  是否满足一组给定的 functional dependencies F。
+2. 指定对合法的 relation 的约束。
+
+**Trivial**
+
+一些 functional dependencies 是 trivial，因为它们满足所有的 relations。例如 A ⟶ A，AB ⟶ A。如果 β ⊆ α，则 functional dependencies α ⟶ β 是 trivial。
+
+**Closure**
+
+所有可以从给定的 functional dependencies F 推导出来的 functional dependencies 集合称为 closure of F，表示为 F+。F+ 包含了所有 F 中的 functional dependencies。
+
+**Logically Implied**
+
+我们可以证明有其他的 functional dependencies 也 hold on the schema，我们可以说这些 functional dependencies 是 logically Implied by F。更正式地说，给定一个 schema r(R)，如果满足 F 每一个 r(R) 的实例也满足 ⨍，则一个 functional dependency ⨍ 是通过一组 functional dependencies F 逻辑暗示的（logically implied）。
+
+如给定一个 relation schema r (A, B, C, G, H, I) 和一组 functional dependencies：A ⟶ B, A ⟶ C, CG ⟶ H, CG ⟶  I, B ⟶ H。那么 A ⟶ H 是 logically Implied。
+
+closure of F 即 F+ 是一组所有被 F logically implied 地 functional dependencies。
+
+**Axioms**
+
+通过一些公理（Axioms）可以找到 logically implied functional dependencies。Armstrong‘s Axioms 表示如下：
+
+- Relexivity rule。If α is a set of attributes and β ⊆ α, then α → β holds.
+- Augmentation rule。 If α → β holds and γ is a set of attributes, then γα → γβ  holds.
+- Transitivity rule。 If α → β holds and β → γ holds, then α → γ holds.
+
+Armstrong’s Axioms ，它是 sound，因为它们不生成任何不正确的 functional dependencies。它是 complete，因为对于给定的一组 functional dependencies F 它可以生成所有的 F+。
+
+其它的公理
+
+- Union rule。 If α → β holds and α → γ holds, then α → βγ holds.
+- Decomposition rule。If α → βγ holds, then α → β holds and α → γ holds.
+- Pseudotransitivity rule。 If α → β holds and γβ → δ  holds, then αγ → δ holds.
+
+
 
 ### Formal Forms
 
+#### Atomic Domains and First Normal Form
 
+为了减少单个属性的数据冗余，对于组合属性，如 address 由 street，city，state 和 zip 等组成，我们创建要给表来表示这些属性。对于多值属性我们让每一个多值属性中的每一项作为一个单独的元组。
 
+在关系模型形式化属性没有任何子结构的概念。如果一个 domain 是不可再分的单元称这个 domain is atomic。我们定义：如果一个 relation schema R 中的所有属性的 domain 是 atomic，则称这个 schema R 是在 first normal form (1NF) 中的。
 
+#### Boyce-Codd Normal Form
+
+Boyce-Codd normal form (BCNF) 它可以基于 functional dependencies 消除所有的冗余。
+
+一个 relation schema 在 BCNF 中表示为一组 functional dependencies if 所有的 functional dependencies 在 F+
+
+如果对于来自 α → β, 其中 a ⊆ R, β ⊆ R  的 F+ 中的所有 functional dependencies 满足以下至少一项条件，则 relation schema R 的 functional dependencies F 在BCNF中：
+
+- α → β 是一个 trivial functional dependency。
+- α 是 schema R 的一个 superkey。
+
+一个 schema 不在 BCNF 中的例子：
+
+schema 为 inst_dept (ID, name, salary, dept_name, building, budget)
+
+dept_name → budget hold on inst_dept，它不是一个 trivial functional dependency，且 dept_name 不是一个 superkey。BCNF 的两个条件一个也不满足，所以 inst_dept 不再 BCNF 中。
+
+一个不在 BCNF 中的 schema 可以进行分解。分解为两个 schema 如下：
+
+- (α ∩ β)
+- (R - (β - α))
+
+注意其中 “-” 表示属性集之间的差集。
+
+#### Third Normal Form
+
+// TODO
+
+#### Second Normal Form
+
+// TODO
+
+#### Fourth Normal Form
+
+// TODO
 
 ---
 
