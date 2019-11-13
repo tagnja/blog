@@ -317,7 +317,7 @@ Schema 的设计只是数据库设计中的一部分。其它方面的设计也�
 - 使用 Greek Letters 表示 Functional Dependency 中的一组属性。如 α, β。
 - 使用小写 Roman Letter 加上在小括号中的大写 Roman Ltter 表示一个 relation schema，如 r(R)，其中大写字母 R 表示一组属性。Greek Letter 表示的一组属性可能是部分属性或者全部属性，Roman Letter 一般表示全部属性。
 - 一组属性组成的 superkey 使用 K 表示。我们可以说 K 是 r(R) 的一个 superkey。
-- 我们使用小写表示关系。如 *instructor*。在定义或者算法中，使用单个字符表示关系，如 r 。
+- 我们使用小写表示关系。如 instructor。在定义或者算法中，使用单个字符表示关系，如 r 。
 
 **Functional Dependencies**
 
