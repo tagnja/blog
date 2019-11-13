@@ -1,6 +1,6 @@
 # Database Design（draft）
 
-本篇将介绍数据库设计相关概念。主要分为两个部分：数据库概念设计和关系型数据库设计。它们分别对应的设计方法是 E-R 模型（Entity-Relationship Model）和标准化（Normalization）。
+本篇将介绍数据库设计相关的概念。主要分为两个部分：数据库概念模型设计和关系型数据库设计。它们分别对应的设计方法是 E-R 模型（Entity-Relationship Model）和标准化（Normalization）。
 
 
 
@@ -13,7 +13,7 @@
 **设计过程**
 
 - 需求分析阶段。与用户和领域专家交流，收集需求，充分地描述出预期的数据库用户需要的数据。这个阶段产出的是**用户需求的规范**。
-- 概念设计阶段。选择一个数据模型，将用户需求转换为数据库概念模式。这个阶段主要是专注于描述数据和数据之间的关系。用专业的概念的数据模型去描述数据结构，主要使用 entity-relationship model 和 normalization 方式去设计。这个阶段一般产出的是**实体关系图**（E-R图）。完整的概念设计 schema 还包含**功能需求规范**。用户对数据的操作类型，如修改，查询和取出具体的数据，删除数据。
+- 概念设计阶段。选择一个数据模型，将用户需求转换为数据库概念模式。这个阶段主要是专注于描述数据和数据之间的关系。用专业的、概念的数据模型去描述数据结构，主要使用 entity-relationship model 和 normalization 方式去设计。这个阶段一般产出的是**实体关系图**（E-R图）。完整的概念设计 schema 还包含**功能需求规范**。描述用户对数据的操作类型，如修改，查询和取出具体的数据，删除数据。
 - 逻辑设计阶段。将抽象的数据模型转换为数据库的实现。将概念模型转换为数据库系统使用的模型，如将 entity-relationship model 转换为 relational model。
 - 物理设计阶段。设计物理存储的细节。包括文件组织的形式和选择索引结构。
 
@@ -22,7 +22,7 @@
 **设计中常见的问题**
 
 - **冗余**（Redundancy）。冗余的信息表示可能导致重复的信息出现不一致。如一些过时的或错误的信息依然存在数据库中。信息应该准确的出现在一个地方。
-- **不完全**（Incompleteness）。一个坏的设计可能会使企业的某些方面难以建模或无法建模。不合理的分解关系的属性，导致难以插入一个新增的数据，或者必须其它属性设为 null。如没有单独的课程表，只有课程设置表，当新增课程时，无法插入课程属性到课程设置表。
+- **不完全**（Incompleteness）。一个坏的设计可能会使企业的某些方面难以建模或无法建模。不合理的分解关系的属性，导致难以插入一个新增的数据，或者必须其它属性设为 null。如，没有单独的课程表，只有课程设置表，当新增课程时，无法插入课程属性到课程设置表。
 
 
 
@@ -32,15 +32,17 @@ E-R 模型可以将现实世界中企业的含义和相互作用映射到一个�
 
 **Entity Sets**
 
-**实体**（Entity）是现实中的一个事情或一个**对象**，它是与其它对象有区别的，如大学中的一个人就是一个实体。一个实体有一组属性，它的属性值可以**唯一标识**一个实体。如，一个人可能有一个身份证号码属性，这个属性值可以唯一的标识一个人。一个实体可以是**具体的**，如一个人或一本书等，也可以是**抽象的**，如一个课程或一个机票预订等。**实体集**（Entity Set）是一组有相同类型的实体，它们共享相同的属性。
+**实体**（Entity）是现实中的一个事情或一个**对象**，每个对象是与其它对象有区别的。如大学中的一个人就是一个实体。一个实体有一组属性，它的属性值可以**唯一标识**一个实体。如，一个人可能有一个身份证号码属性，这个属性值可以唯一的标识一个人。一个实体可以是**具体的**，如一个人或一本书等，也可以是**抽象的**，如一个课程或一个机票预订等。
+
+**实体集**（Entity Set）是一组有相同类型的实体，它们共享相同的属性。
 
 **Relationship Sets**
 
-**关系**（Relationship）是几个实体之间的关联。如一个老师实体和一个学生实体之间有一个指导的关系。**关系集**（Relationship Sets）是一组相同类型的关系。多个实体集之间的关系总和构成了关系集。实体集之间的关联称为参与，如 实体集 E1，E2... 参与关系集 R。实体在关系中扮演的功能称为该实体的**角色**。
+**关系**（Relationship）是几个实体之间的关联。如一个老师实体和一个学生实体之间有一个指导的关系。
 
-相同的实体集之间的可能超过一个关系集。
+**关系集**（Relationship Sets）是一组相同类型的关系。多个实体集之间的关系总和构成了关系集。实体集之间的关联称为参与，如 实体集 E1，E2... 参与关系集 R。实体在关系中扮演的功能称为该实体的**角色**。
 
-两个实体集之间的称为**二元关系集**（Binary Relationship Set）。然而，关系集可能涉及超过两个实体集。参与一个关系集的实体集的数量称为**Degree** of the relationship set。二元关系集的 degree 是 2，三元关系集的 degree 是 3。
+相同的实体集之间的可能超过一个关系集。两个实体集之间的称为**二元关系集**（Binary Relationship Set）。然而，关系集可能涉及超过两个实体集。参与一个关系集的实体集的数量称为**Degree** of the relationship set。二元关系集的 degree 是 2，三元关系集的 degree 是 3。
 
 **Attributes**
 
@@ -72,7 +74,7 @@ E-R 模型中主要有两种约束：映射基数和参与约束。
 
 **Keys**
 
-一个 key （键）是一组属性能够区分不同的实体。Superkey 表示可以区分实体的一组属性。Candidate key 表示最小的 Superkey 即用来区分实体的最小的属性集。Primary key 与 candidate key 是相同的，只是在不同的地方的表述，Primary key 用在数据库的表述中，而另一个用在 E-R 模型中。
+一个 key （键）是能够区分不同的实体的一组属性。Superkey 表示可以区分实体的一组属性。Candidate key 表示最小的 Superkey 即用来区分实体的最小的属性集。Primary key 与 candidate key 是相同的，只是在不同的地方的表述，Primary key 用在数据库的表述中，而另一个用在 E-R 模型中。
 
 **去除冗余的属性**
 
@@ -88,13 +90,13 @@ E-R 图可以图形化地表示数据库地总体的逻辑结构。E-R 图简单
 
 E-R 图主要的组件有：
 
-- 长方形分为两部分的（Rectangle Divided）：用来表示实体集。
+- 分为两部分的长方形（Rectangle Divided）：用来表示实体集。
 - 菱形（Diamond）：表示关系集。
 - 没有划分的长方形（Undivided Rectangle）：表示一个关系集的属性。
 - 线（Line）：用来连接实体集和关系集。
 - 虚线（Dashed Line）：用来连接一个关系集的属性到另一个关系集。
 - 双线（Double Line）：用来指出一个实体集完全参与一个关系集。即表示参与约束。
-- 双线菱形（Double Diamond）：表示关系集被弱实体连接的。
+- 双线菱形（Double Diamond）：表示关系集是被弱实体连接的。
 
 - 实体集的主键属性用下划线标识。
 
@@ -104,7 +106,7 @@ E-R 图主要的组件有：
 
 
 
-**E-R 图表示映射基数**
+**E-R 图映射基数的表示**
 
 E-R 图使用关系集到实体集之间的有向线（Directed Line）和无向线（Undirected Line）来表示 one-to-one，one-to-many 等映射基数。有向线表示 one，无向线表示 many。如下 E-R 图表示 student 与 instructor 的 many-to-one 关系。
 
@@ -153,7 +155,7 @@ E-R 模型中的一个 Entity Set 的每个属性对应一个 Relation 的每个
 
 多值属性（Multivalued Attributes）。为多值属性单独创建一个表。如一个教师有多个手机号码，可以单独创建一个表 `instructor_phone (ID, phone number)`。
 
-派生属性（Derived Attributes）。派生是属性可以简单的对应表的属性。
+派生属性（Derived Attributes）。派生是属性可以简单的作为表的属性。
 
 **弱实体集的表示**
 
@@ -171,17 +173,19 @@ E-R 模型中的一个 Entity Set 的每个属性对应一个 Relation 的每个
 
 **Schema 的冗余**
 
-连接弱实体集和强实体集的关系集的 schema 使多余的。E-R 图中的这一类关系集不需要出现在数据库关系型模型中。
+连接弱实体集和强实体集的关系集的 schema 是多余的。E-R 图中的这一类关系集不需要出现在数据库关系型模型中。
 
 **Schema 的结合**
 
-one-to-one 中的关系集，可以结合在任一实体集的 schema 中。
+Schema 的结合表示：去除关系集，使它结合到实体集中。常见的结合如下：
 
-many-to-one or one-to-many 的关系集，可以结合在 many 那边的实体集的 schema 中。
+- one-to-one 中的关系集，可以结合在任一实体集的 schema 中。
 
-many-to-many 的关系集一般无法与实体集结合。
+- many-to-one or one-to-many 的关系集，可以结合在 many 那边的实体集的 schema 中。
 
-一个实体集使用外键关联另一个实体集。
+- many-to-many 的关系集一般无法与实体集结合。
+
+去除了关系集，一个实体集使用外键关联另一个实体集。
 
 不完全参与关系结合后的实体集，可以使用 null 表示不存在的关联。
 
@@ -189,7 +193,7 @@ many-to-many 的关系集一般无法与实体集结合。
 
 ### E-R 模型设计中的问题
 
-实体集和关系集不精确，可能有大量不同的方式定义实体集和关系集。我们讨论一些基本的 E-R 模型设计的问题。
+有时实体集和关系集是不明确的，可能有大量不同的方式定义实体集和关系集。我们讨论一些基本的 E-R 模型设计的问题。
 
 **Entity Sets versus Attributes**
 
@@ -199,15 +203,15 @@ many-to-many 的关系集一般无法与实体集结合。
 
 **Entity Sets versus Relationship Sets**
 
-一个对象应该表示为实体集还是关系集，这不总是很清晰的。
+一个对象应该表示为实体集还是关系集，有时候它是不明确的。
 
-如 学生（student） 实体集和课时（section）实体集之间的对象应该如何表示？可以表示为一个关系 take。也可以表示为 一个实体登记（registration） 和两个关系 section_reg 和 student_reg。
+如学生（student）实体集和课时（section）实体集之间的对象应该如何表示？可以表示为一个关系 take。也可以表示为 一个实体登记（registration） 和两个关系 section_reg 和 student_reg。
 
 一个对象是使用关系集还是实体集一个重要的参考准则：关系集是实体集之间的动作。
 
 **Binary versus n-ary Relationship Sets**
 
-多元关系集应该使用二元关系集代替。
+当存在多元关系集时，多元关系集应该使用二元关系集代替。
 
 **Placement of Relationship Attributes**
 
@@ -235,7 +239,7 @@ Specialization 和 Generalization 中的高层的实体集被底层实体集继�
 
 E-R 模型中无法表示关系之间的关系。Aggregation 是一个把关系集作为更高层级的实体集的抽象。一个例子如下图所示：
 
-<img src="https://taogenjia.com/database-system-3-database-design/database-system-3-database-design-6-aggregation.png" class="img-center" />
+<img src="https://taogenjia.com/img/database-system-3-database-design/database-system-3-database-design-6-aggregation.png" class="img-center" />
 
 **Extended E-R Features Reduction to Relation Schemas**
 
@@ -264,7 +268,7 @@ E-R 模型扩展特性 Aggregation 如何在关系型 Schema 中表示
 
 ### 其它的数据建模方式
 
-E-R 图没有一个全球统一的标准，不同的地方可能使用不同的标志图形。E-R 图可以帮助我们对系统组件的数据表现进行建模。但是数据表现只有系统设计的一部分，系统设计还需要设计，如用户和系统的交互，系统的功能模块的规范等等。我们可以使用 UML （Unified Modeling Language）来表示系统的更多的设计。
+E-R 图没有统一的标准，不同的地方可能使用不同的标识或图形。E-R 图可以帮助我们对系统组件的数据表现进行建模，但是数据表现只有系统设计的一部分，系统设计还需要设计，如用户和系统的交互，系统的功能模块的规范等等。我们可以使用 UML （Unified Modeling Language）来表示系统的更多的设计。
 
 ### 数据库设计的其它方面
 
@@ -276,11 +280,15 @@ Schema 的设计只是数据库设计中的一部分。其它方面的设计也�
 - 数据流工作流。
 - 考虑未来可能的变化。
 
+
+
+
+
 ## 关系型数据库设计和标准化
 
-关系型数据库设计的目标是生成一组关系 schema 使得存储信息没有不必要的冗余，以及高效地取出信息。实现这个目标可以通过设计一个满足多个**范式**（Normal Form）的 schema。
+关系型数据库设计的目标是生成一组关系 schema 使得存储信息没有不必要的冗余，以及高效地取出信息。实现这个目标可以通过设计一个满足**范式**（Normal Form）的 schema。
 
-这里我们将基于**函数依赖**（Functional Dependencies）的概念介绍一种正式的关系数据库设计方法。 然后，我们根据函数依赖和其他类型的数据依赖定义范式。
+我们将介绍一种基于**函数依赖**（Functional Dependencies）的正式的关系数据库设计方法。 然后，我们根据函数依赖和其他类型的数据依赖定义范式。
 
 ### 好的关系型设计的特点
 
@@ -304,14 +312,16 @@ Schema 的设计只是数据库设计中的一部分。其它方面的设计也�
 
 **Functional Dependencies**
 
-设 schema 为 r(R),  α ⊆ R 且 β ⊆ R，存在以下两个定义：
+表示一个 functional dependency 存在一个 schema 中的定义如下：
+
+设 schema 为 r(R),  α ⊆ R 且 β ⊆ R.
 
 - 给定的一个 r(R) 的实例中，如果实例中的所有的元组对 t1 和 t2 满足：若 t1[α] = t2[α], 那么 t1[β] = t2[β]，则可以说这个实例满足 functional dependency α ⟶ β。 
 - 如果在schema r(R) 的每一个合法的实例中，都满足一个 functional dependency α ⟶ β，则可以说这个 functional dependency α ⟶ β holds on schema r(R)。
 
 使用 functional-dependency notation 表示一个 schema 的 superkey：如果 functional dependency K ⟶ R holds on r(R)，则 K 是 r(R) 的一个 superkey。
 
-具体的例子使用 functional dependency 表示 `inst_dept(ID, name, salary, dept_name, building, budge)` 的 superkey：
+具体的例子：使用 functional dependency 表示 `inst_dept(ID, name, salary, dept_name, building, budge)` 的 superkey：
 
 ```
 ID, dept_name ⟶ name, salary, building, budget
@@ -319,12 +329,14 @@ ID, dept_name ⟶ name, salary, building, budget
 
 Functional Dependencies 有两种用途：
 
-1. 测试给定的 instance of relation  是否满足一组给定的 functional dependencies F。
+1. 测试给定的 relation 的一个实例是否满足一组给定的 functional dependencies F。
 2. 指定对合法的 relation 的约束。
 
 **Trivial**
 
-一些 functional dependencies 是 trivial，因为它们满足所有的 relations。例如 A ⟶ A，AB ⟶ A。如果 β ⊆ α，则 functional dependencies α ⟶ β 是 trivial。
+一些 functional dependencies 是 trivial，因为它们满足所有的 relations。例如 A ⟶ A，AB ⟶ A。
+
+Trivial functional dependencies 的定义：如果 β ⊆ α，则 functional dependencies α ⟶ β 是 trivial。
 
 **Closure**
 
@@ -336,11 +348,11 @@ Functional Dependencies 有两种用途：
 
 如给定一个 relation schema r (A, B, C, G, H, I) 和一组 functional dependencies：A ⟶ B, A ⟶ C, CG ⟶ H, CG ⟶  I, B ⟶ H。那么 A ⟶ H 是 logically Implied。
 
-closure of F 即 F+ 是一组所有被 F logically implied 地 functional dependencies。
+closure of F 即 F+ 是一组所有被 F logically implied 的 functional dependencies。
 
 **Axioms**
 
-通过一些公理（Axioms）可以找到 logically implied functional dependencies。Armstrong‘s Axioms 表示如下：
+通过一些公理（Axioms）可以找到一个relation schema 的 logically implied functional dependencies。Armstrong‘s Axioms 表示如下：
 
 - Relexivity rule。If α is a set of attributes and β ⊆ α, then α → β holds.
 - Augmentation rule。 If α → β holds and γ is a set of attributes, then γα → γβ  holds.
@@ -348,7 +360,7 @@ closure of F 即 F+ 是一组所有被 F logically implied 地 functional depend
 
 Armstrong’s Axioms ，它是 sound，因为它们不生成任何不正确的 functional dependencies。它是 complete，因为对于给定的一组 functional dependencies F 它可以生成所有的 F+。
 
-其它的公理
+其它的公理：
 
 - Union rule。 If α → β holds and α → γ holds, then α → βγ holds.
 - Decomposition rule。If α → βγ holds, then α → β holds and α → γ holds.
@@ -360,26 +372,28 @@ Armstrong’s Axioms ，它是 sound，因为它们不生成任何不正确的 f
 
 #### Atomic Domains and First Normal Form
 
-为了减少单个属性的数据冗余，对于组合属性，如 address 由 street，city，state 和 zip 等组成，我们创建要给表来表示这些属性。对于多值属性我们让每一个多值属性中的每一项作为一个单独的元组。
+为了减少单个属性的数据冗余，我们常用的方法是：对于组合属性，如 address 由 street，city，state 和 zip 等组成，我们创建一个单独的表来表示这些属性。对于多值属性，我们让每一个多值属性中的每一项作为一个单独的属性。
 
-在关系模型形式化属性没有任何子结构的概念。如果一个 domain 是不可再分的单元称这个 domain is atomic。我们定义：如果一个 relation schema R 中的所有属性的 domain 是 atomic，则称这个 schema R 是在 first normal form (1NF) 中的。
+在关系模型中，我们通过形式化（Formalize）来实现一个属性没有任何子结构。如果一个 domain 是不可再分的单元称这个 domain is atomic。我们定义：如果一个 relation schema R 中的所有属性的 domain 是 atomic，则称这个 schema R 是在 first normal form (1NF) 中的。
 
 #### Boyce-Codd Normal Form
 
-Boyce-Codd normal form (BCNF) 它可以基于 functional dependencies 消除所有的冗余。
+Boyce-Codd normal form (BCNF) 它消除了可以基于 functional dependencies 发现的所有数据冗余。但是可能存在一些其它类型的的冗余，需要用其它的方法来解决，如 multivalue dependencies。
 
-一个 relation schema 在 BCNF 中表示为一组 functional dependencies if 所有的 functional dependencies 在 F+
-
-如果对于来自 α → β, 其中 a ⊆ R, β ⊆ R  的 F+ 中的所有 functional dependencies 满足以下至少一项条件，则 relation schema R 的 functional dependencies F 在BCNF中：
+如果对于来自 α → β, a ⊆ R, β ⊆ R  的 F+ 中的所有 functional dependencies 满足以下至少一项条件，则 relation schema R 的 functional dependencies F 在BCNF中：
 
 - α → β 是一个 trivial functional dependency。
 - α 是 schema R 的一个 superkey。
 
+以上条件可以理解为：schema 中的任何 nontrivial functional dependency 的左侧必须是一个 superkey。
+
 一个 schema 不在 BCNF 中的例子：
 
-schema 为 inst_dept (ID, name, salary, dept_name, building, budget)
+```
+inst_dept (ID, name, salary, dept_name, building, budget)
+```
 
-dept_name → budget hold on inst_dept，它不是一个 trivial functional dependency，且 dept_name 不是一个 superkey。BCNF 的两个条件一个也不满足，所以 inst_dept 不再 BCNF 中。
+其中存在 dept_name → budget hold on inst_dept，由于它不是一个 trivial functional dependency，且 dept_name 不是一个 superkey。BCNF 的两个可选项一个也不满足，所以 inst_dept 不在 BCNF 中。
 
 一个不在 BCNF 中的 schema 可以进行分解。分解为两个 schema 如下：
 
@@ -388,37 +402,104 @@ dept_name → budget hold on inst_dept，它不是一个 trivial functional depe
 
 注意其中 “-” 表示属性集之间的差集。
 
+如 inst_dept (ID, name, salary, dept_name, building, budget) 中 α = dept_name, β = {building, budget}, α → β 不满足 BCNF，inst_dept 分解为：
+
+- (α ∩ β) = (dept_name, building, budget)
+- (R - (β - α)) = (ID, name, dept_name, salary)
+
+
+
 #### Third Normal Form
 
-// TODO
+Third Normal Form（3NF，第三范式）通过允许某些 nontrivial functional dependencies （其左侧不是 superkey）来稍微放松约束。
+
+如果对于来自 α → β, 其中 a ⊆ R, β ⊆ R  的 F+ 中的所有 functional dependencies 满足以下至少一项条件，则 relation schema R 的 functional dependencies F 在 3NF 中：
+
+- α → β 是一个 trivial functional dependency。
+- α 是 schema R 的一个 superkey。
+- β - α 中的每一个属性 A 是包含于 R 的 candidate key 中的。
+
+3NF 的定义前两个可选项是和 BCNF 一样的，它多给出了一个可选项。任何满足 BCNF 的 schema 也满足 3NF，BCNF 是更严格的 3NF。
+
+如，schema dept_advisor(s_ID, i_ID, dept_name)，存在下面的 functional dependencies：
+
+```
+i_ID → dept_name
+s_ID, dept_name → i_ID
+```
+
+可以看出 i_ID → dept_name 不在 BCNF 中。α = i_ID, β = dept_name, β - α = dept_name，因为 s_ID, dept_name → i_ID hold on dept_advisor，dpet_name 包含于 candidate key中，所以 dept_advisor 是在 3NF 中的。
+
+
+
+#### Multivalue Dependencies and Fourth Normal Form
+
+从某种意义上说，一些 relation schema 即使它们在 BCNF 中，似乎仍未得到足够的规范化（normalized），因为它们仍然遭受信息重复的问题。Multivalue dependencies 就是这一类的数据冗余问题，而 fourth normal form （4NF，第四范式）就是为了消除 multivalue dependencies 问题。
+
+Multivalue Dependencies（多值依赖）使用双箭头 “↠” 符号表示，如 A ↠ B。如果一个关系同时满足下面三个条件，则这个relation schema 存在 multivalue dependencies：
+
+- 一个属性 A 的值，对应多个属性 B 的值。
+- 关系表至少由 3 个属性。
+- 设关系表有三个属性分别为 A，B，C，属性 B 和 C 是独立的。
+
+如下列 enrolment 表存在多值依赖 s_id ↠ hobby。其中，s_id 表示学生ID，course 表示课程，hobby 表示爱好。
+
+| s_id | course  | hobby   |
+| ---- | ------- | ------- |
+| 1    | science | Cricket |
+| 1    | math    | Hockey  |
+| 1    | science | Hockey  |
+| 1    | math    | Cricket |
+
+消除多值依赖，将它分解为两个表。
+
+stu_course
+
+| s_id | cource  |
+| ---- | ------- |
+| 1    | science |
+| 1    | math    |
+
+stu_hobby
+
+| s_id | hobby   |
+| ---- | ------- |
+| 1    | Hockey  |
+| 1    | Cricket |
+
+
 
 #### Second Normal Form
 
-// TODO
+一个 schema 在 second normal form （2NF，第二范式）它需要满足以下条件：
 
-#### Fourth Normal Form
+- 它是在 1NF 中的。
+- 所有非键属性是完全 functional dependent on the primary key。
 
-// TODO
+如下 purchase_detail schema：
 
----
+```
+purchase_detail(customerID, storeID, purchase_location)
+```
+
+它的主键是 customerID 和 storeID。但存在 functional dependency storeID → purchase_location，storeID 不是完整的 primary key 所以 purchase_detail 不在 2NF 中。我们将 purchase_detail 进行分解使他满足 2NF：
+
+```
+purchase(customerID, storeID)
+store(storeID, purchase_location)
+```
 
 
 
-### 原子域和第一范式
+范式总结
 
-### 使用函数依赖进行分解
-
-### 函数依赖理论
-
-### 分解算法
-
-### 使用多值依赖的分解
-
-### 其它范式
-
-### 关系型数据库设计过程
-
-### 时态数据建模
+| 名称 | 定义                                                         |      |
+| ---- | ------------------------------------------------------------ | ---- |
+| 1NF  | 单个属性原子性，不可再分                                     |      |
+| 2NF  | 1. 满足 1NF 。2. 没有部分依赖。非键属性完全依赖于主键属性。  |      |
+| 3NF  | 1. 满足 2NF 。2. 没有传递依赖。每一个非 nontrivial functional dependency X → Y, X 是一个 superkey，或者 Y 是 prime attributes（part of candidate key）。 |      |
+| BCNF | 1. 满足 3NF。2. 每一个非 nontrivial functional dependency X → Y, X 是一个 superkey。 |      |
+| 4NF  | 1. 满足 BCNF。2. 没有 multivalue dependencies。              |      |
 
 
 
@@ -428,18 +509,14 @@ E-R 模型专注于实体和它们之间的关系，而标准化专注于去除�
 
 
 
-范式总结
-
-| 名称 | What |      |
-| ---- | ---- | ---- |
-| 1NF  |      |      |
-| 2NF  |      |      |
-| 3NF  |      |      |
-| BCNF |      |      |
-| 4NF  |      |      |
-
 
 
 ## References
 
 [1] Database System Concept (6th) by Avi Silberschatz, Henry F. Korth, and S. Sudarshan
+
+[2] [Second Normal Form](https://www.1keydata.com/database-normalization/second-normal-form-2nf.php)
+
+[3] [Normal Forms in DBMS - geeksforgeeks](https://www.geeksforgeeks.org/normal-forms-in-dbms/)
+
+[4] [Unicode Math Symbols](http://xahlee.info/comp/unicode_math_operators.html)
