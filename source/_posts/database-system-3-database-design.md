@@ -1,4 +1,13 @@
-# Database Design（draft）
+---
+title: 深入理解数据库系统（三）：数据库设计
+date: 2019-11-13 15:11:53
+categories: 
+- 计算机基础
+- 数据库系统
+tags: database
+---
+
+
 
 本篇将介绍数据库设计相关的概念。主要分为两个部分：数据库概念模型设计和关系型数据库设计。它们分别对应的设计方法是 E-R 模型（Entity-Relationship Model）和标准化（Normalization）。
 
@@ -370,15 +379,17 @@ Armstrong’s Axioms ，它是 sound，因为它们不生成任何不正确的 f
 
 ### Formal Forms
 
+常见的范式（Formal Forms）有：第一范式，第二范式，第三范式，BC 范式，和第四范式。
+
 #### Atomic Domains and First Normal Form
 
 为了减少单个属性的数据冗余，我们常用的方法是：对于组合属性，如 address 由 street，city，state 和 zip 等组成，我们创建一个单独的表来表示这些属性。对于多值属性，我们让每一个多值属性中的每一项作为一个单独的属性。
 
-在关系模型中，我们通过形式化（Formalize）来实现一个属性没有任何子结构。如果一个 domain 是不可再分的单元称这个 domain is atomic。我们定义：如果一个 relation schema R 中的所有属性的 domain 是 atomic，则称这个 schema R 是在 first normal form (1NF) 中的。
+在关系模型中，我们通过形式化（Formalize）来实现一个属性没有任何子结构。如果一个 domain 是不可再分的单元称这个 domain is atomic。我们定义：如果一个 relation schema R 中的所有属性的 domain 是 atomic，则称这个 schema R 是在 **First Normal Form** (1NF，第一范式) 中的。
 
 #### Boyce-Codd Normal Form
 
-Boyce-Codd normal form (BCNF) 它消除了可以基于 functional dependencies 发现的所有数据冗余。但是可能存在一些其它类型的的冗余，需要用其它的方法来解决，如 multivalue dependencies。
+**Boyce-Codd Normal Form** (BCNF) 它消除了可以基于 functional dependencies 发现的所有数据冗余。但是可能存在一些其它类型的的冗余，需要用其它的方法来解决，如 multivalue dependencies。
 
 如果对于来自 α → β, a ⊆ R, β ⊆ R  的 F+ 中的所有 functional dependencies 满足以下至少一项条件，则 relation schema R 的 functional dependencies F 在BCNF中：
 
@@ -411,7 +422,7 @@ inst_dept (ID, name, salary, dept_name, building, budget)
 
 #### Third Normal Form
 
-Third Normal Form（3NF，第三范式）通过允许某些 nontrivial functional dependencies （其左侧不是 superkey）来稍微放松约束。
+**Third Normal Form**（3NF，第三范式）通过允许某些 nontrivial functional dependencies （其左侧不是 superkey）来稍微放松约束。
 
 如果对于来自 α → β, 其中 a ⊆ R, β ⊆ R  的 F+ 中的所有 functional dependencies 满足以下至少一项条件，则 relation schema R 的 functional dependencies F 在 3NF 中：
 
@@ -434,7 +445,7 @@ s_ID, dept_name → i_ID
 
 #### Multivalue Dependencies and Fourth Normal Form
 
-从某种意义上说，一些 relation schema 即使它们在 BCNF 中，似乎仍未得到足够的规范化（normalized），因为它们仍然遭受信息重复的问题。Multivalue dependencies 就是这一类的数据冗余问题，而 fourth normal form （4NF，第四范式）就是为了消除 multivalue dependencies 问题。
+从某种意义上说，一些 relation schema 即使它们在 BCNF 中，似乎仍未得到足够的规范化（normalized），因为它们仍然遭受信息重复的问题。Multivalue dependencies 就是这一类的数据冗余问题，而 **Fourth Normal Form** （4NF，第四范式）就是为了消除 multivalue dependencies 问题。
 
 Multivalue Dependencies（多值依赖）使用双箭头 “↠” 符号表示，如 A ↠ B。如果一个关系同时满足下面三个条件，则这个relation schema 存在 multivalue dependencies：
 
@@ -471,7 +482,7 @@ stu_hobby
 
 #### Second Normal Form
 
-一个 schema 在 second normal form （2NF，第二范式）它需要满足以下条件：
+一个 schema 在 **Second Normal Form** （2NF，第二范式）它需要满足以下条件：
 
 - 它是在 1NF 中的。
 - 所有非键属性是完全 functional dependent on the primary key。
