@@ -8,7 +8,7 @@ Intro
 
 数据库系统提供了一个高层级的结构化的数据查看，但是数据最终还是要作为 bits 存储到物理存储设备中。大部分的数据库存储在磁盘中，数据可以传输到内存中进行处理，然后重新保存到磁盘中，也可以拷贝到磁带或其他设备中进行备份。
 
-### Introduction to physical storage media
+### Introducing physical storage media
 
 在计算机系统中有很多类型的存储媒介（Storage Media），这些存储媒介可以通过访问速度分类，可以通过每单元容量的价格高低分类，也可以通过稳定性进行分类。常见的存储媒介类型为：
 
@@ -116,23 +116,131 @@ Variable-length records 表示 record 的结构图，如下所示：
 
 ### Organization of Records in Files
 
-Sequential File Organization
+上一节介绍了数据库 records 如何在文件中表示，这一节主要介绍如何在文件中组织 records。
 
-Multitable Clustering File Organization
+组织 records 可能的方式：
 
+- Heap file organization: records 无顺序放在文件中。
+- Sequential file organization: records 根据 search key 的值有序的存储在文件中。
+- Hashing file organization: 用 hash function 计算一些属性的值，根据 hash function 的计算结果指定 record 在文件中的位置。
 
+一般一个单独的文件存储一个 relation 的所有 records。然而， multitable clustering file organization 的方式是将多个 relation 的 records 存储在一个文件中，这样做的好处就是：不同 relation 的相关的 records 是存储在相同的 block 中，只需要一次 I/O 操作可以提取所有相关的 records。 
+
+下面将介绍两种常用的 records 在文件中的组织方式。
+
+**Sequential File Organization**
+
+Sequential file 是为了有效处理基于 search key 排序的 records 而设计的。search key 可以是任何一个属性或一组属性，它可以不是 primary key 或者 super key。它通过链表的结构把所有 records 按顺序串联起来，它可以快速的取出以 search-key 为顺序的 records。
+
+sequential file 中的 record 删除：它通过修改链表的指针来删除一个 record。
+
+sequential file 中的 record 插入：找到按顺序插入的位置之前的空位，如果没有空位，就插入在最后一个 record 的后面。
+
+经过一段时间的 insert 和 delete， records 的物理顺序和逻辑顺序是相差很大的，为了保证高效的按顺序处理，它的物理结构是定期 reorganized，尽量保证物理顺序和逻辑顺序是一致的，从而提高存取效率。
+
+**Multitable Clustering File Organization**
+
+multitable clustering file organization 是要给文件组织，它存储两个或多个 relations 中的相关的 records在一个文件中。使用它可以提高某些操作的效率，尤其是 join 操作，但是对于其它操作效率有所减弱。如在 multitable clustering file 中查询单个 relation 的多个 records。可以利用指针将单个 relation 的所有 records 链接起来，提高一点效率。
+
+是否使用 multitable clustering file organization 取决于查询的类型。合理使用可以产生较大的性能提升。
+
+**Data-Dictionary Storage**
+
+relational schema 和 relation metadata 是存储在 data dictionary 或 system catalog 中。它主要存储了以下这些数据：
+
+- relation names。
+- 每个 relation 的 attributes names。
+- 属性的 domains 和 length。
+- view name 和 view definitions。
+- integrity constraints。
+
+还有用户的授权和密码相关信息，storage organization，index of relations 等信息。
+
+大部分数据库系统，一般 metadata 作为 relation 存储在数据库中。
 
 ### Database Buffer
 
+数据库可以通过内存 buffer 来减少 block 在磁盘和内存之间的传输。Database Buffer 是在内存中存储的磁盘中数据库 block 的 copies。因为内存中没有足够的空间存储整个数据库，所以需要分配一部分空间给数据库作为 buffer。数据库的 buffer manager 是负责缓存空间的管理。
 
+数据库要请求磁盘中的 block 时先请求 buffer manager，如果请求的 block 已经在内存 buffer 中，直接返回。如果不在 buffer 中，buffer manager 请求磁盘 block，并保存在 buffer 中，返回 block 的内存地址给请求者。
+
+buffer manager 的管理策略：
+
+- Buffer replacement strategy。数据库系统使用的 replacement strategy 是 least recently used (LRU)，它也是操作系统虚拟内存管理常用的策略。
+- Pinned blocks。block 不允许写入磁盘称为 pinned。当对一个 block 的更新操作正在进行时，这个 block 暂时不允许写入磁盘。
+- Forced output of blocks。一个 block 必须写入磁盘中，即使这个 block 不需要被 replacement。这个写入称为 forced output。
 
 ## Indexing and Hashing
 
-Disk is slow。
+### Introducing Index
+
+当我们执行查询时，从头到尾一个一个查找是十分低效的。数据库系统使用 index 来提高查询效率，index 是一个文件，它比数据库小，查找数据更方便。数据库系统有很多种 index 技术，常见的 index 类型有：
+
+- Ordered indices。基于有序的数组。可以使用二分法快速查找。
+- B+ Tree indices。B+ Tree 可以满足快速的查找，插入和删除。
+- Hash indices。通过 hash table 来存储索引。
+
+没有那个 index 技术是最好的，每个技术应用于一些特定的应用场合。评价一个 index 技术的好坏，我们需要综合考虑以下因素：
+
+- Access types。支持的高效访问的类型。如查找特定的属性值，查找特定范围的属性值。
+- Access time。找到一个特定数据项的时间。
+- Insertion time。插入 record 的时间加维护索引的时间。
+- Deletion time。删除 record 的时间加维护索引的时间。
+- Space overhead。索引消耗的额外的空间。
+
+### Ordered Indices
+
+
+
+### B+ Tree Index File
+
+
+
+### B+ Tree Extensions
+
+
+
+### Multiple-key Access
+
+
+
+### Hashing Index
+
+
+
+### Bitmap Indices
+
+
+
+### Index Definition in SQL
+
+
 
 ## Querying Processing
 
+### Introducing Query Processing
+
+### Selection Operation
+
+### Sorting
+
+### Join Operation
+
+### Other Operation
+
+### Evaluation of Expression
+
+
+
 ## Query Optimization
+
+### Introducing Query Optimization
+
+### Transformation of Relational Expression
+
+### Estimating Statistics of Expression Result
+
+### Choice of Evaluation Plans
 
 
 
