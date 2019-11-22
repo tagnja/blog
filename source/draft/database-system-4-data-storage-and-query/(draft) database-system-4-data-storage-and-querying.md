@@ -190,6 +190,54 @@ buffer manager 的管理策略：
 
 ### Ordered Indices
 
+获取快速的随机访问文件中的 record，我们可以使用 index。每个 index structure 是和一个特定的 search key 关联的。
+
+Clustering and Non-clustering Indices
+
+**clustering index** 是一个按 search key 排序的 index。它也称为 primary index。clustering index 相当是一个 sorted list，它存储了指向 record 的物理位置的指针，我们可以通过 binary search 快速在 clustering index 中查找我们想要的 records 在文件中的位置。 
+
+与之相反的是 non-clustering index，它也称为 secondary index，即它的一个无序的 list，无序的存储了指向 record 的物理位置的指针。
+
+Dense and Sparse Indices
+
+一个 index entry 由一个 search key 和 指向一个或多个 record 的指针组成。这个指针由 identifier of a disk block 和 offset 组成。 ordered indices 一般有以下两种可以使用：
+
+- **Dense Index**。每一个 records 对应一个 index entry。
+- **Sparse Index**。部分的 records 有对应的 index entry。在 sparse index 中查找一个 record：首先，在 index 找到小于要查找的目标值的最大的 search key 的 search entry，定位到开始的 record，然后往后依次比较 records 是否匹配。
+
+Dense index 查找是更快的，sparse index 的优点是需要更小的空间，更小的对于插入和删除的维护的成本。我们需要在 access time 和 space overhead 之间权衡，选择不同的 index 类型。
+
+Multilevel Indices
+
+clustering indices 是一个 sorted 的 list，当数据库很大时，这样的结构存在一些缺点。
+
+- index 文件非常大，不能够一次全部加载到内存中，需要多次的 disk-block 访问，然而磁盘操作是十分耗时的。
+- 在很大的排序的 index 文件中进行 binary search，依然需要很大的花费。
+- 如果无法完全加载到内存中，binary search 是很难进行的。
+
+解决上面的问题，我们可以使用 **multilevel indices**，我们构造一个对原始 index 文件的 sparse index，即 index 的 index。原始的 index 称为 inner index，外层的 index 称为 outer index。
+
+通过 multilevel indices 找到一个 record 的过程：在 outer index 中通过 binary search 找到小于等于目标值的 inner index 的位置，然后在 inner index 中找到匹配目标值的 index entry，通过 index entry 在 文件中找到目标 records。
+
+Indices on Multiple Keys
+
+Search key 可以是一个属性也可以是多个属性。Search key 包含超过一个属性称为 composite search key。multiple keys index 是组合多个属性作为 key，把多个属性值以拼接的方式作为一个 search key。如
+
+```
+CREATE INDEX my_index ON my_table (column1, column2, column3);
+```
+
+上面创建的 multiple keys index，表示的 search key 是 “column1column2column3”。想要使用 multiple key index，你的条件搜索条件必须是从左到右依次包含的。顺序可能不需要保持一致，因为可能存在数据库引擎的 query optimization 会帮你调整顺序。你可以的搜索条件是： 
+
+- where column1 = ?
+- where column1 = ? and column2 = ?
+- where column1 = ? and column2 = ? and column3 = ?
+
+无法使用到 multiple keys index 的搜索条件如下：
+
+- where column2 = ?
+- where column2 = ? and column3 = ?
+
 
 
 ### B+ Tree Index File
