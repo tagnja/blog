@@ -242,15 +242,41 @@ CREATE INDEX my_index ON my_table (column1, column2, column3);
 
 ### B+ Tree Index File
 
+Index-sequential 文件组织，当文件变大时，索引的查询和顺序的扫描等操作性能都会降级。虽然 reorganization 文件可以弥补一些性能降级，但是频繁的 reorganization 时不现实的。
 
-
-### B+ Tree Extensions
+B+ Tree index 结构是一个使用最广泛的索引结构，它可以有效的查询，插入和删除。B+ Tree 是一种形式的 Balanced Tree。它提高了操作的效率，同时也增加了空间的 overhead。对比频繁的修改文件来说，额外的空间消耗是可以接收的，因为它避免了 reorganization 文件的消耗。
 
 
 
 ### Multiple-key Access
 
+使用 composite-key index，对于某些查询是有优势的。我们对比一下 single-key index 和 composite-key index 对以下 SQL 的查询处理。
 
+```sql
+select ID
+from instructor
+where dept_name = "Finance" and salary = 8000;
+```
+
+使用 single-key index 的处理过程：
+
+- index 在 dept_name 字段上。利用 index 找到所有 dept_name = "Finance" 的 records，然后逐一检查是否是 salary = 8000。
+- index 在 salary 字段上。利用 index 找到所有 salary = 8000 的 records，然后逐一检查是否 dept_name = "Finance"。
+- index 在 dept_name 和 salary 字段上。利用 index 找到所有 dept_name = "Finance" 的 records 和所有 salary = 8000 的 records，然后求交集。
+
+使用 composite-key index 的处理过程：
+
+- 直接在 composite-key index 中找到所有 dept_name = "Finance" 的 records 和所有 salary = 8000 的 records。
+
+可以看出 single-key index 在 index 找到 records 之后还需要逐一检查过滤。而 composite-key 直接可以在 index 中找到所有最终的 records。
+
+composite-key index 可以作用在部分字段。条件语句中不需要出现 composite key 中所有的 columns。其它的字段默认为 -∞ 到 +∞ 的范围查找。
+
+虽然可以作用在部分字段，但是是有限制的：条件搜索条件必须是从左到右依次包含的。search key 中的第二个字段column2 要利用 index，必须要 column1 和 column2 同时出现在条件语句中。
+
+Covering Indices
+
+Covering indices 是存储一些属性值的 indices。即把一些属性值存储在索引中，直接通过索引返回结果，而不需要去文件中查找 records。
 
 ### Hashing Index
 
