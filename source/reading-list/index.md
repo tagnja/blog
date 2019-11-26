@@ -19,7 +19,8 @@ date: 2019-10-28 21:54:29
 
 | 书名                                                         | 时间    | 评分  |
 | ------------------------------------------------------------ | ------- | ----- |
-| **Database System Concepts** ,6th, by Sudarshan, Korth<br /> <div color="red">数据库系统的入门书籍，详细全面的介绍了数据库系统，大而全，1000多页。以前只知道 SQL 怎么用，看完之后知道为什么要用。帮助我建立完整的数据库系统知识体系。主要是 SQL 的深入理解，数据库设计和数据库系统的内部组件的实现。</div> | 2019.10 | ★★★★  |
+| **剑指offer**, 2nd, by 何海涛<br/>主要了解了一些算法解题技巧和面试技巧。后面部分有些烂尾，叙述不清晰、很草率。不过，整体还是不错的，它对提升算法解题思路有一些帮助，值得读一读。 | 2019.11 | ★★★★  |
+| **Database System Concepts** ,6th, by Sudarshan, Korth<br />数据库系统的入门书籍，详细全面的介绍了数据库系统，大而全，1000多页。以前只知道 SQL 怎么用，看完之后知道为什么要用。帮助我建立完整的数据库系统知识体系。主要是 SQL 的深入理解，数据库设计和数据库系统的内部组件的实现。 | 2019.10 | ★★★★  |
 | **Computer Networking: A Top Down Approach**, 7th, by Kurose, Ross<br />非常好的一本介绍j计算机网络的入门书籍，深入浅出。唯一的缺点就是后面几章有点随意，不太友好。 | 2019.08 | ★★★★★ |
 | **Operating System Concepts**, 7th, by Abraham Silberschatz, Peter B. Galvin, Greg Gagne<br />操作系统入门书，整体上挺好的。第一次看得时候，觉得名词概念和实现算法有点多，有点吃力。不理解名词概念会在网上搜索文章和视频，理解之后再往下看。 | 2019.07 | ★★★★★ |
 | **Computer Organization and Design: the Hardware/Software Interface**, 5th, by David Patterson<br />介绍计算机底层实现，前面三章收获很大，后面的章节太抽象了，对初学者不太友好。 | 2019.05 | ★★★★★ |
