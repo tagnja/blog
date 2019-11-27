@@ -278,7 +278,37 @@ Covering Indices
 
 Covering indices 是存储一些属性值的 indices。即把一些属性值存储在索引中，直接通过索引返回结果，而不需要去文件中查找 records。
 
-### Hashing Index
+### Static Hashing
+
+Sequential file organization 的缺点：必须通过索引文件来间接定位数据，或者必须使用 binary search，这些都需要很多的磁盘 I/O 操作。基于 hashing 的文件组织允许我们避免接入索引结构。另外，也可以利用 hashing 来构建索引。
+
+在 hashing 结构中，**bucket** 是一个存储单元，它可以存储一个或多个 records。一个 bucket 一般是一个 disk block。**Hash function** h 是一个从 search-key K 到 bucket address B 的函数。可以表示为 h(K) = B。
+
+Hashing 文件组织的操作。查询操作：利用 search key 找到 bucket address，在 bucket 中找到符合要求的 records。插入和删除操作也是先找到 bucket，然后在 bucket 中插入或删除 records。Hashing 结构的 查询、插入和删除操作都有极高的效率，时间复杂度为 O(1)。
+
+Hashing 用于两种不同的目的。在 hash file organization 中，我们通过 hash function 直接计算 search-key value 得到包含目标 records 的 disk block 地址。在 hash index organization 中，我们将 search key 和它关联的 records 指针组织到 hash 文件结构。
+
+Hash Function
+
+hash function 需要小心设计，可能出现最坏的情况是所有的 search key 都映射到同一个 bucket，这将需要遍历文件中的所有 records。一个好的 hash function 设计是与 search key 数量独立的常数的平均查询时间复杂度，Hash function 的两种分布类型：
+
+- uniform。哈希函数从所有可能的 search key value set 中为每个存储桶分配相同数量的search key value。如 search key salary 使用 hash function，salary 范围是 30000 ~ 130000，我们使用 hash function 将分为 10 个范围 30000~40000，40000~50000，等等。search key values 的分布是 uniform，每一个 bucket 有相同数量的不同的 salary 值。
+- random。在一般情况下，每个存储桶都会分配几乎相同数量的值，而不管搜索键值的实际分布如何。哈希值与 search key value 没有任何外部可见的关系，hash function 是随机的。
+
+Handling of Bucket Overflows
+
+如果要给 bucket 没有足够的空间存储新插入的 records，称为 bucket overflow。bucket overflow 的发生的两种原因：
+
+- Insufficient Buckets。所有的 bucket 都满了。整个 hash 文件组织不能再插入任何 records。
+- Skew。某个 bucket 满了，这个 bucket 不能再插入任何 records。
+
+将 bucket 的数量设置为 (nr / fr) * (1 + d)，其中 d = 0.2，能够减少 bucket overflow 的可能性。nr 表示 records 的总数，fr 表示一个 bucket 可以容纳的 records 数量，d 表示 fudge factor。大约有 20% 的空间见会被空置，但是这减少了 bucket overflow。
+
+尽管分配比需要 bucket 的数量更多的 bucket，但 bucket overflow 依然可能发生。我们可以使用 overflow buckets 来处理 bucket overflow。当一个 bucket 满了时，将创建一个 overflow bucket 来存储新插入的 records，overflow bucket 和 bucket 用指针连接，overflow bucket 也满了后，再创建另一个的 overflow bucket。通过 linked list 处理 overflow 称为 overflow chaining。这种包含 overflow bucket 的 hash 结构称为 closed hashing。
+
+Hash 数据结构，不适用于数据项变化很大的场景。hash 结果需要设定一个固定的 hash function 和 bucket 数量。初始设定的 bucket 数量太大，会浪费空间，设定太小，则容易发生 bucket overflow。
+
+### Dynamic Hashing
 
 
 
