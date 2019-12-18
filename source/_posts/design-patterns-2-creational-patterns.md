@@ -8,7 +8,7 @@ tags: design-patterns
 
 
 
-本篇介绍了设计模式中的5种创建型模式，其中设计模式的实现代码使用 Java 语言描述。
+本篇将介绍设计模式中的5种创建型设计模式，其中设计模式的实现代码使用 Java 语言描述。
 
 ## Creational Design Patterns
 
