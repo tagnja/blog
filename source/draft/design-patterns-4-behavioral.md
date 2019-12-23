@@ -211,11 +211,18 @@ Drawbacks
 
 ### What
 
+给定一种语言，定义其语法表示形式，以及使用该表示形式来解释语言中的句子。
+
 ### Why
 
 Motivation
 
+如果一个种特殊的问题经常发生，它可能值得用简单的语言将问题的实例表达为句子。然后，你可以构建 interpreter 通过解释这些句子来解决问题。
+
 Applicability
+
+- 语法是简单的。
+- 效率不是一个关键问题。
 
 ### Solution
 
@@ -225,7 +232,17 @@ Structure
 
 Participants
 
+- AbstractExpression：定义一个抽象 interpret 操作，它存在于所有 abstract syntax tree 中的节点。
+- TerminalExpression：实现与 terminal symbols 有关的 interpret 操作。
+- NonterminalExpression：实现 nonterminal symbols 相关的 interpret 操作。
+- Context：包含给 interpreter 的全部信息。
+- Client：构建一个抽象的 syntax tree 表示一个符合语法规定的特定的句子。调用 interpret 操作。
+
 Collaborations
+
+- Client 构建一个句子作为 NonterminalExpression 和 TerminalExpression 实例的abstract syntax tree 。然后，client 初始化 context，调用 interpret 操作。
+- 每个 NonterminalExpression node 定义了 interpret 对每个子表达式上的 interpret。
+- 每个 node 的 interpret 操作使用 context 去存储和访问 interpreter 的 state。
 
 Implementations
 
@@ -233,7 +250,50 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public interface Expression{
+    boolean interpret(String context);
+}
+
+public class TerminalExpression implements AbstractExpression{
+    private String data;
+    public TerminalExpression(String data){
+        this.data = data;
+    }
+    public boolean interpret(Context context){
+        if (data.contains(Context.data)){
+            return true;
+        }else{
+            return false;
+        }
+    }
+}
+public class NonTerminalExpression implements AbstractExpression{
+    private Expression expression1;
+    private Expression expression2;
+    public NonTerminalExpression(Expression expression1, Expression expression2){
+        this.expression1 = expression1;
+        this.expression2 = expression2;
+    }
+    public boolean interpret(Context context){
+        return expression1.interpret(context) && expression2.interpret(context);
+    }
+}
+public class Context{
+    private String data;
+    public Context(String data){
+        this.data = data;
+    }
+}
+
+public class Client{
+    Context context1 = new Context("Tom");
+    TerminalExpression terminalExp1 = new TerminalExpression("Tom");
+    TerminalExpression terminalExp2 = new TerminalExpression("Jack");
+    terminalExp1.interpret(context1);
+    terminalExp2.interpret(context1);
+    NonTerminalExpression nonTerminalExp = new NonTerminalExpression(terminalExp1, terminalExp2);
+    nonTerminalExp.interpret(context1);
+}
 ```
 </details>
 
@@ -241,28 +301,49 @@ todo
 
 Benefits
 
+- 它很容易去改变和扩展语法。
+- 实现语法是容易的。
+- 可以增加新的方式去 interpret 表达式。
+
 Drawbacks
+
+- 复杂的语法很难去管理和维护。
 
 
 ## Iterator
 
 ### What
 
+提供以一种方式去顺序地访问聚合对象地元素，而不暴露它的底层表示。
+
 ### Why
 
 Motivation
 
+一个聚合对象如 list，应该有一种方式去访问它的元素而不暴露它的内部结构。你可能想要用不用地方式去遍历集合，取决于你想要的实现。Iterator 模式可以帮你完成以上功能。
+
 Applicability
+
+- 访问一个聚合对象的内容，而不暴露它的内部表示。
+- 支持多种对聚合对象的遍历方式。
+- 提供统一的接口去遍历不同的聚合数据结构。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/iterator-structure.png" class="img-center" />
 
 Participants
 
+- Iterator：定义一个接口去访问和遍历元素。
+- ConcreteIterator：实现 Iterator 接口。保持追踪遍历聚合元素的位置。
+- Aggregate：定义创建 Iterator 对象的接口。
+- ConcreteAggregate：实现创建 Iterator 对象接口，返回合适的 ConcreteIterator 对象。
+
 Collaborations
+
+- ConcreteIterator 保持聚合元素对象的轨迹，能够计算在遍历中接下的元素对象。
 
 Implementations
 
@@ -270,7 +351,71 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public interface Aggregate{
+    Iterator createIterator();
+}
+public class ConcreteAggregate implements Aggregate{
+    private int[] data = new int[32];
+    private int size;
+    private int currentSize;
+    
+    public void add(int number){
+        data[currentSize] = number;
+        currentSize++;
+    }
+    
+    public Iterator createIterator(){
+        return new ConcreteIterator(data, currentSize);
+    }
+}
+
+public interface Iterator{
+    int first();
+    void next();
+    boolean isDone();
+    int currentItem();
+}
+public class ConcreteIterator implements Iterator{
+    private int[] data;
+    private int cursor = 0;
+    
+    public ConcreteIterator(int[] data, int currentSize){
+        data = new int[currentSize];
+        for (int i = 0; i < currentSize; i++){
+            this.data[i] = data[i];
+        }
+    }
+    
+    public int first(){
+        // TODO
+        return null;
+    }
+    public int next(){
+        if (cursor < data.length){
+            return data[cursor++];
+        }else{
+            throw new ArrayIndexOutOfBoundExcpetion();
+        }
+    }
+    public boolean isDone(){
+        return cursor >= data.length -1;
+    }
+    public int currentItem(){
+        // TODO
+        return null;
+    }
+}
+
+public class Client{
+    public static void main(String[] args){
+        Aggregate aggregate = new ConcreteAggregate();
+        aggregate.add(1);
+        Iterator iterator = aggregate.createIterator();
+        while(! iterator.isDone()){
+            System.out.println(iterator.next());
+        }
+    }
+}
 ```
 </details>
 
@@ -278,7 +423,9 @@ todo
 
 Benefits
 
-Drawbacks
+- 它支持聚合结构的遍历的变化。
+- Iterator 简化了 Aggregate 接口。
+- 多个 traversal 可以在聚合结构等待的。
 
 
 ## Mediator
