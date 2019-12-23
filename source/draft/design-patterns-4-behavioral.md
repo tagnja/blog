@@ -432,21 +432,41 @@ Benefits
 
 ### What
 
+定义一个对象封装一组对象如何交互。Mediator 通过防止对象之间显式地互相引用来促进松耦合，并且它是你可以独立地更改它们之间的交互。
+
 ### Why
 
 Motivation
 
+面向对象的设计鼓励在对象之间分配行为。这种分配可能导致一个对象与很多对象有关联。大量的相互连接让系统的行为很难去改变。你可以使用 Mediator 去解决这类问题。Mediator 可以用来控制和协调一组对象之间的交互。Mediator 从当了中介，可以防止一组对象明确地相互引用。对象只知道 Mediator，从而减少对象相互连接的数量。
+
 Applicability
+
+- 一组对象交流十分复杂。
+- 重用一个对象是复杂的，因为它引用了很多其他的类，以及与很多其他类存在交流。
+- 在多个类之间分布的行为应可自定义，而无需大量子类化。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+类结构
+
+<img src="../img/design-patterns-structure-and-example/mediator-structure.png" class="img-center" />
+
+对象结构
+
+<img src="../img/design-patterns-structure-and-example/mediator-structure-2.png" class="img-center" />
 
 Participants
 
+- Mediator：为 Colleague 对象交流定义一个接口。
+- ConcreteMediator：通过协调 Colleague 对象来实现合作行为。知道和维护它的 colleagues 对象。
+- Colleague classes：每一个 Collegue class 知道它的 Mediator 对象。每个  colleague 与它的 mediator 交流。
+
 Collaborations
+
+- Colleagues 发送和接收请求来自 Mediator 对象。Mediator 通过在适当的 Colleagues 之间路由请求来实现协作行为。
 
 Implementations
 
@@ -454,7 +474,57 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public interface Mediator{
+    
+}
+public class ConcreteMediator implements Mediator{
+    private ConcreteColleague1 concreteColleague1;
+    private ConcreteColleague2 concreteColleague2;
+    public void setConcreteColleague1(ConcreteColleague1 concreteColleague1){
+        this.concreteColleague1 = concreteColleague1;
+    }
+    public void setConcreteColleague2(ConcreteColleague2 concreteColleague2){
+        this.concreteColleague2 = concreteColleague2;
+    }
+    public void callHelloToColleague2FromColleague1(){
+        concreteColleague2.hello(concreteColleague1);
+    }
+}
+public interface Colleague{
+    
+}
+public class ConcreteColleague1 implements Colleague{
+    private Mediator mediator;
+    public ConcreteColleague1(){}
+    public ConcreteColleague1(Mediator mediator){
+        this.mediator = mediator;
+    }
+    public void sayHelloToColleague2(){
+        mediator.sayHelloToColleague2FromColleague1();
+    }
+}
+public class ConcreteColleague2 implements Colleague{
+    private Mediator mediator;
+    public ConcreteColleague2(){}
+    public ConcreteColleague2(Mediator mediator){
+        this.mediator = mediator;
+    }
+    public void hello(Colleague colleague){
+        System.out.println("hello, response to " + colleague);
+    }
+}
+public class Client{
+    public static void main(String[] args){
+        // config mediator
+        Mediator mediator = new ConcreteMediator();
+        ConcreteColleague1 colleague1 = new ConcreteColleague1(mediator);
+        ConcreteColleague2 colleague2 = new ConcreteColleague2(mediator);
+        mediator.setConcreteColleague1(colleague1);
+        mediator.setConcreteColleague2(colleague2);
+        // send request among colleagues by call mediator methods
+        colleague1.sayHelloToColleague2();
+    }
+}
 ```
 </details>
 
@@ -462,7 +532,15 @@ todo
 
 Benefits
 
+- 它限制了子类。
+- 它解耦了 colleagues。
+- 它简化对象协议。
+- 它将对象的协作抽象化。
+- 它中心控制对象的交互。
+
 Drawbacks
+
+- 由于它中心控制对象的交互，Mediator 会变得很庞大，它自身变得很难维护。
 
 ## Memento
 
