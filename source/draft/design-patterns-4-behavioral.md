@@ -798,27 +798,45 @@ Benefits
 
 Drawbacks
 
-- 不期待的更新。可能会导致 observers 很难追踪的虚假更新。
+- 意外的更新。可能会导致 observers 很难追踪的虚假更新。
 
 
 ## State
 ### What
 
+当一个对象的内部状态改变时允许改变它的行为。这个对象好像更改了它的 classs。
+
 ### Why
 
 Motivation
 
+一个对象需要在不同的状态表现不同的行为。
+
+例子：TCPConnection class 他表示一个网络连接。一个 TCPConnection object 可可能有不同的一个状态：Established，Listening，Closed。当一个 TCPConnection 对象接收到请求时，它根据当前的状态进行响应。
+
 Applicability
+
+- 一个对象的行为取决于它的状态，并且它必须根据它的状态在运行时改变它的行为。
+- 操作有大量的多条件语句，这些语句取决于对象的状态。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/state-structure.png" class="img-center" />
 
 Participants
 
-Collaborations
+- Context：1）定义 Client 想要的接口。2）维护一个 ConcreteState 子类实例，它定义了当前状态。
+- State：定义一个接口去封装与 Context 的特殊状态相关的行为。
+- ConcreteState：每个子类实现与 Context 的状态相关的行为。
+
+Collaborations 
+
+- Context 将特定状态的请求委托给当前的 ConcreteState 对象。
+- Context 可以将自身作为参数传递给处理请求的 State 对象。
+- Context 是 Client 的主要接口。Client 可以通过 State 对象配置 context。一旦 Context 配置了，它的 client 不需要直接处理 State 对象。
+- 无论是 Context 还是 ConcreteState 子类 都能决定哪个状态接替另一个和在什么情况下。
 
 Implementations
 
@@ -826,7 +844,44 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public class Context{
+    private State state;
+    public Context(){}
+    public Context(State state){
+        this.state = state;
+    }
+    public void setState(State state){
+        this.state = state;
+    }
+    public void request(){
+        this.state.handle()
+    }
+}
+
+public interface State{
+    void handle();
+}
+public class ConcreteStateA implements State{
+    public void handle(){
+        System.out.println("handle by ConcreteStateA");
+    }
+}
+public class ConcreteStateB implements State{
+    public void handle(){
+        System.out.println("handle by ConcreteStateB");
+    }
+}
+
+public class Client{
+    public static void main(String[] args){
+        State state = new ConcreteStateA();
+        Context context = new Context(state);
+        context.request();
+        state = new ConcreteStateB();
+        context.setState(state);
+        context.request();
+    }
+}
 ```
 </details>
 
@@ -834,7 +889,9 @@ todo
 
 Benefits
 
-Drawbacks
+- 它本地化特定状态的行为，并对不同状态的行为进行进行分区。
+- 它使状态转换变得明确。
+- 状态对象可以共享。
 
 
 ## Strategy
