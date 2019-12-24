@@ -1,5 +1,5 @@
 ---
-title: design-patterns-4-behavioral-patterns
+title: 深入理解设计模式（四）：行为型模式
 date: 2019-12-24 18:29:48
 categories: 
 - 软件设计与架构
@@ -364,7 +364,7 @@ Implementations
   <summary>Click to expand!</summary>
 
 
-```java
+​```java
 public interface Aggregate{
     Iterator createIterator();
 }
