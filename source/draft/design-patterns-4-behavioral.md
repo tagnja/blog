@@ -546,21 +546,40 @@ Drawbacks
 
 ### What
 
+在不违反封装和外部化对象的内部状态等情况下，使得对象可以在以后恢复之前的状态。
+
 ### Why
 
 Motivation
 
+有时需要记录一个对象的内部状态。当实现检查点和 undo 功能让用户在发生错误时恢复状态记录对象状态是需要的。但是对象一般是封装了一些或全部状态，使它不能被其他对象访问，以及不可能在外部保存。暴露对象的内部状态违反了封装，这会损害应用程序的可靠性和可扩展性。
+
+我们可以使用 Memento 模式解决这个问题。memento 是一个对象，它可以存储对象内部状态的快照（snapshot）。
+
 Applicability
+
+- 一个对象的状态的快照必须保存，因此它可以在以后恢复之前的状态。
+- 一个接口直接地获取状态将暴露实现细节和打破对象的封装。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/memento-structure.png" class="img-center" />
 
 Participants
 
+- Memento：1）存储 originator 对象的内部状态。2）防止非 originator 对象访问。3）它是一个 POJO 类。
+- Originator：1）创建一个 包含当前内部状态快照的 memento。2）使用 memento 去恢复它的内部状态。
+- Caretaker：1）负责 memento 的保管。2）不操作或检查 memento 的内容。3）保持多个 memento 的轨迹，维护保存点。
+
 Collaborations
+
+- caretaker 从 originator 请求一个 memento，保持一段时间，以及把它传回 originator。它们的交互如下图所示。
+
+<img src="../img/design-patterns-structure-and-example/memento-structure-2.png" class="img-center" />
+
+- Memento 是被动的。只有 orginator 能够创建 memento 指派或取回它的状态。
 
 Implementations
 
@@ -568,7 +587,69 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public class Memento{
+    private int state;
+    
+    public Memento(）{}
+    public Memento(int state){
+        this.state = state;
+    }
+    public int getState(){
+        return state;
+    }
+    public void setState(int state){
+        this.state = state;
+    }
+}
+public class Originator{
+    private int state;
+    public void setState(int state){
+        this.state = state;
+    }
+    public int getState(){
+        return this.state;
+    }
+    public void createMemento(){
+        return new Memento(this.state);
+    }
+    public setMemento(Memento memento){
+        this.state = memento.getState();
+    }
+}
+pubilc class Caretaker{
+    private List<Memento> mementos = new ArrayList<>();
+    private Originatro orginator;
+    public Caretacker(Originator orginator){
+        this.originator = orginator;
+    }
+    pubilc void addMemento(){
+        Memento newMemento = this.originator.createMemento();
+        this.mementos.add(newMemento);
+        return newMemento;
+    }
+    public void setMemento(Memento memento){
+        for (m : mementos){
+            if (m.state == memento.state){
+                this.originator.setMementor(m);
+            }
+        }
+    }
+}
+
+public class Client{
+    public static void main(String[] args){
+        Originatro originator = new Originator();
+        Careracker caretacker = new Caretacker(originator);
+        originator.setState(1);
+        System.out.println("state one: " + originator.getState());
+        Memento memento1 = caretacker.addMemento();
+        originator.setState(2);
+        System.out.println("state two: " + originator.getState());
+        Memento memento2 = caretacker.addMemento();
+        caretacker.setMemento(memento1);
+        System.out.println("restore state one: " + originator.getState());
+    }
+}
 ```
 </details>
 
@@ -576,27 +657,49 @@ todo
 
 Benefits
 
+- 保持封装边界。
+- 简化 originator。把 originator 内部状态的版本保留放到了其它类中。
+
 Drawbacks
+
+- 使用 memento 可能是昂贵的。如果 Originator 拷贝大量的信息存储在 memento，memento 可以导致很大的花费。
+- 保管 mementos 的隐性成本。caretaker 负责删除它保管的 mementos。然而 caretaker 不知道在 memento 中有多少 state。因此，caretaker 可以能导致大量的存储 mementos 的花费。
 
 
 ## Observer
 ### What
 
+在对象中定义一对多的依赖，因此当一个对象改变状态时，所有它的依赖者是自动通知和更新的。
+
 ### Why
 
 Motivation
 
+将系统划分为一组合作的 classes 常见的辅作用是需要维护相关对象之间的一致性。你不想通过使 classes 紧耦合来实现一致性，因为它减少了重用性。
+
 Applicability
+
+- 当一个抽象有两个方面，一个依赖另一个。在具体的对象中封装这些方面，让你独立地改变和重用它们。
+- 当你改变一个对象需要改变其他对象，并且你不知道有多少对象需要改变时。
+- 一个对象可以通知其他对象不需要关心这些对象是什么。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/observer-structure.png" class="img-center" />
 
 Participants
 
+- Subject：1）知道它的 observers。无数个 Observer 对象可能观察 subject。2）提供一个接口关联和脱离 Observer 对象。
+- Observer：为 subject 改变通知的对象定义一个更新的接口。
+- ConcreteSubject：1）存储 ConcreteObserver 对象的信息。2）当状态改变时发送通知给它的 observers。
+- ConcreteObserver：1）维护一个 ConcreteSubject 的引用。2）存储与 subject 一致的状态。3）实现 Observer 更新接口，保持它的状态与 subject 一致。
+
 Collaborations
+
+- 当改变发生时，ConcreteSubject 通知它的 observers，让 observers 的状态和自己的保持一致。
+- 当改变通知之后， ConcreteObserver 对象可能查询 subject 的信息。ConcreteObserver 使用这个信息使它的状态与 subject 保持一致。
 
 Implementations
 
@@ -604,7 +707,85 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public interface Subject{
+    void attach(Observer observer);
+    void detach(Observer observer);
+    void notify();
+}
+public class ConcreteSubject implements Subject{
+    private int state;
+    List<Observer> observers = new ArrayList<>();
+    
+    public void setState(int state){
+        this.state = state;
+        notify();
+    }
+    public int getState(){
+        return this.state;
+    }
+    public void attach(Observer observer){
+        observers.add(observer);
+    }
+    public void detach(Observer observer){
+        observers.remove(observer);
+    }
+    public void notify(){
+        for (Observer observer : observers){
+            observer.update();
+        }
+    }
+}
+public interface Observer{
+    void update();
+}
+public class ConcreteObserver1 implements Observer{
+    private int state;
+    private Subject subject;
+    
+    public ConcreteObserver1(){}
+    public ConcreteObserver1(Subject subject){
+        this.subject = subject;
+        this.state = subject.getState();
+    }
+    public int getState(){
+        return this.state;
+    }
+    public void update(){
+        this.state = subject.getState();
+    }
+}
+public class ConcreteObserver2 implements Observer{
+    private int state;
+    private Subject subject;
+    
+    public ConcreteObserver2(){}
+    public ConcreteObserver2(Subject subject){
+        this.subject = subject;
+        this.state = subject.getState();
+    }
+    public int getState(){
+        return this.state;
+    }
+    public void update(){
+        this.state = subject.getState();
+    }
+}
+public class Cilent{
+    public static void main(String[] args){
+        int state = 1;
+        Subject subject = new ConcreteSubject(state);
+        Observer observer1 = new ConcreteObserver1(subject);
+        Observer observer2 = new ConcreteObserver2(subject);
+        System.out.println("observer1 state is " +  observer1.getState());
+        System.out.println("observer2 state is " +  observer2.getState());
+        subject.attach(observer1);
+        subject.attach(observer2);
+        // automatically notify and update observers
+        subject.setState(2);
+        System.out.println("observer1 state update to " +  observer1.getState());
+        System.out.println("observer2 state update to " +  observer2.getState());
+    }
+}
 ```
 </details>
 
@@ -612,7 +793,12 @@ todo
 
 Benefits
 
+- 抽象地耦合 Subject 和 Observer。subjecct 不知道它有一组 observers，不知道 observer 具体的类。
+- 支持广播通信。
+
 Drawbacks
+
+- 不期待的更新。可能会导致 observers 很难追踪的虚假更新。
 
 
 ## State
