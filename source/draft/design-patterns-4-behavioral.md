@@ -897,21 +897,37 @@ Benefits
 ## Strategy
 ### What
 
+定义一组算法，封装每一个，以及让它们可互换的。Strategy 使算法独立于 Client 而改变。
+
 ### Why
 
 Motivation
 
+一个行为可能切换不同的实现方式。
+
 Applicability
+
+- 许多相关的 classes 仅在行为上有所不同。Strategy 提供了一种使用多种行为之一配置 class 的方法。
+- 你需要不同的算法。
+- 算法使用 Client 不应该知道的数据。
+- 一个类定义了许多行为，这些行为在其操作中显示为多个条件语句。代替条件，把相关的条件分支一道它们自己的 Strategy class 中。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/strategy-structure.png" class="img-center" />
 
 Participants
 
+- Strategy：声明所有支持的算法通用的接口。Context 使用这个接口去调用 ConcreteStrategy 定义的算法。
+- ConcreteStrategy：使用 Strategy 实现算法。
+- Context：1）配置了一个 ConcreteStrategy 对象。2）维护一个 Strategy 对象的参考。3）可能定义一个接口让 Strategy 访问它的数据。
+
 Collaborations
+
+- Strategy 和 Context 交互以实现所选的算法。当算法调用时，Context 可能将算法需要的所有数据传递给 Strategy。或者，Context 把自己作为参数传递给 Strategy 操作。这样，Strategy 可以根据需要回调 Context。
+- Context 将来自它的 Client 的请求转发给它的 Strategy。Client 通常创建和传递 ConcreteStrategy 对象给 Context。之后，Client 仅与 Context 交互。通常会有一些列的 ConcreteStrategy 类供 Client 选择。
 
 Implementations
 
@@ -919,7 +935,41 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public interface Strategy{
+    public void algorithmInterface();
+}
+public ConcreteStrategyA implements Strategy{
+    public void algorithmInterface(){
+        System.out.println("algorithm implements by ConcreteStrategyA");
+    }
+}
+public ConcreteStrategyB implements Strategy{
+    public void algorithmInterface(){
+        System.out.println("algorithm implements by ConcreteStrategyB");
+    }
+}
+
+public class Context{
+    private Strategy strategy;
+    
+    public contextInterface(Strategy strategy){
+        this.strategy = strategy;
+    }
+    public void runAlgorithm(){
+        this.strategy.algorithmInterface();
+    }
+}
+public class Client{
+    public static void main(String[] args){
+        Strategy strategyA = new ConcreteStrategyA();
+        Strategy strategyB = new ConcreteStrategyB();
+        Context context = new Context();
+       	context.contextInterface(strategyA);
+        context.runAlgorithm();
+        context.contextInterface(strategyB);
+        context.runAlgorithm();
+    }
+}
 ```
 </details>
 
@@ -927,27 +977,49 @@ todo
 
 Benefits
 
+- 相关的算法家族。Strategy classes 的层级结构定义了一组让 Context 重用的算法或行为。
+- 子类化的替代方法。你可以使用 inheritance 的方式去支持多种算法或行为。你可以 subclass Context class 直接执行不同的行为。但这将硬性地把 behavior 关联到 Context。
+- Strategy 可以消除条件语句。
+- 多种实现方式。
+
 Drawbacks
+
+- Client 必须知道 Strategies 之间的不同。这个模式有个潜在的缺点就是 Client 在选择合适的 strategy 之前必须理解 strategies 有什么不同。
+- 在 Strategy 和 Context 之间有交流消耗。所有 ConreteStrategy 共享 Strategy 接口，无论它们实现的算法是简单还是复杂的。因此，某些 ConcreteStrategy 可能不适用接口传递的所有信息。这就意味着 Context 可能会创建和初始化未使用的参数。
+- 它增加了对象的数量。
 
 
 ## Template Method
 ### What
 
+在操作中定义算法的骨架，将某些步骤推迟到子类。Template Method 让子类重新定义算法的某些步骤，而无需更改算法的结构。
+
 ### Why
 
 Motivation
 
+通过使用抽象操作定义算法的某些步骤，模板方法可以固定其顺序，但可以让子类更改这些步骤以适合其需求。
+
 Applicability
+
+- 算法不变的部分仅实现一次，并将可变化的行为留给子类来实现。
+- 子类间的共同行为一你改改分解并集中在一个共同类中，以避免代码重复。
+- 控制子类扩展。你可以定义一个 template method，它叫做特定点调用 hook 操作，从而允许在哪些点进行扩展。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/templatemethod-structure.png" class="img-center" />
 
 Participants
 
+- AbstractClass：1）定义抽象的基本操作。2）实现 template method 定义算法骨架。
+- ConcreteClass：实现基本操作以完成子类具体的算法步骤。
+
 Collaborations
+
+- ConcreteClass 依赖 AbstractClass 实现算法不变的步骤。
 
 Implementations
 
@@ -955,7 +1027,28 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public abstract class AbstractClass{
+    public void templateMethod(){
+        primitiveOperation1();
+        primitiveOperation2();
+    }
+    abstract void primitiveOperation1();
+    abstract void primitiveOperation2();
+}
+public class ConcreteClass extends AbstractClass{
+    public void primitiveOperation1(){
+        System.out.println("operation1...");
+    }
+    public void primitiveOperation2(){
+        System.out.println("operation2...");
+    }
+}
+public class Client{
+    public static void main(String[] args){
+        AbstrctClass target = new ConcreteClass();
+        target.templeateMethod();
+    }
+}
 ```
 </details>
 
@@ -963,28 +1056,45 @@ todo
 
 Benefits
 
-Drawbacks
+- 提高代码的重用性。
 
 
 ## Visitor
 
 ### What
 
+表示将在对象结构元素上执行的操作。Visitor 可以让你定义新的的操作，而无需更改其所操作的元素的类。
+
 ### Why
 
 Motivation
 
+将对象结构和对对象的操作分离，让你轻易的增加新的操作。
+
 Applicability
+
+- 一个对象结构包含很多不同接口的类的对象，你想要根据它们具体的类来执行这些对象的操作。
+- 需要对一个对象结构中的对象执行许多不同且不相关的操作，并且你要避免使用这些操作“污染”它们的类。Vistor 让你将相关的操作放在一起，通过把它们定义在一个类中。
+- 定义对象结构的类很少改变，但是你经常想要在该结构上定义新的操作。更改对象结构类需要重新定义所有 Visitor 的接口，这可能导致很高的花费。如果你的对象结构类经常改变，那么它可能更适合把操作定义在类中。
 
 ### Solution
 
 Structure
 
-<img src="../img/design-patterns-structure-and-example/xxx-structure.png" class="img-center" />
+<img src="../img/design-patterns-structure-and-example/visitor-structure.png" class="img-center" />
 
 Participants
 
+- Visitor：为对象结构中每一个 ConcreteElement 类声明一个 Visit 操作。
+- ConcreteVisitor：实现 Visitor 中声明的每个操作。
+- Element：定义一个 Accept 操作，它接收一个 visitor 作为参数。
+- ConcreteElement：实现 Accept 操作。
+- ObjectStructure：1）枚举它的元素。2）提供一个高层级的接口去允许 Visitor 访问它的元素。3）它可以是组合（Composite）或者集合（List or Set）。
+
 Collaborations
+
+- Client 创建一个 ConcreteVisitor 对象，然后遍历对象结构，访问 visitor 的每个元素。
+- 当一个元素被访问，它调用对应的 Visitor 操作。如果需要，这个元素支持把自己作为参数传给这个操作，让 visitor 访问它的状态。
 
 Implementations
 
@@ -992,7 +1102,80 @@ Implementations
   <summary>Click to expand!</summary>
 
 ```java
-todo
+public interface Visitor{
+    int visit(Element concreteElementA);
+    int visit(Element concreteElementB);
+}
+public class ComputeSumConcreteVisitor1 implements Visitor{
+    private int result = 0;
+    
+    public void visit(Element concreteElementA){
+        result += concreteElementA.getValue();
+    }
+    public void visit(Element concreteElementB){
+        result += concreteElementB.getValue();
+    }
+   	public int getSum(){
+        return this.result;
+    }
+}
+public class ComputeProductConcreteVisitor2 implements Visitor{
+    private int result = 1;
+    
+    public void visit(Element concreteElementA){
+        result *= concreteElementA.getValue();
+    }
+    public void visit(Element concreteElementB){
+        result *= concreteElementB.getValue();
+    }
+   	public int getProduct(){
+        return this.totalValue;
+    }
+}
+
+public interface Element{
+    int accept(Visitor visitor);
+}
+public class ConcreteElementA implements Element{
+    int value;
+    public ConcreteElementA(){}
+    public ConcreteElementA(int value){
+        this.value = value;
+    }
+    int accept(Visitor visitor){
+        return visitor.visit(this);
+    }
+}
+public class ConcreteElementB implements Element{
+    int value;
+    public ConcreteElementB(){}
+    public ConcreteElementB(int value){
+        this.value = value;
+    }
+    int accept(Visitor visitor){
+        return visitor.visit(this);
+    }
+}
+
+public class Client{
+    pubilc static void main(String[] args){
+        Element[] elements = new Element[]{new ConcreteElementA(1), new ConcreteElementB(2)};
+        
+        // operation 1 in elements object strucutre
+        Visitor sumVisitor = new ComputeSumConcreteVisitor1();
+        for (Element e : elements){
+            e.accept(sumVisitor);
+        }
+        int sum = sumVisitor.getSum();
+        
+        // operation 2 in elements object strucutre
+        Visitor productVisitor = new ComputeProductConcreteVisitor2();
+        for (Element e : elements){
+            e.accept(productVisitor);
+        }
+        int product = productVisitor.getProduct();
+    }
+}
 ```
 </details>
 
@@ -1000,4 +1183,16 @@ todo
 
 Benefits
 
+- Visitor 使得添加新的操作很容易。通过添加一个新的 visitor 来定义对 object 结构的新的操作。
+- Visitor 收集相关的操作并将不相关的操作分开。
+- 跨 class 层级结构进行访问。你可以定义没有公共父类的 visit objects。你可以在 Visitor 接口中添加任何类型的对象。
+- 积累状态。
+
 Drawbacks
+
+- 增加新的 ConcreteElement class 是复杂的。每个ConcreteVisitor 都需要添加操作这个类的新的方法。
+- 打破封装。该模式中的 element 必须提供访问元素内部状态的 public 方法。
+
+## References
+
+[1] Design Patterns: Elements of Reusable Object-Oriented Software by Erich Gamma, Richard Helm, Ralph Johnson and John Vlissides
