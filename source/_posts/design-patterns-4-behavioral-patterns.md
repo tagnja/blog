@@ -129,7 +129,7 @@ Motivation
 
 Applicability
 
-- 参数化执行动作作为对象。
+- 参数化执行动作，将其封装为对象。
 - 在不同的时间指定，排队和执行请求。Command 对象的生命周期可以独立于原始请求。
 - 支持 undo。Command 执行操作可以存储状态用来反转影响 command 本身。
 - 支持 logging changes。所以可以在系统崩溃后可以重新正确运行。
@@ -143,9 +143,9 @@ Structure
 
 Participants
 
-- Command：为执行一个操作声明一个接口。
-- ConcreteCommand：定义一个在 Receiver object 和 action 的绑定。通过调用接收者相应的操作来实现 Execute。 
-- Cient：创建一个 ConcreteCommnd object，以及设置它的 receiver。
+- Command：声明用于执行操作的接口。
+- ConcreteCommand：定义 Receiver object 和 action 之间的绑定。通过调用接收者相应的操作来实现 Execute。 
+- Cient：创建一个 ConcreteCommnd 对象，以及设置它的 receiver。
 - Invoker：请求 command 得到请求结果。
 - Receiver：知道如何执行与请求相关的操作。
 
@@ -153,15 +153,13 @@ Collaborations
 
 - Client 创建一个 ConcreteCommand 以及指定它的 receiver。
 - Invoker 对象存储 ConcreteCommand 对象。
-- Invoker 通过调用 command 对象的 execute() 方法就，发出请求。
-- ConcreteCommand 对象调用接收者的操作得到请求结果。
+- Invoker 通过调用 command 对象的 execute() 方法来发出请求。
+- ConcreteCommand 对象调用接收者的操作来完成请求。
 
 Implementations
 
 <details>
   <summary>Click to expand!</summary>
-
-
 ```java
 public interface Command{
     void execute();
@@ -217,11 +215,9 @@ public class Clinet{
 
 Benefits
 
-- 请求命令是很灵活的。
-- 支持 undo 和 redo。Command 可以提供一个方式去反转它的执行。
-- 避免在 undo 过程中错误积累。
-
-Drawbacks
+- 命令将调用操作的对象与知道如何执行该操作的对象分离。
+- 你可以装配命令作为 composite 命令。
+- 很容易添加新的 Command。因为你不需要该改变存在的 classes。
 
 
 ## Interpreter
@@ -259,14 +255,12 @@ Collaborations
 
 - Client 构建一个句子作为 NonterminalExpression 和 TerminalExpression 实例的abstract syntax tree 。然后，client 初始化 context，调用 interpret 操作。
 - 每个 NonterminalExpression node 定义了 interpret 对每个子表达式上的 interpret。
-- 每个 node 的 interpret 操作使用 context 去存储和访问 interpreter 的 state。
+- 每个 node 的 interpret 操作使用 context 去存储和访问 interpreter 的状态。
 
 Implementations
 
 <details>
   <summary>Click to expand!</summary>
-
-
 ```java
 public interface Expression{
     boolean interpret(String context);
@@ -333,19 +327,19 @@ Drawbacks
 
 ### What
 
-提供以一种方式去顺序地访问聚合对象地元素，而不暴露它的底层表示。
+提供以一种方法去顺序地访问聚合对象的元素，而不暴露它的底层表示。
 
 ### Why
 
 Motivation
 
-一个聚合对象如 list，应该有一种方式去访问它的元素而不暴露它的内部结构。你可能想要用不用地方式去遍历集合，取决于你想要的实现。Iterator 模式可以帮你完成以上功能。
+一个聚合对象如 list，应该有一种方式去访问它的元素而不暴露它的内部结构。你可能想要用不同的方式去遍历集合，让它取决于你想要的实现。Iterator 模式可以帮你实现以上功能。
 
 Applicability
 
 - 访问一个聚合对象的内容，而不暴露它的内部表示。
 - 支持多种对聚合对象的遍历方式。
-- 提供统一的接口去遍历不同的聚合数据结构。
+- 提供统一的接口去遍历不同类型的聚合数据结构。
 
 ### Solution
 
@@ -407,7 +401,7 @@ public class ConcreteIterator implements Iterator{
     }
     
     public int first(){
-        // TODO
+        // ignored. not important
         return null;
     }
     public int next(){
@@ -421,7 +415,7 @@ public class ConcreteIterator implements Iterator{
         return cursor >= data.length -1;
     }
     public int currentItem(){
-        // TODO
+        // ignored. not important
         return null;
     }
 }
@@ -444,22 +438,22 @@ public class Client{
 
 Benefits
 
-- 它支持聚合结构的遍历的变化。
+- 它支持聚合结构的遍历中的变化。
 - Iterator 简化了 Aggregate 接口。
-- 多个 traversal 可以在聚合结构等待的。
+- 一个聚合对象可以有多个遍历。
 
 
 ## Mediator
 
 ### What
 
-定义一个对象封装一组对象如何交互。Mediator 通过防止对象之间显式地互相引用来促进松耦合，并且它是你可以独立地更改它们之间的交互。
+定义一个对象去封装一组对象是如何交互。Mediator 通过防止对象之间显式地互相引用来促进松耦合，并且它让你可以独立地更改它们之间的交互。
 
 ### Why
 
 Motivation
 
-面向对象的设计鼓励在对象之间分配行为。这种分配可能导致一个对象与很多对象有关联。大量的相互连接让系统的行为很难去改变。你可以使用 Mediator 去解决这类问题。Mediator 可以用来控制和协调一组对象之间的交互。Mediator 从当了中介，可以防止一组对象明确地相互引用。对象只知道 Mediator，从而减少对象相互连接的数量。
+面向对象的设计鼓励在对象之间分配行为。这种分配可能导致一个对象与很多对象有关联。大量的相互连接让系统的行为很难去改变。你可以使用 Mediator 去解决这类问题。Mediator 可以用来控制和协调一组对象之间的交互。Mediator 充当了中介，可以防止一组对象明确地相互引用。对象只知道 Mediator，从而减少对象相互连接的数量。
 
 Applicability
 
@@ -482,8 +476,8 @@ Structure
 Participants
 
 - Mediator：为 Colleague 对象交流定义一个接口。
-- ConcreteMediator：通过协调 Colleague 对象来实现合作行为。知道和维护它的 colleagues 对象。
-- Colleague classes：每一个 Collegue class 知道它的 Mediator 对象。每个  colleague 与它的 mediator 交流。
+- ConcreteMediator：通过协调 Colleague 对象来实现合作行为。维护它的 colleagues 对象。
+- Colleague classes：每一个 Collegue 类知道它的 Mediator 对象。每个  colleague 与它的 mediator 交流。
 
 Collaborations
 
@@ -557,7 +551,7 @@ Benefits
 
 - 它限制了子类。
 - 它解耦了 colleagues。
-- 它简化对象协议。
+- 它简化对象通信协议。
 - 它将对象的协作抽象化。
 - 它中心控制对象的交互。
 
@@ -569,13 +563,13 @@ Drawbacks
 
 ### What
 
-在不违反封装和外部化对象的内部状态等情况下，使得对象可以在以后恢复之前的状态。
+在不违反封装和外部化一个对象的内部状态等情况下，使得该对象可以在以后恢复之前的状态。
 
 ### Why
 
 Motivation
 
-有时需要记录一个对象的内部状态。当实现检查点和 undo 功能让用户在发生错误时恢复状态记录对象状态是需要的。但是对象一般是封装了一些或全部状态，使它不能被其他对象访问，以及不可能在外部保存。暴露对象的内部状态违反了封装，这会损害应用程序的可靠性和可扩展性。
+有时需要记录一个对象的内部状态。实现检查点和 undo 功能，让用户在发生错误时恢复状态记录的对象状态。但是对象一般是封装了一些或全部状态，使它不能被其他对象访问，以及不可能在外部保存。暴露对象的内部状态违反了封装，这会损害应用程序的可靠性和可扩展性。
 
 我们可以使用 Memento 模式解决这个问题。memento 是一个对象，它可以存储对象内部状态的快照（snapshot）。
 
@@ -687,7 +681,7 @@ Benefits
 
 Drawbacks
 
-- 使用 memento 可能是昂贵的。如果 Originator 拷贝大量的信息存储在 memento，memento 可以导致很大的花费。
+- 使用 memento 可能是昂贵的。如果 Originator 拷贝大量的信息存储在 memento，使用 memento 可以导致很大的花费。
 - 保管 mementos 的隐性成本。caretaker 负责删除它保管的 mementos。然而 caretaker 不知道在 memento 中有多少 state。因此，caretaker 可以能导致大量的存储 mementos 的花费。
 
 
@@ -717,8 +711,8 @@ Structure
 
 Participants
 
-- Subject：1）知道它的 observers。无数个 Observer 对象可能观察 subject。2）提供一个接口关联和脱离 Observer 对象。
-- Observer：为 subject 改变通知的对象定义一个更新的接口。
+- Subject：1）知道它的 observers。无数个 Observer 对象可能观察一个 subject。2）提供一个接口关联和脱离 Observer 对象。
+- Observer：为接收 subject 改变通知的对象定义一个更新的接口。
 - ConcreteSubject：1）存储 ConcreteObserver 对象的信息。2）当状态改变时发送通知给它的 observers。
 - ConcreteObserver：1）维护一个 ConcreteSubject 的引用。2）存储与 subject 一致的状态。3）实现 Observer 更新接口，保持它的状态与 subject 一致。
 
@@ -841,7 +835,7 @@ Motivation
 
 一个对象需要在不同的状态表现不同的行为。
 
-例子：TCPConnection class 他表示一个网络连接。一个 TCPConnection object 可可能有不同的一个状态：Established，Listening，Closed。当一个 TCPConnection 对象接收到请求时，它根据当前的状态进行响应。
+例子：TCPConnection class 他表示一个网络连接。一个 TCPConnection object 可可能是多个不同状态中的一个，如：Established，Listening，Closed。当一个 TCPConnection 对象接收到请求时，它可以根据当前的状态进行响应。
 
 Applicability
 
@@ -856,7 +850,7 @@ Structure
 
 Participants
 
-- Context：1）定义 Client 想要的接口。2）维护一个 ConcreteState 子类实例，它定义了当前状态。
+- Context：1）定义 Client 想要的接口。2）维护一个 ConcreteState 子类的实例，它定义了当前状态。
 - State：定义一个接口去封装与 Context 的特殊状态相关的行为。
 - ConcreteState：每个子类实现与 Context 的状态相关的行为。
 
@@ -865,7 +859,7 @@ Collaborations
 - Context 将特定状态的请求委托给当前的 ConcreteState 对象。
 - Context 可以将自身作为参数传递给处理请求的 State 对象。
 - Context 是 Client 的主要接口。Client 可以通过 State 对象配置 context。一旦 Context 配置了，它的 client 不需要直接处理 State 对象。
-- 无论是 Context 还是 ConcreteState 子类 都能决定哪个状态接替另一个和在什么情况下。
+- 无论是 Context 还是 ConcreteState 子类都能决定哪个状态接替另一个和在什么情况下。
 
 Implementations
 
@@ -929,7 +923,7 @@ Benefits
 
 ### What
 
-定义一组算法，封装每一个，以及让它们可互换的。Strategy 使算法独立于 Client 而改变。
+定义一组算法，封装每一个，以及让它们是可互换的。Strategy 使算法的改变独立于 Client。
 
 ### Why
 
@@ -941,8 +935,8 @@ Applicability
 
 - 许多相关的 classes 仅在行为上有所不同。Strategy 提供了一种使用多种行为之一配置 class 的方法。
 - 你需要不同的算法。
-- 算法使用 Client 不应该知道的数据。
-- 一个类定义了许多行为，这些行为在其操作中显示为多个条件语句。代替条件，把相关的条件分支一道它们自己的 Strategy class 中。
+- 算法使用了 Client 不应该知道的数据。
+- 一个类定义了许多行为，这些行为在其操作中显示为多个条件语句。代替条件，把相关的条件分支移到它们自己的 Strategy class 中。
 
 ### Solution
 
@@ -1013,7 +1007,7 @@ public class Client{
 Benefits
 
 - 相关的算法家族。Strategy classes 的层级结构定义了一组让 Context 重用的算法或行为。
-- 子类化的替代方法。你可以使用 inheritance 的方式去支持多种算法或行为。你可以 subclass Context class 直接执行不同的行为。但这将硬性地把 behavior 关联到 Context。
+- 它是子类化的替代方法。你可以使用 inheritance 的方式去支持多种算法或行为。你可以 subclass Context class 直接执行不同的行为。但这将硬性地把 behavior 关联到 Context。
 - Strategy 可以消除条件语句。
 - 多种实现方式。
 
@@ -1039,8 +1033,8 @@ Motivation
 Applicability
 
 - 算法不变的部分仅实现一次，并将可变化的行为留给子类来实现。
-- 子类间的共同行为一你改改分解并集中在一个共同类中，以避免代码重复。
-- 控制子类扩展。你可以定义一个 template method，它叫做特定点调用 hook 操作，从而允许在哪些点进行扩展。
+- 子类间的共同行为应该分解并集中在一个共同类中，以避免代码重复。
+- 控制子类扩展。你可以定义一个 template method，它叫做在特定点调用 hook 操作，从而允许在哪些点进行扩展。
 
 ### Solution
 
@@ -1095,20 +1089,22 @@ public class Client{
 
 Benefits
 
-- 提高代码的重用性。
+- 提高代码的复用性。
 
 
 ## Visitor
 
 ### What
 
-表示将在对象结构元素上执行的操作。Visitor 可以让你定义新的的操作，而无需更改其所操作的元素的类。
+Visitor 表示要在对象结构的元素上执行的操作。Visitor 可以让你定义新的的操作，而无需更改其所操作的元素的类。
 
 ### Why
 
 Motivation
 
-将对象结构和对对象的操作分离，让你轻易的增加新的操作。
+抽象父类定义了一组操作，不同的子类不一定需要实现所有的操作。强行将父类的所有操作放在一个不需要这个方法的子类中，会让人感到困惑，以及难以维护。
+
+上面这种情况可以使用 Visitor 将对象结构和对对象的操作分离，并且它可以让你轻易的增加新的操作。
 
 Applicability
 
@@ -1132,7 +1128,7 @@ Participants
 
 Collaborations
 
-- Client 创建一个 ConcreteVisitor 对象，然后遍历对象结构，访问 visitor 的每个元素。
+- Client 创建一个 ConcreteVisitor 对象，然后遍历对象结构，和 visitor 一起访问每个元素。
 - 当一个元素被访问，它调用对应的 Visitor 操作。如果需要，这个元素支持把自己作为参数传给这个操作，让 visitor 访问它的状态。
 
 Implementations
@@ -1232,7 +1228,7 @@ Benefits
 
 Drawbacks
 
-- 增加新的 ConcreteElement class 是复杂的。每个ConcreteVisitor 都需要添加操作这个类的新的方法。
+- 增加新的 ConcreteElement class 是复杂的。每个ConcreteVisitor 都需要添加操作这个元素的新的方法。
 - 打破封装。该模式中的 element 必须提供访问元素内部状态的 public 方法。
 
 ## References
