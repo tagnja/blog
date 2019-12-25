@@ -134,7 +134,7 @@ Drawbacks
 
 Motivation
 
-不改变过程，想要增加新的实现方式。
+不改变过程，构造不同的对象。
 
 例子：阅读器软件可以将 RTF（Rich Text Format）文档转换为很多其他的文本格式。每一种格式转换处理器对应一个 Converter 对象，它们都是 TextConverter 的子类。我们想要不改变阅读器转换的处理逻辑，轻易的增加新的格式转换处理器。
 
@@ -432,7 +432,7 @@ Drawbacks
 
 Motivation
 
-有些 class 必须只有一个实例。如，一个系统应该仅有一个文件系统和窗口管理器。
+有些 class 必须只有一个实例。如，一个系统应该仅有一个文件系统和一个窗口管理器。
 
 Applicability
 

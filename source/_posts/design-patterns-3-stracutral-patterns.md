@@ -279,7 +279,7 @@ Motivation
 
 可以将多个 components 组成更大的 components，每个节点可以是单个组件，也可以是多个组件的组合，每个节点用统一的接口对象表示。
 
-例子：如画图编辑器，可以画线、多边形和文字，也可以是图文的方式。图文这种元素是多种组件的结合，我们想把组合元素和单一元素一样对待，减少代码的复杂，可以使用 Composite 模式来实现。
+例子：如画图编辑器，可以画线、多边形和文字，也可以是图文的方式。图文这种元素是多种组件的结合，我们想**把组合元素和单一元素统一对待，减少代码的复杂性**。我么可以使用 Composite 模式来实现这个功能。
 
 Applicability
 
@@ -318,10 +318,11 @@ public interface Component{
 
 public class Composite implements Component{
     private String name;
+    private List<Composite> compositeList;
+    
     public Composite(String name){
         this.name = name;
     }
-    private List<Composite> compositeList;
     public void operation(){
         System.out.println("I am " + name);
         if (compositeList != null){
@@ -426,7 +427,7 @@ public class ConcreteComponet{
 
 public interface Decorator extends Component{}
 
-public class ConcreteDecorator{
+public class ConcreteDecorator extends Decorator{
     private Component component;
     public ConcreteDecorator(Component component){
         this.component = component;

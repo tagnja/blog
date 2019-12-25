@@ -96,8 +96,9 @@ public class Client{
         Handler handler = new ConcreteHandler1();
         Handler nextHandler = new ConcreteHandler2();
         handler.setNext(nextHandler);
-        handler.handleRequest(1);
-        handler.handleRequest(2);
+        int request1 = 1, request2 = 2;
+        handler.handleRequest(request1);
+        handler.handleRequest(request2);
     }
 }
 ```
@@ -160,6 +161,7 @@ Implementations
 
 <details>
   <summary>Click to expand!</summary>
+
 ```java
 public interface Command{
     void execute();
@@ -215,7 +217,7 @@ public class Clinet{
 
 Benefits
 
-- 命令将调用操作的对象与知道如何执行该操作的对象分离。
+- Command 将调用操作的对象与知道如何执行该操作的对象分离。
 - 你可以装配命令作为 composite 命令。
 - 很容易添加新的 Command。因为你不需要该改变存在的 classes。
 
@@ -261,6 +263,7 @@ Implementations
 
 <details>
   <summary>Click to expand!</summary>
+
 ```java
 public interface Expression{
     boolean interpret(String context);
@@ -279,10 +282,10 @@ public class TerminalExpression implements AbstractExpression{
         }
     }
 }
-public class NonTerminalExpression implements AbstractExpression{
+public class NonterminalExpression implements AbstractExpression{
     private Expression expression1;
     private Expression expression2;
-    public NonTerminalExpression(Expression expression1, Expression expression2){
+    public NonterminalExpression(Expression expression1, Expression expression2){
         this.expression1 = expression1;
         this.expression2 = expression2;
     }
@@ -303,8 +306,8 @@ public class Client{
     TerminalExpression terminalExp2 = new TerminalExpression("Jack");
     terminalExp1.interpret(context1);
     terminalExp2.interpret(context1);
-    NonTerminalExpression nonTerminalExp = new NonTerminalExpression(terminalExp1, terminalExp2);
-    nonTerminalExp.interpret(context1);
+    NonterminalExpression nonterminalExp = new NonterminalExpression(terminalExp1, terminalExp2);
+    nonterminalExp.interpret(context1);
 }
 ```
 
@@ -363,8 +366,7 @@ Implementations
 <details>
   <summary>Click to expand!</summary>
 
-
-​```java
+```java
 public interface Aggregate{
     Iterator createIterator();
 }
@@ -488,7 +490,6 @@ Implementations
 <details>
   <summary>Click to expand!</summary>
 
-
 ```java
 public interface Mediator{
     
@@ -603,7 +604,6 @@ Implementations
 <details>
   <summary>Click to expand!</summary>
 
-
 ```java
 public class Memento{
     private int state;
@@ -695,7 +695,7 @@ Drawbacks
 
 Motivation
 
-将系统划分为一组合作的 classes 常见的辅作用是需要维护相关对象之间的一致性。你不想通过使 classes 紧耦合来实现一致性，因为它减少了重用性。
+将系统划分为一组合作的 classes 常见的辅作用是需要维护相关对象之间的一致性。你不想通过使 classes 紧耦合来实现一致性，因为它降低了代码的可重用性。
 
 Applicability
 
@@ -725,7 +725,6 @@ Implementations
 
 <details>
   <summary>Click to expand!</summary>
-
 
 ```java
 public interface Subject{
@@ -866,7 +865,6 @@ Implementations
 <details>
   <summary>Click to expand!</summary>
 
-
 ```java
 public class Context{
     private State state;
@@ -959,7 +957,6 @@ Implementations
 
 <details>
   <summary>Click to expand!</summary>
-
 
 ```java
 public interface Strategy{
@@ -1056,7 +1053,6 @@ Implementations
 <details>
   <summary>Click to expand!</summary>
 
-
 ```java
 public abstract class AbstractClass{
     public void templateMethod(){
@@ -1102,7 +1098,7 @@ Visitor 表示要在对象结构的元素上执行的操作。Visitor 可以让�
 
 Motivation
 
-抽象父类定义了一组操作，不同的子类不一定需要实现所有的操作。强行将父类的所有操作放在一个不需要这个方法的子类中，会让人感到困惑，以及难以维护。
+抽象父类定义了一组操作，不同的子类不一定需要实现所有的操作。强行将父类的所有操作放在一个不需要这个方法的子类中，会让人感到疑惑，以及难以维护。
 
 上面这种情况可以使用 Visitor 将对象结构和对对象的操作分离，并且它可以让你轻易的增加新的操作。
 
@@ -1135,7 +1131,6 @@ Implementations
 
 <details>
   <summary>Click to expand!</summary>
-
 
 ```java
 public interface Visitor{
@@ -1212,7 +1207,6 @@ public class Client{
         int product = productVisitor.getProduct();
     }
 }
-
 ```
 
 </details>
