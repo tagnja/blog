@@ -1,5 +1,5 @@
 ---
-title: design-patterns-summary
+title: 深入理解设计模式（五）：设计模式的总结
 date: 2019-12-25 13:23:30
 categories: 
 - 软件设计与架构
