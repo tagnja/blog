@@ -31,10 +31,11 @@ date: 2019-10-28 21:54:29
 
 
 
-## 设计与架构
+## 编码、设计与架构
 
 | 书名                                                         | 时间    | 评分  |
 | ------------------------------------------------------------ | ------- | ----- |
+| **Clean Code** by Robert C. Martin<br />告诉我们如何编写整洁的代码，以及它的重要性。程序员必读系列。 | 2019.12 | ★★★★★ |
 | **Design Patterns: Elements of Reusable Object-Oriented Software** by Erich Gamma, Richard Helm, Ralph Johnson and John Vlissides<br />它介绍了常见的设计模式，让我们全面的理解了设计模式。这本书有点难度，文字描述有点难懂，代码示例用的是 C++ 语言。 | 2019.12 | ★★★★★ |
 
 
