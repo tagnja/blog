@@ -352,13 +352,48 @@ Functions 应该做一件事，Error handling 是一件事，所以，一个处�
 
 ## Comments
 
+Don't comment bad code--rewrite it. 注释的正确用法是为了弥补我们失败地在代码中表达自己。当你需要写注释时，你需要思考它是否没有方式在代码中表达。每次你写了一个注释，你应该感到你表达能力的失败。
+
+为什么尽量不写注释，因为程序员很少去维护注释的正确性。
+
+- 注释不能弥补差的代码。与其花时间去写注释解释混乱的代码，不如花时间使代码整洁。
+
+- 在代码中解释你自己。在很多时候可以创建一个方法来代替你注释要说明的。如下：
+
+  ```java
+  // Check to see if the employee is eligible for full benefits
+  if ((employee.flog & HOURLY_FLAG) && (employee.age > 65))
+  ```
+
+  代替为
+
+  ```java
+  if (employee.isEligibleForFullBenefits())
+  ```
+
+### Good Comments
+
+有些注释时有必要的或有益的。始终记住真正好的注释是找到一种方式不写注释。
+
+常见的有必要的注释
+
+- Legal Comments。版权和作者声明是有必要的和合理的。如 `// Copyright (C) 2003,2004,2005 by Object Mentor, Inc. All rights reserved.`
+- Explanation of Intent。解释为什么这么做。如 `// we are greater because we are the right type.`
+- Warning of Consequence。警告注释。如 `// Don't run unless you, have some time to kill`
+- TODO Comments。TODO 一般用于此刻没时间做或者做不了的事。它解释代码的问题和未来应该做什么。如 `//TODO-MdM these are not needed // We expect this to go away when we do the checkout model`
+- Amplification。详述注释。用于详述某些重要的事情，其他人可能认为不重要的事。`// the trim is real important. It removes the starting spaces that could cause the item to be recognized as another list.`
+
 
 
 ## Formatting
 
+## Error Handling
 
+## Unit Test
 
+## Class
 
+## System
 
 ## References
 
