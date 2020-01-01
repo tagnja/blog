@@ -180,29 +180,173 @@ Classes 和 objects 的名称应该为名词或名词短语。如 Customer，Wik
 
 有意义的命名的实现目标：1）整洁性、可维护性。名称揭示意图，代码解释一切，无注释。2）可读性。代码命名简单、明确，让人更轻松、更快地阅读和理解代码。
 
+
+
 ## Functions
 
-Small
+**Small**
 
-Do One Thing
+function 的第一规则：它们应该非常小。
 
-One Level of Abstraction per Function
+Blocks and Indenting
 
-Switch Statements
+if..else，while 等代码块应该占一行，作为方法调用。代码块作为方法调用可以有一个很好的描述名称。
 
-Use Descriptive Names
+indent level 不应该超过一层或两层。这使得 functions 更容易阅读和理解。
 
-Function Arguments
+**Do One Thing**
 
-Have No Side Effects
+Functions 应该做一件事，它们应该做好，它们应该只做一件事。
 
-Command Query Separation
+如何知道是否是只做一件事：
 
-Prefer Exception to Returning Error Codes
+- function 只有一层抽象，即不包含多个不同的抽象层级。
+- function 不能被划分多个 sections。
 
-Don't Repeat Yourself
+**Switch Statements**
 
-Structured Programming
+让 switch 语句只做一件事是困难的，根据它的性质，switch 语句总是做 N 件事。我们可以将 switch 的每一个分支封装成一个方法。
+
+**Use Descriptive Names**
+
+functions 的名称应该描述 function 做了什么。不要害怕使得名称很长，一个长的 descriptive name 比短的神秘的名称更好。一个长的 descriptive name 比一个长的 comment 更好。
+
+**Function Arguments**
+
+理想的 function 参数的个数是0个，其次是1个和2个，3个参数是尽量避免的。
+
+多个参数的问题：
+
+- 参数需要占用额外的概念性的精力，每次都需要解释它。
+- 参数越多越难测试。
+
+其它参数问题
+
+- Flag 参数。传递一个 boolean 参数给方法是很糟糕的，你明显的表现出 function 不是做一件事。
+- 参数对象。超过两个或三个参数应该封装成一个 class。
+- 动词和关键词。方法名应该是 动词+名词对。如使用 `writeField()` 代替 `write()`。
+- 输出参数。输出参数比输入参数是更难理解的。我们既要关注输入是什么，也要关注输出是什么，它使我们花费双倍的精力。如果你的 function 必须改变某些状态，让它改变其拥有对象的状态。如 `appendFooter(String report) => report.appendFooter()`。
+
+**Have No Side Effects**
+
+你的 function 保证了做一件事，但可能存在其它隐藏的事情。
+
+如下：
+
+```java
+public boolean checkPassword(String userName, String password){
+    User user = UserGateway.findByName(userName);
+    if (user != User.NULL){
+        if (user.getPassword.equals(password)){
+            Session.initialize();
+            return ture;
+        }
+    }
+    return false;
+}
+```
+
+上面的 `checkPassword()` 方法中的 `Session.initialize()` 是隐藏的事情。因为初始化会话这件事不属于检查密码。可以将方法改为 `checkPasswordAndInitializeSession()`，其实现如下：
+
+```java
+public boolean checkPasswordAndInitializeSession(String userName, String password){
+    boolean passwordRight = checkPassword(userName, password);
+    if (passwordRight){
+        Session.initialize();
+        return true;
+    }
+    return false;
+}
+```
+
+**Command Query Separation**
+
+Functions 应该是做某些事或者回答某些事，而不是两者都做。你的 function 应该改变一个对象的状态或者返回一个对象的一些信息。一个错误的例子如下：
+
+```java
+public boolean set(String attribute, String value);
+```
+
+上面这个方法即设置了对象的属性，又返回操作是否成功和属性是否存在。这会导致出现奇怪的语句，如 `if (set("username", "unclebob"))`。
+
+上面的方法应该划分为两个方法，一个执行操作，一个查询状态。如下：
+
+```java
+public void set(String attribute, String value);
+public boolean attributeExists(String attribute);
+```
+
+**Prefer Exception to Returning Error Codes**
+
+执行命令的方法返回 error codes 是轻微的违反了 command query separation 原则。当你返回一个 error code，调用者必须立刻处理 error，才能继续执行其它语句，这将导致代码很多层嵌套判断。示例代码如下：
+
+```java
+if (deletePage(page) == E_OK){
+    if (registry.deleteReference(page.name) == E_OK){
+        if (configKeys.deleteKey(page.name.makeKey()) == E_OK){
+            ...
+        } else {
+            
+        }
+    }
+}
+```
+
+你可以使用 exception 代替返回 error codes，这样的话，不需要立即处理错误情况，代码没有太多的嵌套。代码如下：
+
+```java
+try {
+    deletePage(page);
+    registry.deleteReference(page.name);
+    configKeys.deleteKey(page.name.makeKey());
+}
+catch (Exception e) {
+	logger.log(e.getMessage());
+}
+```
+
+Extract Try/Catch Blocks
+
+Try/catch 代码块是丑陋的，它混合了正常代码和错误处理代码。更好的办法是将 try/catch 代码块封装到一个独立的方法。上面的代码可以改为：
+
+```java
+public void delete(Page page){
+    try {
+        deletePageAndAllReference(page);
+    } catch (Exception e){
+        logError(e);
+    }
+}
+public void deletePageAndAllReferences(Page page) throws Exception {
+    deletePage(page);
+    registry.deleteReference(page.name);
+    configKeys.deleteKey(page.name.makeKey());
+}
+
+private void logError(Exception e){
+    logger.log(e.getMessage());
+}
+```
+
+Error Handling Is One Thing
+
+Functions 应该做一件事，Error handling 是一件事，所以，一个处理 errors 的 function 不应该做其它的事。即在 catch/finally 代码块后面不应有其它的语句，或一个处理 error 的 function 仅包含 try/catch/finally 代码块。 
+
+**Don't Repeat Yourself**
+
+在软件中重复是所有罪恶的根源。我们应该尽可能的消除重复的代码。
+
+
+
+### Clean functions 的总结
+
+一个 function 应该尽量的小，只做一件事，尽量少的参数，和使用描述性的名称。
+
+如何只做一件事：只有一层抽象，不能划分为多个 sections，没有隐藏功能，命令和查询分离。
+
+其它问题：错误处理，消除重复。
+
+把系统当作故事来讲诉而不是编写程序。
 
 
 
