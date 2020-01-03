@@ -408,6 +408,8 @@ Code formatting 是重要的，编码风格和可读性会持续影响软件的�
 
 每一个程序员都有自己最喜欢的格式规则，但是如果在一个团队中工作，我们需要按照团队的规则去编写代码。一个团队的所有开发者应该同意一个编码风格，然后每个团队成员应该使用这个风格。我们需要一个统一的编码风格。
 
+
+
 ## Error Handling
 
 错误处理时必须要做的一件事。输入可能异常，设备可能失败，总的来说，事情可能发生错误，程序员有责任确保当发生异常时系统可以正常工作。
@@ -442,11 +444,11 @@ Code formatting 是重要的，编码风格和可读性会持续影响软件的�
 
 ### Single Concept per Test
 
-每个测试方法测试单个概念。
+每个测试方法应该只测试单个概念。
 
-F.I.R.S.T
+### F.I.R.S.T
 
-整洁测试代码的 5 个规则：
+编写整洁测试代码的 5 个规则：
 
 - Fast。测试应该是快的。如果测试运行很慢，你不想频繁地运行它们。如果你没有频繁地运行测试，你不会更早地发现问题更轻松地修复问题。
 - Indenpent。测试应该不依靠其它代码。你应该能够独立地测试，以及以任何顺序运行测试。
@@ -454,9 +456,27 @@ F.I.R.S.T
 - Self-Validating。测试应该有一个布尔输出。你可以不通过日志文件知道测试是否通过。
 - Timely 。测试代码应该在业务代码之前写。
 
+
+
 ## Class
 
-## System
+### Class Organization
+
+标准的 Java convention，一个 class 由一组变量开始，首先是 pubilc static constants，然后是 private static 变量，最后是 instance 变量。变量后面是方法，方法按照抽象层次由高往下。
+
+### Class Should Be Samll
+
+class 的第一规则是 class should be small。class 的名称应该说明其应履行的职责。我们应该能够不使用 “if”, "and", "or", "but" 等单词情况下，用 25 words 来写一个 class 的简单的描述。
+
+Single Responsibility Principle 表示一个 class 或 module 应该仅有一个发生改变的原因。这个原则说明了职责的定义和对 class size 的指导。尝试识别职责（reasons to change）常常能帮助我们在代码中找到和创建更好的抽象。
+
+Cohension。classes 应该有少量的实例变量。一般更多的变量被一个方法操作，这个方法对 class 来说越内聚。当一个 classes 不内聚，分离它们。
+
+### Organizing for Change
+
+SRP（Single Responsibility Principle），Open-Closed Principle（OCP），Dependency Inversion Principle（DIP）
+
+
 
 ## References
 
