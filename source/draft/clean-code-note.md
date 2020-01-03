@@ -1,4 +1,4 @@
-Title: Clean Code Note
+Title: 如何编写整洁代码
 
 Content
 
@@ -7,14 +7,14 @@ Content
 - Functions
 - Comments
 - Formatting
-- Objects and Data Structures
+- //Objects and Data Structures
 - Error Handling
-- Boundaries
+- //Boundaries
 - Unit Test
 - Classes
 - Systems
-- Emergence
-- Concurrency
+- //Emergence
+- //Concurrency
 
 
 
@@ -387,7 +387,37 @@ Don't comment bad code--rewrite it. 注释的正确用法是为了弥补我们�
 
 ## Formatting
 
+Code formatting 是重要的，编码风格和可读性会持续影响软件的维护性和扩展性。
+
+### Vertical Formatting
+
+行数。一个源码文件不应该超过 500 行，一般最好 200 行左右。小文件通常比大文件更容易理解。
+
+自顶向下阅读的。最上面的方法提供高层次的概念和算法。细节应该是从上到下递增的。
+
+垂直的间隔。不同概念的一组代码应该用空行分隔。
+
+垂直的密度。垂直密度暗示了紧密的关系，相关性高得代码应该紧密排布在一起。
+
+垂直的距离。紧密关联的概念应该保持垂直方向接近的。1）变量声明语句应该尽可能接近它们使用的地方。2）实例变量应该声明在 class 的顶端。3）依赖的方法。一个方法调用另一个方法，它们应该在垂直方向相互接近的，调用者应该在被调者的上面。4）概念上类似。相似的内容应该在垂直方向相互接近的。如方法的重载，相同的方法名，不同的参数的方法，它们的功能是类似的。
+
+垂直的顺序。方法的调用依赖时指向下面方向的。
+
+### Horizontal Formatting
+
+水平的字符数应该不超过 120 个字符。
+
+水平的间隔和密度。操作符与操作数之间有一个空格，将它们分成左边和右边两个部分，看起来更清晰。
+
+缩进。使用缩进来表示代码语句范围的层级结构。
+
+### Team Rules
+
+每一个程序员有自己最喜欢的格式规则，但是如何在一个团队中工作，需要按照团队的规则去编写代码。一个团队的所有开发者应该同意单个格式风格，然后每个团队成员应该使用这个风格。我们需要一个统一的风格。
+
 ## Error Handling
+
+
 
 ## Unit Test
 
