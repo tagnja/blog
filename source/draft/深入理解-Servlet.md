@@ -185,13 +185,13 @@ Servlet interface 是 Java Servlet API 的核心抽象。所有的 servlets 直�
 
 ### Number of Instances
 
+在非分布式环境，servlet container 中每个 servlet 仅能有一个实例。servlet 实现 `SingleThreadModel` 接口，servlet container 可能会实例化多个 servlet 实例。
 
+`SingleThreadModel` 保证仅有一个线程执行 servlet 实例的 service 方法，它避免并发访问一个 servlet 实例的 service 方法，然而，我们可以通过其它方法达到这个目的，`SingleTHreadModel` 是不推荐使用的。
 
 ### Servlet Life Cycle
 
 
-
-### End of Service
 
 
 
