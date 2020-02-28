@@ -32,7 +32,7 @@ Servlet 是基于 Java 的 Web component，它被 servlet container 管理的，
 
 ### What is a Servlet Container
 
-Servlet container 是 Web server 或 application server 的一部分，它提供了发送 request 和 response 的网络服务，解析基于 MIME 的 requests，以及格式化基于 MIME 的 responses。Servlet Container 还管理 Servlets 的整个 lifecycle。
+Servlet container （有时也叫做 servlet engine）是 Web server 或 application server 的一部分，它提供了发送 request 和 response 的网络服务，解析基于 MIME 的 requests，以及格式化基于 MIME 的 responses。Servlet Container 还管理 Servlets 的整个 lifecycle。
 
 Servlet container 可以内置到 Web server 中，也可以通过 Web server 的扩展 API 作为附加组件安装到 Web server 中。Servlet container 也可以内置或安装在 application servers。
 
@@ -191,9 +191,45 @@ Servlet interface 是 Java Servlet API 的核心抽象。所有的 servlets 直�
 
 ### Servlet Life Cycle
 
+Servlet 是通过定义明确的声明周期进行管理的，该生命周期定义了如何加载和实例化，如何初始化，如何处理来时客户端的请求，和如何退出服务。API 中的生命周期由 `javax.servlet.Servlet` 接口的 `init`，`service` 和 `destroy` 方法表示，所有的 servlet 必须直接或者通过 GenericServlet 或 HttpServlet 抽象类间接地实现这个接口。
 
+#### Loading and Instantiation
 
+Servlet container 负责加载和实例化 servlet。加载和实例化可以在 container 启动的时候，或者延迟到 container 需要 servlet 来处理请求。
 
+#### Initialization
+
+在 servlet 对象实例化后，在它能处理客户端请求之前，container 必须初始化 servlet。初始化方便 servlet 可以读取持久性配置数据，初始化昂贵的资源以及执行其它一次性的活动。container 通过实现 ServletConfig 接口唯一（每个 Servlet 声明）对象调用 Servlet 接口的 init 方法开初始化 servlet。配置对象允许 servlet 从 Web 应用配置信息中访问 name-value 初始化参数。
+
+#### Request Handling
+
+在一个 servlet 正确初始化后，servlet container 可能使用它来处理客户端的请求。请求通过 ServletRequest 对象来表示，servlet 通过调用 ServletResponse 对象提供的方法来响应请求。这两个对象作为参数传递给Servlet 接口的 service 方法。
+
+对于 HTTP 请求，container 提供的对象类型是 HttpServletRquest 和 HttpServletResponse。
+
+Multithreading Issues
+
+Servlet container 可能通过 servlet 的 service 方法发送并发请求。为了处理这些请求，Servlet 开发者必须为 service 方法中的多线程并发处理做好充分的准备。
+
+Servlet 的 service 方法不建议使用 synchronized 关键字，因为那将使得 container 不能使用 instance pool，而是顺序执行请求，这会严重影响 servlet 的性能。
+
+Exception During Request Handling
+
+Servlet 在请求 service 时，可能 throw ServletException 或 UnavailableException，ServletException 表示在处理请求过程中由错误发生，并且 container 应该采取适当措施来清理请求。UnavailableException 表示这个 servlet 临时或永久地不能处理请求，container 必须从服务中移除这个 servlet，调用它的 destroy 方法，并且释放 servlet 实例。
+
+Thread Safety
+
+request 和 response 对象的实现没有保证线程安全，这意味着它们应该在请求处理线程范围内使用。request 和 response 对象的引用不应该执行在其它线程。
+
+#### End of Service 
+
+servlet container 不需要在任何特定时间内都保持 servlet 的加载。Servlet 实例在 servlet 容器中的生命周期可能是几天，几个月或者几年。
+
+当 servlet container 决定把一个 servlet 从 service 中移除，它调用 Servlet 接口的 destroy 方法去允许这个 servlet 去释放所有它使用的和保存的任何持久状态的资源。
+
+在 servlet container 调用destroy 方法，它必须允许任何正在执行这个 servlet 的 service 方法的线程执行完毕，或者执行超时。
+
+一旦一个 servlet 实例的 destroy 方法被调用了，这个实例将不再接收请求。如果 container 需要这个servlet，它必须重新创建一个新的实例。在 destroy 方法完成后，servlet container 必须释放 servlet 实例，让它能够进行垃圾收集。
 
 ## The Request
 
