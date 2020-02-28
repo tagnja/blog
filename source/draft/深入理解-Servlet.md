@@ -233,7 +233,96 @@ servlet container 不需要在任何特定时间内都保持 servlet 的加载�
 
 ## The Request
 
-Servlet Context
+Request object 封装了来自客户端请求的所有信息。对于 HTTP 协议，这个信息是从客户端传递到服务器的 HTTP  请求的 headers 和 message body。
+
+### HTTP Protocol Parameters
+
+Parameters 是由一组 name-value pair 存储的。ServletRequest 接口中获取参数的方法有：
+
+- getParameter
+- getParameterNames
+- getParameterValues
+- getParameterMap
+
+来自 query string 和 post body 的数据是聚合在 request parameter set 中的。query string 数据表示在post body 数据之前。如：一个请求的 query string 是 a=hello，它的 post body 是 a=goodbye&a=world，参数集的结果将是 a=(hello, goodbye, world)。
+
+Post 表单数据转换为 parameter set 的条件：
+
+1. 它是一个 HTTP or HTTPS 请求。
+2. HTTP method 是 POST。
+3. content type 是 application/x-www-form-urlencoded
+4. Servlet 已对请求对象上的任何 getParameter 方法族进行了初始调用。
+
+如果上面的条件没有全部满足，post 请求的 form data 不会包含在 parameter set中，但 post data 依然可以通过 request object 的 input stream  中获取。如果所有条件都满足，post form data 将不再能从 request object 的 input stream 中读取。
+
+### Attributes
+
+Attributes 是关联一个请求的对象。Container 可以设置 attributes 以表示无法通过 API 表示的信息，或者可以由 servlet  设置 attributes 以将信息传递给另一个 servlet （通过 RequestDispatcher）。ServletRequest 接口操作 attributes 的方法有： 
+
+- getAttribute
+- getAttributeNames
+- setAttribute
+
+一个 attribute value 只能与一个 attribute name 关联。
+
+以 “java.” 和 “javax.” 为前缀的 attributes 是 servlet specification 定义的。
+
+### Headers
+
+HttpServletRequest 接口获取 header 的方法有：
+
+- getHeader
+- getHeaders
+- getHeaderNames
+
+可能存在多个 headers 是相同的名称，如果有多个 header 是相同的名称，getHeader 方法返回第一个 header，getHeaders 方法返回所有 headers 的 Enumeration 对象。
+
+Headers 可能 string 表示的 int 和 Date 数据，HttpServletRequest 接口提供了直接获取 int 和 Date 类型的数据的方法：
+
+- getIntHeader
+- getDateHeader
+
+getIntHeader 方法可能会 throw NumberFormatException，getDateHeader 方法可能 throw IllegalArgumentException。
+
+### Request Path Elements
+
+request URI = Context Path + Servlet Path + Path Info
+
+### Path Translation Methods
+
+Servlet API 中允许开发者获取 Java Web 应用的文件在文件系统中的绝对文件路径。这些方法是：
+
+- ServletContext.getRealPath
+- HttpServletRequest.getPathTranslated
+
+### Cookies
+
+HttpServletRquest 接口提供了 getCookies 方法去获取请求中的一组 cookies。这些 cookies 是从客户端每次发送到服务端的请求中的数据。
+
+服务端可以添加和删除 Cookie， 以及设置 cookie 的属性，如有效期等。
+
+### Internationalization
+
+客户端可以选择向 Web server 指示它们希望以哪种语言给出响应。客户端可以使用 Accept-Language header 来传达这个信息。ServletRequest 接口提供了决定发送者的偏好语言的方法：
+
+- getLocale
+- getLocales
+
+getLocale 方法返回客户端最希望的语言的 locale 对象。getLocales 方法返回 locale 对象的 Enumeration，以降序的方式表示客户端所有偏好的语言。
+
+如果客户端没有指明偏好的语言，那么 getLocale 将返回 servlet container 默认的 locale，getLocales 将返回只包含 默认 locale 的 enumeration。
+
+### Request data encoding
+
+如果客户端没有通过 Content-Type header 指明 HTTP request 的字符编码，HttpServletRequest.getCharacterEncoding 方法将返回 null。
+
+Container 读取 request 的数据的默认编码为 ISO-8859-1。开发者可以通过 setCharacterEncoding 方法来设置 request 的字符编码。设置 request 字符编码一定要在读取 request 数据之前，一旦数据被读取了，字符编码的设置将不会生效。
+
+### Lifetime of the Request Object
+
+每一个 request 对象仅仅在 servlet 的 service 方法或者 filter 的 doFilter 方法范围内有效。Container 为了减少创建 request 对象的性能花费，通常会循环利用 request 对象。开发者必须注意，在非有效范围之外维持 request 对象的引用是不推荐的，它可能导致不确定的结果。
+
+## Servlet Context
 
 The Response
 
