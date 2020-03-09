@@ -324,21 +324,135 @@ Container 读取 request 的数据的默认编码为 ISO-8859-1。开发者可�
 
 ## Servlet Context
 
-The Response
+SevletContext interface 定义了一组方法让 servlet 与 它的 servlet container 进行交流。例如，获取一个文件的 MIME type，dispatch request，，写日志，以及设置和存储所有 servlet 可以访问的属性等。
 
-Filtering
+### Scope of ServletContext Interface
 
-Sessions
+每一个 Java  虚拟机的每一个 Web 应用程序只有一个 ServletContext 对象。
 
-Dispatching Requests
+### Initialization Parameters
 
-Web Applications
+ServletContext 接口允许 servlet 访问在 deployment descriptor 定义的 context 初始化参数的方法：
 
-Application Lifecycle Events
+- getInitParamenter
+- getInitParamenterNames
 
-Mapping Requests to Servlets
+应用程序开发人员使用初始化参数来表示设置信息。如网站管理员的电子邮件地址，或者系统的关键配置数据。
 
-Security
+### Context Attributes
+
+Servlet 可以通过 name 把对象属性绑定到 context 中。任何绑定到 context 中的 attribute Web 应用程序中任何其他 servlet 都可以使用。ServletContext 接口操作 attributes 的方法：
+
+- setAttribute
+- getAttribute
+- getAttributeNames
+- removeAttribute
+
+### Resources
+
+ServletContext interface 提供了直接访问静态类型文档，如 HTML，GIF，和JPEG 等文件的方法：
+
+- getResource
+- getResourceAsStream
+
+静态文件的 path 是以‘/’开始的 context 根目录的相对路径。上面的方法不能获取动态文件如 getResource("/index.jsp")
+
+### Temporary Working Directories
+
+Servlet contiiners 必须为 每一个 servlet context 提供一个私有的临时目录，并且可以通过 `javax.servlet.context.tempdir` context attribute 来访问这个目录。
+
+
+
+## The Response
+
+Response object 封装了 server 返回给 client 的所有信息。在 HTTP 协议中，这个信息通过 HTTP headers 或 message body 从 server 传输到 client。 
+
+### Buffering
+
+出于效率目的，允许（但不是必需）一个servlet容器来缓冲输出到客户端的输出。一般 servers buffering 是默认的，允许 servlet 去指定 buffering 的参数。
+
+ServletResponse interface 允许 servlet 访问和设置 buffering 信息的方法：
+
+- getBufferSize
+- setBufferSize
+- isCommitted
+- reset
+- resetBuffer
+- flushBuffer
+
+ServletResponse interface 提供这些方法去执行缓冲操作，无论 servlet 使用 ServletOutput 还是 Writer。
+
+### Headers
+
+Servlet 可以通过 HttpServletResponse interface 的方法去设置 HTTP repsose 的 headers：
+
+- setHeader
+- addHeader
+
+HttpServletResponse interface 也提供了添加具体的数据类型的 headers 的方法：
+
+- setIntHeader
+- setDateHeader
+- addIntHeader
+- addDateHeader
+
+### Convenience Methods
+
+HttpServletReponse interface 中的 convenience 方法有：
+
+- sendRedirect
+- sendError
+
+### Internationalization
+
+Servlet 设置 reponse 的 locale 和 character encoding。使用 ServletResponse 的 setLocale 方法可以设置 response 的 locale。如果 response 已经 committed 则 setLocale 方法是无作用的。如果 servlet 在 response committed 之前没有设置 locale，container 的默认的 locale  用于确定 response 的 locale。
+
+可以使用 locale encoding mapping 来设置使用特定 locale 时也使用对应的 character encoding。
+
+```xml
+<locale-encoding-mapping-list>
+	<locale-encoding-mapping>
+		<locale>zh-CN</locale>
+		<encoding>UTF-8</encoding>
+	</locale-encoding-mapping>
+</locale-encoding-mapping-list>
+```
+
+ServletResponse 提供了设置 character encoding 的方法：
+
+- setCharacterEncoding
+- setContentType
+
+和 setLocale 方法一样 set character encoding 在 response committed 之后是无作用的。如果 servlet 在 ServletResponse 的 getWriter 方法调用之前或 response committed 之后，没有设置 character encoding，则默认使用 ISO-8859-1 编码。
+
+### Closure of Response Object
+
+当 response 关闭时，container 必须立刻 flush 在 response buffer 中所有剩余的内容，返回给 client。
+
+request 和 response object 关闭的 events：
+
+- servlet 的 service 方法结束。
+- 在 response 的 setContentLength 方法指定的内容量大于零，，并已写入 response 中。
+- 调用了 sendError 方法
+- 调用了 sendRedirect 方法
+
+### Lifetime of Response Object
+
+每个 response 对象仅仅在 servlet 的 service 方法，或者在 filter 的 doFilter 方法范围内有效。Container 常常会 循环利用 response 对象来减少创建 response 对象的性能消耗。开发者必须注意在 response 对象的有效范围之外维护 response 对象的参考可能会导致不确定的行为。
+
+## Filtering
+
+## Sessions
+
+## Dispatching Requests
+
+## Web Applications
+
+## Application Lifecycle Events
+
+## Mapping Requests to Servlets
+
+## Security
 
 ## References
 
