@@ -442,6 +442,95 @@ request 和 response object 关闭的 events：
 
 ## Filtering
 
+Filter 是 Java Servlet 组件，它允许在接受和响应请求的过程中访问和修改请求的 header 和 payload。
+
+### What is a Filter
+
+Filter 是一段重用的代码，是一个 java class，它可以转换 HTTP request, response, 和 header 的内容。Filter 通常不会像 servlet 那样创建 response 或 响应请求，而是修改和调整对资源的请求，并修改或调整对资源的响应。
+
+Filter 可以作用在动态或静态的内容上。动态和静态的内容一般指的是 Web resources。
+
+开发者使用 filter 功能的类型有：
+
+- 在请求调用之前访问资源。
+- 在请求调用之前处理请求。
+- 通过用自定义的 request 对象 wrapping request 来修改 request 的 headers 和 data。
+- 通过用自定义的 response 对象来修改 response 的 headers 和 data。
+- 调用资源后对其进行拦截。
+- 对一个或一组 servlet 按顺序执行多个 filter 的操作。
+
+常见的 Filter components：
+
+- Authentication filters
+- Logging and auditing filters
+- Image conversion filters
+- Data compression filters
+- Encryption filters
+- Tokenizing filters
+- Filters that trigger resource access events
+- XSL/T filters that transform XML content
+- MIME-type chain filters
+- Caching filters
+
+### Main Concepts
+
+开发者通过 implement `javax.servlet.Filter` interface 创建 filter，并且提供一个无参的 constructor。Filter 在 deployment descriptor 中使用 `<filter>` 进行声明。一个或一组 filter 可以通过在 deployment descriptor 中定义 `<filter-mapping>` 元素配置它的调用。这个配置通过 servlet 的 logic name 或者 resources URL 来实现。
+
+Filter Lifecycle
+
+在 Web 应用程序部署之后，container 接收到请求之前，container 必须找到应用于 Web 资源的 filter 列表。container 必须确保每个 filter 实例化，并且调用 `init(FilterConfig config)` 方法进行初始化。
+
+每一个  filter 只有一个实例。当 container 接收请求，它传递 `ServletRequest` 和 `ServletResponse` 参数调用第一个 filter 实例的 `doFilter` 方法，并且 `FilterChain`  对象将被用于传递请求到下一个 filter。
+
+Wrapping Requests and Responses
+
+Filter 概念的核心是 wrapping 请求和响应，以便它可以重写行为以执行过滤任何。开发者不仅可以重写 request 和 response 对象存在的方法，还可以提供新的 API 去满足特定的过滤任务。
+
+当一个 filter `doFilter` 方法被调用时，container 必须保证传递给下一个 filter 或者目标 web resource 的 request 和 response 对象与传递给当前 `doFilter` 方法的 request 和 response 对象是相同的。 另外，wrapper object 相同的要求也应用于从 servlet 或 filter 到 `RequestDispatcher.forward or include` 的调用。
+
+Filter Environment
+
+Filter 的初始化参数在 deployment descriptor 中`<filter>` 内的 `<init-params>` 元素中定义。Filter 通过 `FilterConfig` 的 `getInitParameter` 方法访问参数。另外，`FilterConfig` 为了加载资源，logging，存储状态到 `ServletContext` attribute 中等功能，它可以访问 `ServletContext` 对象。  
+
+Configuration of Filters in a Web Application
+
+For example:
+
+```xml
+<filter>
+    <filter-name>My Filter</filter-name>
+    <filter-class>com.example.MyFilter</filter-class>
+</filter>
+<filter-mapping>
+	<filter-name>My Filter</filter-name>
+    <servlet-name>MyServlet1</servlet-name>
+    <url-pattern>/foo/*</url-pattern>
+</filter-mapping>
+```
+
+Filters and the RequestDispatcher
+
+Java Servlet 2.4 之后可以配置 filter 在调用 request dispatcher forward() and include() 方法时过滤。使用 `<dispatcher>` 元素在指出过滤请求的条件，它的值有：
+
+- REQUEST：表示请求直接来自 client 时过滤。
+- FORWARD：表示请求在使用 RequestDispatcher forward() 时过滤。  
+- INCLUDE：请求在使用 RequestDispatcher include() 时过滤。
+- ERROR：请求转到 error resource 时过滤。
+- 以上多个值的组合
+
+`<dispatcher>` 元素的使用示例，如下：
+
+```xml
+<filter-mapping>
+	<filter-name>Logging Filter</filter-name>
+	<url-pattern>/products/*</url-pattern>
+	<dispatcher>FORWARD</dispatcher>
+	<dispatcher>REQUEST</dispatcher>
+</filter-mapping>
+```
+
+
+
 ## Sessions
 
 ## Dispatching Requests
