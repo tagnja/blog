@@ -581,6 +581,53 @@ Client Semantics
 
 ## Dispatching Requests
 
+当构建一个 Web 应用程序，将请求的处理 forward 到另一个 servlet 或 include 另一个 servlet 在 response 中的 输出通常很有用。RequestDispatcher interface 提供了一种机制去实现它。
+
+### Obtaining a RequestDispatcher
+
+获取 RequestDispatcher 接口的对象可以通过 ServletContext 接口的以下方法：
+
+- getReqeustDispatcher
+- getNameDispatcher
+
+getRequestDispathcer 方法使用一个在 ServletContext 范围的描述路径的 String 参数。这个路径是相对 ServletContext 根目录的和以 “/” 开头的相对路径。这个方法使用这个 path 去查询一个 servlet。
+
+### Using a Request Dispatcher
+
+使用 request dispatcher，servlet 调用 ReqeustDispatcher 接口的 include 或 forward 方法。这些方法的参数可以是传递给 javax.servlet 接口 service 方法的 request 和 response 参数或者是 request 和 response wrapper classes 的子类的实例。container 应该确保将 request 分发到目标 servlet 发生在和原始请求相同的 JVM 虚拟的同一线程。
+
+### The Include Method
+
+RequestDispatcher 接口的 include 方法可能在任何时候被调用。include 方法的目标 servlet 可以访问 request 对象的所有方面，但是它使用 response 对象是有很多限制的。
+
+目标 servlet 仅仅可以把信息写入 response 对象的 ServletOutputStream 或者 Writer。它不能设置 header 或调用任何影响 header 的方法，HttpServletRequest.getSession() 方法会抛出 IllegalStateException 异常。
+
+Included Request Paramenters
+
+Servlet 使用 requestDispathcer 的 include 方法，以下 request attributes 是必须设置的：
+
+- javax.servlet.include.request_uri
+- javax.servlet.include.context_path
+- javax.servlet.include.servlet_path
+- javax.servlet.include.path_info
+- javax.servlet.include.query_string
+
+### The Forward Method
+
+调用 RequestDispatcher 的 forward 方法必须仅仅在 server 没有内容提交给给 client。如果在 response buffer 中有没有提交的 输出数据，在目标的 servlet 的 service 方法调用之前，这些内容必须是清空的。如果 response 已经提交了，必须抛出 IllegalStateException。
+
+Servlet 使用 requestDispathcer 的 forward 方法，以下 request attributes 是必须设置的：
+
+- javax.servlet.forward.request_uri
+- javax.servlet.forward.context_path
+- javax.servlet.forward.servlet_path
+- javax.servlet.forward.path_info
+- javax.servlet.forward.query_string
+
+### Error Handling
+
+如果 request dispatcher 的目标 servlet 抛出 runtime exception 或者 Servlet Exception or IOException checked exception，它应该传播到 calling servlet。所有其他的一场应该包装成 ServletException，并且  root cause of exception 设置为 original exception，因为不应该传播该异常。
+
 ## Web Applications
 
 ## Application Lifecycle Events
