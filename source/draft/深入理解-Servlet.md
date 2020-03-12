@@ -533,6 +533,52 @@ Java Servlet 2.4 之后可以配置 filter 在调用 request dispatcher forward(
 
 ## Sessions
 
+HTTP 是一种 stateless 协议。为了构建有效的 Web 应用程序，将来自特定 client 的请求彼此关联是必要的。Servlet specification 定义了简单的 HttpSession interface，它允许 servlet container  使用多种方法中的一种来 track 用户的 session，而无需让开发者介入方法之间的细微差别。
+
+### Session Tracking Mechanisms
+
+Cookies
+
+Session 通过 HTTP cookies 来跟踪会话是 session tracking mechanism 最常用使用的。Container 发送 cookie 给 client，client 将在接下来的请求 server 中发送这个 cookie，明确地将请求与会话关联。session tracking cookie 的名称必须是 JSESSIONID。
+
+URL Rewriting
+
+URL Rewriting 是 session tracking 的另一种方法。当 client 不接受 cookie，URL rewriting 可能用于 server 的 session tracking。URL rewriting 涉及到添加 session ID 到 URL path 中，这个 URL path 被container 解析，并将这个 request 与一个 session 进行关联。URL rewriting 的 URL 例子如下：
+
+```
+http://www.myserver.com/index.html;jsessionid=1234
+```
+
+只有当 client 不接受 cookie 时，URL rewriting 才会有效果。当 client 可以接受 cookie 时，URL rewiring 的 URL 不会被 container 解析和将 request 与 session 关联。
+
+### Creating Session
+
+如果一个 session 只是一个预期的 session 而尚未建立，则认为该 session 是新的。因为 HTTP 是基于 request-response 的协议，一个 HTTP session 直到有一个 client joint it 才认为是新的。当 session 跟踪信息已经返回到 server 以表明已建立会话时，则称 client joins a session。 
+
+### Session Scope
+
+HttpSession 对象必须是 application (or servlet context) level。不同 context 可以有相同的建立 session 的 cookie，但是 container 不能在不同的 context 之间共享这些 session 对象。
+
+### Binding Attributes into a Session
+
+Servlet 可以通过一个 name 将一个 object attribute 绑定到 HttpSession 中。绑定在 session 中的 object 对于任何其他属于相同的 ServletContext 的 servlet 并且属于同一个会话的请求都是可以使用的 。
+
+### Session Timeouts
+
+在 HTTP protocol 中，当 client 不在活跃时没有明确的结束信号。这意味着只有 timeout period mechanism 可以表明 client 不在活跃。
+
+Session 的默认 timeout period 在 servlet container 中定义，它可以通过 HttpSession 接口的 getMaxInactiveInterval 方法获取。开发者可以通过 HttpSession 的 setMaxInactiveInterval 方法改变这个 timeout。这些方法的 timeout period 是以秒为单位来定义的。如果 session 的 timeout period 设置为-1，这个 session 将永远不会过期。
+
+### Important Session Semantics
+
+Threading Issues
+
+多个 servlet 执行请求线程可以同时访问同一个 session object。访问 session object 应该是 synchronized，开发者负责适当地 synchronizing 访问 session resources。
+
+Client Semantics
+
+由于 cookie 或 SSL certificates 一般是被 Web browser 控制的，它们没有与特定的浏览器窗口关联的，来自所有从 client 浏览器窗口到 servlet container 的请求可能是同一个 session。为了获得最大的可移植性，开发者应该始终假定 client 的所有窗口都参与同一个 session。
+
 ## Dispatching Requests
 
 ## Web Applications
