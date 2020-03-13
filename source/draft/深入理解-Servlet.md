@@ -630,6 +630,105 @@ Servlet 使用 requestDispathcer 的 forward 方法，以下 request attributes 
 
 ## Web Applications
 
+Web application 是由 servlets，HTML pages，classes 和 其他资源的集合。Web 应用程序可以在不同供应商的 container 中运行。
+
+### Web Applications Within Web Servers
+
+Web 应用程序根植于 Web server 的特定路径。例如，catalog 应用程序应该通过 http://www.mycrop.com/catalog 定位到。所有以这个前缀开头的请求都将被路由到表示 catalog 应用程序的 ServletContext。
+
+### Relationship to ServletContext
+
+Servlet container 必须强制一个 Web 应用程序与一个 ServletContext 一一对应。ServletContext 对象为 servlet 提供了其应用程序视角。
+
+### Elements of a Web Application
+
+一个 Web application 可能有一下 item 组成：
+
+- Servlets
+- JSP Pages
+- Utility Classes
+- Static documents（HTML，images，sounds，etc）
+- Client side Java applets，beans，and classes
+- Descriptive meta information that ties all of the above elements together
+
+### Directory Structure
+
+Web 应用程序作为目录的结构化层次结构存在。在应用程序的层次结构中有一个特殊的目录为 `WEB-INF`，这个目录包含与应用程序相关的不在应用程序的文档 root 目录中的文件。`WEB-INF` 节点不是 应用程序的公开文档树中的一部分。容器不能将 `WEB-INF` 目录中包含的文件直接提供给 client。`WEB-INF` 目录的内容是对 ServletContext getResource 和 getResourceAsStream 方法是可见的，以及使用 RequestDispatcher 调用。如果应用开发者需要访问如应用的配置信息文件，但不希望把它直接暴露给 Client，可以把它们放到 `WEB-INF` 目录下。任何访问 `WEB-INF` 目录资源的请求将返回 404。`WEB-INF` 目录的内容有：
+
+- `/WEB-INF/web.xml`: deployment descriptor
+- `/WEB-INF/classes/`: servlet 和 uitlity classes.
+- `/WEB-INF/lib/*.jar`: Java Archive files.These files contains servlets, beans, and other utility classes. 
+
+### Web Application Archive File
+
+可以使用标准的 Java archive tools  将 Web 应用程序打包并签名为 Web ARchive format (WAR) file。WAR 文件中的 META-INF 目录包含了对 Java archive tools 有用的信息。这个目录不能直接被 client 访问。
+
+### Web Application Deployment Descriptor
+
+Web 应用程序 deployment descriptor 包含一下配置和部署信息的类型：
+
+- ServletContext Init Paramenters
+- Session Configuration
+- Servlet/JSP Definitions
+- Servlet/JSP Mappings
+- Welcome File list
+- Error Pages
+- Security
+
+Dependencies On Extesions
+
+当大量的应用程序使用相同的 code 或 resources，它们通常将作为库文件安装在 servlet container 中。这些文件一般是常用的或标准的 API，使用它们不会牺牲可移植性。Servlet container 必须为这些 libraries 提供一个目录。位于这个目录的文件必须可用被所有 Web 应用程序使用。该目录位置是特定于 container 的。
+
+应用程序开发者依赖的扩展必须在 WAR 文件中提供 META-INF/MANIFEST.MF entry，其中列出了 WAR 需要的所有扩展。Manifest entry 的格式应该遵循标准的 JAR manifest 格式。
+
+Web container 必须也能够识别在 WAR 中 WEB-INF/lib 条目下的任何 library JARs 的 manifest entry 中表达的声明的依赖。
+
+### Error Handling
+
+当异常发生在 servlet 或 JSP page，下面的属性必须设置的：
+
+- javax.servlet.error.status_code (java.lang.Integer)
+- javax.servlet.error.exception_type (java.lang.Class)
+- javax.servlet.error.message (java.lang.String)
+- javax.servlet.error.exception (java.lang.Throwable)
+- javax.servlet.error.request_uri (java.lang.String)
+- javax.servlet.error.servlet_name (java.lang.String)
+
+这些属性允许 servlet 去生成特定的内容。
+
+### Error Pages
+
+为了允许当 servlet 出现了 error 时，开发者可以去自定义返回给 Web client 的内容，deployment descriptor 定义了一组 error page 描述。这个语法允许当 servlet 或 filter 调用 HttpResponse.sendError 返回特定的 status code，或者 servlet 产生的 exception 或 error 传播到了 container 时，container 将返回资源配置。
+
+如果在 response 上调用了 sendError 方法，container 查询使用 status-code 语法声明的 Web 应用程序的 error page 列表，并尝试进行匹配。如果匹配成功，container 返回通过 location entry 指定的资源。error page 声明的例子：
+
+```xml
+<error-page>
+    <error-code>404</error-code>
+    <!-- /src/main/webapp/error-404.html-->
+    <location>/error-404.html</location>
+</error-page>
+<error-page>
+    <exception-type>java.lang.Exception</exception-type>
+    <location>/errorHandler</location>
+</error-page>
+```
+
+### Web Application Deployment
+
+当一个 Web 应用程序部署到 container 中，在 Web 应用程序开始处理 client 请求之前，接下来的步骤是必须执行的：
+
+- 实例化每一个在 deployment descriptor 中 `<listener>`  元素定义的 listener 的实例。
+- 为了实例化实现了 ServletContextListener 的 Listener 实例，调用它的 contextInitialized() 方法。
+- 实例化每个在 deployment descript 中的 `<filter>` 元素定义的 filter 的实例，并且调用它的 init() 方法进行初始化。
+- 实例化每个包含 `<load-on-startup>` 的 `<servlet>` 实例，并且调用它的 init() 方法进行初始化。
+
+### Inclusion of  a web.xml Deployment Descriptor
+
+如果 Web 应用程序不包含任何 servlet，filter，或 listener 组件，这个应用程序不需要包含 web.xml。换句话说，一个仅仅包含静态文件或 JSP page 的Web 应用程序不需要出现 web.xml。
+
+
+
 ## Application Lifecycle Events
 
 ## Mapping Requests to Servlets
