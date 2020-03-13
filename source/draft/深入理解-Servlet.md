@@ -696,7 +696,7 @@ Web container 必须也能够识别在 WAR 中 WEB-INF/lib 条目下的任何 li
 
 这些属性允许 servlet 去生成特定的内容。
 
-### Error Pages
+Error Pages
 
 为了允许当 servlet 出现了 error 时，开发者可以去自定义返回给 Web client 的内容，deployment descriptor 定义了一组 error page 描述。这个语法允许当 servlet 或 filter 调用 HttpResponse.sendError 返回特定的 status code，或者 servlet 产生的 exception 或 error 传播到了 container 时，container 将返回资源配置。
 
