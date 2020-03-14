@@ -731,9 +731,96 @@ Error Pages
 
 ## Application Lifecycle Events
 
+应用程序 event 功能使开发者更好地控制 ServletContext，HttpSession 和 ServletReqeust 的生命周期，实现更好的代码分解，并提高管理 Web 应用程序使用的资源的效率。
+
+### Event Listener
+
+Application event listener 是实现一个或多个 servlet event listener 接口的 class。在部署Web应用程序时，将实例化它们并将其注册在Web容器中。
+
+Servlet event listener 支持 ServletContext，HttpSession 和 ServletRequest 对象中状态改变的事件通知。每种事件类型有多种 listener class。开发者可以指定 container 对每种事件类型调用 listener bean 的顺序。
+
+### Event Types and Listener Interfaces
+
+- ServletContextListener
+- ServletContextAttributeListener
+- HttpSessionListener
+- HttpSessionAttributeListener
+- HttpSessionActivationListener
+- HttpSessionBindingListener
+- ServletRequestListener
+- ServletRequestAttributeListener
+
+### Deployment Descriptor Example
+
+```xml
+<web-app>
+<display-name>MyListeningApplication</display-name>
+    <listener>
+    	<listener-class>com.acme.MyConnectionManager</listener-class>
+    </listener>
+    <listener>
+    	<listener-class>com.acme.MyLoggingModule</listener-class>
+    </listener>
+    <servlet>
+        <display-name>RegistrationServlet</display-name>
+        ...etc
+    </servlet>
+</web-app>
+```
+
+
+
 ## Mapping Requests to Servlets
 
+### Use of URL Paths
+
+URL path 映射规则使用下面的顺序，当成功匹配后不再继续往下匹配：
+
+- Container 尝试查找请求路径与 servlet path 的精准匹配。
+- Container 尝试循环的匹配 longest path-prefix。这是通过使用“ /”字符作为路径分隔符来一次降低目录树的路径来完成的。
+- 如果 URL path 最后部分包含扩展名，如 `.jsp`，servlet container 将尝试匹配处理该扩展名请求的 servlet。
+- 如果上面的三个规则都没有匹配到 servlet，container 将尝试提供适合于所请求资源的内容。如果应用程序定义了默认的servlet，则将使用它。
+
+### Specification of Mappings
+
+在 Web 应用程序的 deployment descriptor 中，使用以下语法去定义 mappings：
+
+- 以 `/` 字符开头，以 `/*` 字符结尾的字符串。
+- 以 `*.` 开头作为扩展映射的字符串
+- 仅包含 `/` 字符表明应用程序的默认 servlet。
+- 其它仅仅精准匹配的字符串。
+
+Mapping Set Example
+
+- `/foo/bar/*`
+- `/baz/*`
+- `/catalog`
+- `*.bop`
+
 ## Security
+
+通过使用 deployment descriptor 中的声明可以设置应用程序的安全。
+
+Web 应用程序包含许多用户可以访问的资源。这些资源通常是不受保护的开放网络。例如 Internet 环境中，大量的 Web 应用程序有安全性需求。Servlet container 具有满足这些要求的机制和基础结构，它们具有一下这些特征：
+
+- Authentication: 通信实体互相证明其代表授权访问的特定身份。
+- Access control for resources: 与资源进行交互的手段仅限于用户或程序的集合，以加强完整性，机密性或可用性约束。
+- Data Integrity: 信息在传输的过程中不能被第三方修改。
+- Confidentiality or Data Privacy: 信息仅仅对授权访问的用户可用。
+
+### Implementing Security in Servlet
+
+在 Web 应用程序的 Deployment Descriptor 中配置应用安全配置
+
+- config `<security-role>`. Defining roles.
+- config `<login-config>`. Defining how to authenticate user. e.g. login by username and password in login page.
+- config `<security-constraint>`. Defining constrained resources URI, HTTP methods, constraint role, data constraint type. 
+
+在 Apache Tomcat server 的 tomcat-user.xml 中配置用户和密码
+
+- config `<role>` and `<user>`
+
+使用基于表单的认证或者默认的弹框认证
 
 ## References
 
