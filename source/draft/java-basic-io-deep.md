@@ -24,8 +24,8 @@ Content
 - Interfaces
 - IO Exceptions
 - File Paths
-- Questions
 - Summary
+- Questions
 
 ## Input Stream
 
@@ -106,9 +106,9 @@ Some output streams have the buffer array, others not.
 - `ByteArrayOutputStream`: Writes data to a byte array. retrieve data using `toByteArray()` and `toString()`.
   - `toByteArray()`
   - `toString()`
-- `FileOutputStream`: Writes data to a File or FileDescriptor.
+- `FileOutputStream`: Writes data to a File or `FileDescriptor`.
   - `FileOutputStream(File file)`
-- `ObjectOutputStream`: Writes primitive data types and java objects to an OuputStream.
+- `ObjectOutputStream`: Writes primitive data types and java objects to an `OuputStream`.
   - `ObjectOutputStream(OutputStream out)`
   - `writeObject(Object obj)`
   - `writeInt(int val)`
@@ -125,7 +125,7 @@ Some output streams have the buffer array, others not.
 
 ### Notes
 
-if not implements Serializable interface, calling writeObject() will throw `java.io.NotSerializableException`
+if not implements Serializable interface, calling `writeObject()` will throw `java.io.NotSerializableException`
 
 ## Reader
 
@@ -145,7 +145,7 @@ if not implements Serializable interface, calling writeObject() will throw `java
 
 ### What does Reader actually do?
 
-Read one character or some characters into char array.
+Read one character to return or read some characters into char array from somewhere, e.g char array, file, pipe.
 
 ### Reader Types
 
@@ -177,9 +177,42 @@ Description like `InputStream`
 
 ### Writer Methods
 
+- `Writer append(char c)`
+- `Writer append(CharSequence csq)`
+  - Same with `write(String str)`, but it can chained call, and String parameter can be null.
+- `Writer append(CharSequence csq, int start, int end)`
+- `abstract void close()`
+- `abstract void flush()`
+- `void write(char[] cbuf)`
+- `abstract void write(char cbuf, int offset, int len)`
+- `void write(int c)`
+- `void write(String str)`
+- `void write(String str, int offset, int len)`
+
 ### What does Writer actually do?
 
+Writes one character or write some characters to somewhere, e.g char array, file, pipe.
+
 ### Writer Types
+
+- `BufferedWriter`
+  - `BufferedWriter(Writer out)`
+  - `void newLine()`
+- `OutputStreamWriter`
+  - `OutputStreamWriter(OutputStream out, Charset cs)`
+- `FileWriter`
+  - `FileWriter(File file)`
+- `StringWriter`
+  - `StringBuffer getBuffer()`
+- `CharArrayWriter`
+  - `String toString()`
+  - `char[] toCharArray()`
+- `abstract FilterWriter`
+- `PipedWriter`
+- `PrintWriter`
+  - `PrintWriter(OutputStream out)`
+  - `PrintWriter(Writer out)`
+  - `void println(String s)`
 
 ## Standard Streams
 
@@ -203,13 +236,13 @@ get File by file path in project and when running JAR.
 
 get File by file path in project and when running test.
 
-## Questions
-
-### InputStream vs Reader? What the real difference between them? Who has more efficient?
-
-Stream is operating bytes, and reader or writer is operating characters. Writing streams of raw bytes such as image data using OutputStream. Writing streams of characters using Writer.
-
 ## Summary
+
+### Stream Function
+
+`InputStream` or `Reader` it read data from somewhere, e.g byte or char array, file, pipe. It can read single-unit data from the stream to return or read multiple units data from the stream to store into an array every time. **`read()` methods** can implement by java code or implements by calling native method. **Filter streams** use the **Decorator Pattern** to add additional functionality that implements by internal buffer array to other stream objects.
+
+`OutputStream` or `Writer` it write data to somewhere, e.g byte or char array, file, pipe. 
 
 ### Stream Types
 
@@ -225,9 +258,16 @@ Stream is operating bytes, and reader or writer is operating characters. Writing
   - Print: 
   - LineNumber
 
-### Functions
+`class java.nio.CharBuffer` using in method `int read(CharBuffer target)`
 
-InputStream or Reader: read data from somewhere, e.g byte or char array, file, pipe. It can read single unit data from the stream to return or read multiple units data from the stream to store into an array every time.
+`interface java.lang.CharSequence` using in method `Writer append(CharSequence csq)`
 
-OutputStream or Writer: write data to somewhere, e.g byte or char array, file, pipe. 
+## Questions
 
+### InputStream vs Reader? What the real difference between them? Who has more efficient?
+
+Stream is operating bytes, and reader or writer is operating characters. Writing streams of raw bytes such as image data using OutputStream. Writing streams of characters using Writer.
+
+CharSequence and String
+
+A `CharSequence` is a readable sequence of `char` values. You can call `chars()` method get InputStream.
