@@ -12,17 +12,9 @@ Content
   - OutputStream Methods
   - What does Output Stream actually do?
   - OutputStream Types
-  - Notes
 - Reader
-  - Reader Methods
-  - What does Reader actually do?
-  - Reader Types
 - Writer
-  - Writer Methods
-  - What does Writer actually do?
-  - Writer Types
 - Interfaces
-- IO Exceptions
 - File Paths
 - Summary
 - Questions
@@ -216,31 +208,165 @@ Writes one character or write some characters to somewhere, e.g char array, file
 
 ## Standard Streams
 
-System.out
+`java.lang.System`
 
-System.in
-
-System.err
+- `PrintStream out`
+- `InputStream in`
+- `PrintStream err`
 
 ## Interfaces
 
-## IO Exceptions
+`java.lang.AutoClosable`: Auto close resources.
 
-## File Paths
+- `void close()`: This method is invoked automatically on objects managed by the try-with-resources statement.
 
-get File by file path in project.
+`Closeable`: resources can be closed.
 
-get File by file path in file system.
+- `void close()`
 
-get File by file path in project and when running JAR.
+`DataInput`: provide reading data in any of the Java primitive types.
 
-get File by file path in project and when running test.
+- `boolean readBoolean()`
+- `int readInt()`
+- ...
+
+`DataOutput`: provide writing data in any of the Java primitive types.
+
+- `void writeBoolean(int b)`
+- `void writeInt(int val)`
+- ...
+
+`Externalizable`: extends `Serializable` interface. It using for object serialization.
+
+- `void readExternal(ObjectInput in)`
+- `void writeExternal(ObjectOutput out)`
+
+`FileFilter`: It is a functional interface and can be used for a lambda expression or method reference. Filter files.
+
+- `boolean accpet(File pathname)`
+
+`FileNameFilter`: It is a functional interface and can be used for a lambda expression or method reference. Filter file names.
+
+- `boolean accept(File dir, String name)`
+
+`Flushable`: data can be flushed.
+
+- `void flush()`: Flushes buffered output to the underlying stream.
+
+`ObjectInput`: extends `DataInput` interface. Allows reading object.
+
+- `Object readObject()`
+
+`ObjectInputValidation`: Callback interface to allow validation of objects within a graph. It has no implemented subclasses.
+
+`ObjectOutput`: extends `DataOutput` interface. Allows writing object.
+
+- `void writeObject(Object obj)`
+
+`ObjectStreamConstants`: Constants written into the Object Serialization Stream.
+
+`Serializable`: Allows class serializability. It has no methods.
+
+## File
+
+### File
+
+- Fields
+  - `static String pathSeparator`: system dependent path separator, e.g `;`.
+  - `static String separator`: system dependent name separator, e.g `/`.
+- Constructors
+  - `File(File parent, String child)`, `File(String pathname)`, `File(String parent, Sring child)`, `File(URI uri)`
+- File Permission
+  - `boolean canExecute()`, `boolean canRead()`, `boolean canWrite()`
+  - `boolean setExecutable(boolean executable)`, `boolean setWritable(boolean writable)`
+- File Handling
+  - `static File createNewFile() `, `static File createTempFile(String prefix, String suffix, File directory)`, `boolean mkdir()`, `boolean mkdirs()`, `renameTo(File dest)`
+  - `boolea delete()`, `boolean deleteOnExit()`
+  - `int compareTo(File pathname)`: compares two abstract pathnames lexicographically.
+  - `String[] list()`, `String[] list(FilenameFilter filter)`, `File[] listRoots()`
+  - `Path toPath()`, `URI toURI()`, `URL toURL()`
+- File Information
+  - `boolean exists()`
+  - `isAbsolute()`, `isDirectory()`, `isFile()`, `isHidden()`
+  - `String getAbsolutePath()`, `String getCanonicalPath()`, `String getName()`, `File getParentFile()`, `String getPath()`
+  - `long getFreeSpace()`, `long getTotalSpace()`, `long getUsableSpace()`, `long lastModified()`, `long length()`
+
+### FileDescriptor
+
+> Whenever a file is opened, the operating system creates an entry to represent this file and stores its information. Each entry is represented by an integer value and this entry is termed as file descriptor. [2]
+
+> Basically, Java class `FileDescriptor` provides a handle to the underlying machine-specific structure representing an open file, an open socket, or another source or sink of bytes. [2]
+
+> The applications should not create FileDescriptor objects, they are mainly used in creation of `FileInputStream` or `FileOutputStream` objects to contain it. [2]
+
+### File Paths
+
+#### Get file, absolute filepath and inputStream in classpath, e.g `src/resources/test.txt`
+
+You can get InputStream by using ClassLoader.getResourceAsStream() method.
+
+```java
+InputStream in = getClass().getClassLoader().getResourceAsStream("test.txt");
+```
+
+You can get file object and file path by using ClassLoader get URL, then get them.
+
+```java
+URL url = getClass().getClassLoader().getResource("test.txt");
+File file = new File(url.getFile());
+String filepath = file.getAbsolutePath();
+```
+
+Difference between `getResource()` methods: 
+
+```java
+getClass().getClassLoader().getResource("test.txt") //relative path
+getClass().getResource("/test.txt")); //note the slash at the beginning
+```
+
+#### Get file, absolute file path and inputStream in JAR, e.g src/resources/test.txt
+
+> This is deliberate. The contents of the "file" may not be available as a file. Remember you are dealing with classes and resources that may be part of a JAR file or other kind of resource. The classloader does not have to provide a file handle to the resource, for example the jar file may not have been expanded into individual files in the file system. [3]
+
+> Anything you can do by getting a java.io.File could be done by copying the stream out into a temporary file and doing the same, if a java.io.File is absolutely necessary. [3]
+
+Result: You can get input stream and File by ClassLoader, but you can't get right usable absolute file path. If you want get a usable absolute path in JAR, you can copy resource file stream to create a new temporary file, then get absolute file path of the temporary file.
+
+```java
+File file = null;
+String resource = "/test.txt";
+URL res = getClass().getResource(resource);
+if (res.getProtocol().equals("jar")) {
+    try {
+        InputStream input = getClass().getResourceAsStream(resource);
+        file = File.createTempFile("tempfile", ".tmp");
+        OutputStream out = new FileOutputStream(file);
+        int read;
+        byte[] bytes = new byte[1024];
+
+        while ((read = input.read(bytes)) != -1) {
+            out.write(bytes, 0, read);
+        }
+        out.close();
+        file.deleteOnExit();
+    } catch (IOException ex) {
+        Exceptions.printStackTrace(ex);
+    }
+} else {
+    //this will probably work in your IDE, but not from a JAR
+    file = new File(res.getFile());
+}
+
+System.out.println(file.getAbsolutePath());
+```
+
+
 
 ## Summary
 
-### Stream Function
+### Streams Function
 
-`InputStream` or `Reader` it read data from somewhere, e.g byte or char array, file, pipe. It can read single-unit data from the stream to return or read multiple units data from the stream to store into an array every time. **`read()` methods** can implement by java code or implements by calling native method. **Filter streams** use the **Decorator Pattern** to add additional functionality that implements by internal buffer array to other stream objects.
+`InputStream` or `Reader` it read data from somewhere, e.g byte or char array, file, pipe. It can read single-unit data from the stream to return or read multiple units data from the stream to store into an array every time. **`read()` methods** can implement by java code or implements by calling native method. **Filter streams** use the **Decorator Pattern** to add additional functionality (e.g unread) that implements by internal buffer array to other stream objects.
 
 `OutputStream` or `Writer` it write data to somewhere, e.g byte or char array, file, pipe. 
 
@@ -258,6 +384,8 @@ get File by file path in project and when running test.
   - Print: 
   - LineNumber
 
+### Others
+
 `class java.nio.CharBuffer` using in method `int read(CharBuffer target)`
 
 `interface java.lang.CharSequence` using in method `Writer append(CharSequence csq)`
@@ -268,6 +396,14 @@ get File by file path in project and when running test.
 
 Stream is operating bytes, and reader or writer is operating characters. Writing streams of raw bytes such as image data using OutputStream. Writing streams of characters using Writer.
 
-CharSequence and String
+### CharSequence vs String
 
-A `CharSequence` is a readable sequence of `char` values. You can call `chars()` method get InputStream.
+A `CharSequence` is a readable sequence of `char` values. You can call `chars()` method get the InputStream.
+
+## References
+
+[1] [Java SE 8 API Document](https://docs.oracle.com/javase/8/docs/api/)
+
+[2] [Java File Descriptor Example](https://examples.javacodegeeks.com/core-java/io/filedescriptor/java-file-descriptor-example/)
+
+[3] [How to get a path to a resource in a Java JAR file - Stack Overflow](https://stackoverflow.com/questions/941754/how-to-get-a-path-to-a-resource-in-a-java-jar-file)
