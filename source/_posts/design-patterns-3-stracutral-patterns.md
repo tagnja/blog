@@ -419,7 +419,7 @@ public interface Component{
     pubilc String operation();
 }
 
-public class ConcreteComponet{
+public class ConcreteComponet implements Component{
     public String operation(){
         return "concreteComponent operation..."
     }
@@ -427,7 +427,7 @@ public class ConcreteComponet{
 
 public interface Decorator extends Component{}
 
-public class ConcreteDecorator extends Decorator{
+public class ConcreteDecorator implements Decorator{
     private Component component;
     public ConcreteDecorator(Component component){
         this.component = component;
