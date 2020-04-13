@@ -6,127 +6,261 @@ Content
 
   - Stream
   - Collector
-
+  - Collectors
 - java.util.function
 
   - Function
   - Consumer
   - Predicate
-
   - Supplier
-
+  - BinaryOperator
+  - Lambda Expressions and Method References
 - java.util
 
   - Optional
   - Comparator
   - Spliterator
+- Questions
+- Summary
 
 ## Stream
 
 ### Stream
 
-Methods of Stream interface
+**What is Stream**
 
-intermediate operations
+Stream 
 
-- static Stream concat(Stream<? extends T> a, Stream<? extends T> b)
-- Stream distinct()
-- Stream filter(Predicate<? super T> predicate)
-- Stream flatMap(Function mapper)
-- DoubleStream flatMapToDouble(Function mapper)
-- IntStream flatMapToInt(Function mapper)
-- LongStream flatMapToLong(Function mapper)
-- static Stream generate(Supplier s)
-- static Stream iterate(T seed, UnaryOperator f)
-- Stream limit(long maxSize)
-- Stream map(Function mapper)
-- DoubleStream mapToDouble(ToDoubleFunction mapper)
-- IntStream mapToInt(ToIntFunction mapper)
-- LongStream mapTOLong(ToLongFunction mapper)
-- static Stream of (T... values)
-- static Stream of (T t)
-- Stream peek(Consumer action)
-- Stream skip(long n)
-- Stream sorted()
-- Stream sorted(Comparator comparator)
+**What is Stream?**
 
-terminal operations
+A sequence of elements supporting sequential and parallel aggregate operations. 
 
-- boolean allMatch(Predicate predicate)
+Special Stream class (like `IntStream`) that they provide additional methods for its type of stream (like `sum()` of `IntStream`)
 
-- ```java
-  Stream<Integer> stream = Stream.of(1, 1, 3);
-  stream.allMatch(i -> {return i > 1;})
-  ```
+To perform a computation, stream operations are composed into a stream pipeline. A stream pipeline consist of source, zero or more intermediate operations, and a terminal operation or `forEach(Consume)`. Streams are lazy; computation on the source data is only performed when the terminal operation is initiated, and source elements are consumed only as needed.
 
-- boolean anyMatch(Predicate predicate)
+Streams do not provide a means to directly access or manipulate their elements, and are instead concerned with declaratively describing their source and the computational operations which will be performed in aggregate on that source. However, if the provided stream operations do not offer the desired functionality, the `BaseStream.iterator()` and `BaseStream.spliterator()` operations can be used to perform a controlled traversal.
 
-- R collect(Collector<? super T,A,R> collector)
+A stream should be operated on (invoking an intermediate or terminal stream operation) only once. Since some stream operations may return their receiver rather than a new stream object, it may not be possible to detect reuse in all cases.
 
-- long count()
+**Methods of `Stream` interface**
 
-- Optional findAny()
+Intermediate Operations
 
-- Optional findFirst()
+- Filter
+  - `Stream distinct()`
+  - `Stream filter(Predicate<? super T> predicate)`
+  - `Stream limit(long maxSize)`
+  - `Stream skip(long n)`
+- Map (or Convert)
+  - `Stream flatMap(Function mapper)`
+  - `DoubleStream flatMapToDouble(Function mapper)`
+  - `IntStream flatMapToInt(Function mapper)`
+  - `LongStream flatMapToLong(Function mapper)`
+  - `Stream map(Function mapper)`
+  - `DoubleStream mapToDouble(ToDoubleFunction mapper)`
+  - `IntStream mapToInt(ToIntFunction mapper)`
+  - `LongStream mapTOLong(ToLongFunction mapper)`
+- Operate stream elements
+  - `Stream peek(Consumer action)`
+  - `Stream sorted()`
+  - `Stream sorted(Comparator comparator)`
 
-- void forEach(Consumer action)
+Terminal Operations
 
-- void forEachOrdered(Consumer action)
+- Testing
 
-- Optional max(Comparator comparator)
+  - `boolean allMatch(Predicate predicate)`
+  - `boolean anyMatch(Predicate predicate)`
+  - `boolean noneMatch(Predicate predicate)`
+  - `Optional findAny()`
+  - `Optional findFirst()`
 
-- Optional min(Comparator comparator)
+- Get Converted Object Value
 
-- boolean noneMatch(Predicate predicate)
+  - `R collect(Collector<? super T,A,R> collector)`
+  - `Object[] toArray()`
+  - `A[] toArray(IntFunction generator)`
 
-- Optional reduce(BinaryOperator accumulator)
+- Get Computing Result
 
-- T reduce(T identity, BinaryOperator accumulator)
+  - `long count()`
+  - `Optional max(Comparator comparator)`
+  - `Optional min(Comparator comparator)`
+  - `Optional reduce(BinaryOperator accumulator)`
+  - `T reduce(T identity, BinaryOperator accumulator)`
 
-- Object[] toArray()
+- Traversing Object
 
-- A[] toArray(IntFunction generator)
+  - `void forEach(Consumer action)`
+  - `void forEachOrdered(Consumer action)`
 
-Others
+Static Methods
 
-- static Stream empty()
+- `static Stream empty()`
 - `static <T> Stream.Builder<T> builder()`
+- `static Stream concat(Stream<? extends T> a, Stream<? extends T> b)`
+- `static Stream generate(Supplier s)`
+- `static Stream iterate(T seed, UnaryOperator f)`
+- `static Stream of (T... values)`
+- `static Stream of (T t)`
+
+**Methods of `BaseStream` interface**
+
+- `void close()`
+- `boolean isParallel()`
+- `Iterator<T> iterator()`
+- `S onClose(Runnable closeHandler)`
+- `S parallel()`
+- `S sequential()`
+- `Spliterator<T> spliterator()`
+- `S unordered()`
+
+**Methods of `IntStream` interface**
+
+Intermediate Operations
+
+- `Stream<Integer> boxed()`
+
+Terminal Operations
+
+- `OptionalDouble average()`
+- `int sum()`
+
+**Examples**
+
+Map (or Convert)
+
+```java
+List<String> letters = Arrays.asList("a", "b", "c");
+List<String> collect = letters.stream().map(String::toUpperCase).collect(Collectors.toList());
+System.out.println(collect);
+```
+
+```java
+int sum = widgets.stream()
+    .filter(w -> w.getColor() == RED)
+    .mapToInt(w -> w.getWeight())
+    .sum();
+```
+
+Testing
+
+```java
+Stream<Integer> stream = Stream.of(1, 1, 3);
+stream.allMatch(i -> {return i > 1;})
+```
+
+Get Converted Object Value
+
+```java
+Stream<Integer> stream = Stream.of(1, 1, 3);
+stream.filter(i -> {return i > 1}).collect(Collectors.toList());
+```
+
+Get Computing Result
+
+```java
+Stream.of(1, 1, 3).count();
+```
+
+```java
+Stream<Integer> stream = Stream.of(1, 2, 3, 2, 1);
+int sum = stream.reduce(0, (i, j) -> {
+    return i + j;
+}));
+int product = stream.reduce(1, (i, j) -> {
+    return i * j;
+});
+```
+
+Traversing Object
+
+```java
+Stream<Integer> stream = Stream.of(1, 2, 3);
+stream.forEach(i -> System.out.println(i));
+```
+
+```java
+Stream<Integer> stream = Stream.of(1, 2, 3, 2, 1);
+stream.sorted((o1, o2) -> {
+    return o1 - o2;
+}).forEachOrdered(System.out::print);
+```
+
+
 
 ### Collector
+
+A [mutable reduction operation](https://docs.oracle.com/javase/8/docs/api/java/util/stream/package-summary.html#Reduction) that accumulates input elements into a mutable result container, optionally transforming the accumulated result into a final representation after all input elements have been processed. Reduction operations can be performed either sequentially or in parallel.
+
+### Collectors
+
+Implementations of [`Collector`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collector.html) that implement various useful reduction operations, such as accumulating elements into collections, summarizing elements according to various criteria.
 
 ## Function
 
 ### Function
 
-Functional Interface
+`Function` is a functional Interface
 
-- R apply(T t)
-
-### Predicate
-
-Functional Interface
-
-- boolean test(T t)
-
-### Consumer
-
-Functional Interface
-
-- void accept(T t)
+- `R apply(T t)`
 
 Example
 
 ```java
+Function<Integer, Double> half = a -> a/2.0;
+System.out.println(half.apply(10));
+```
 
+### Predicate
+
+`Predicate` is a functional Interface
+
+- `boolean test(T t)`
+
+Example
+
+```java
+Predicate<Integer> predicate = i -> {return i > 1;};
+System.out.println(predicate.test(2));
+```
+
+```java
+public boolean testPredicate(int val, Predicate<Integer> predicate){
+    return predicate.test(val);
+}
+public void test(){
+    assertTrue(testPredicate(2, i -> i > 1));
+    assertFalse(testPredicate(1, i -> i > 1));
+}
+```
+
+### Consumer
+
+`Consumer` is a functional Interface
+
+- `void accept(T t)`
+
+Example
+
+```java
+Consumer consumer = System.out::println;
+consumer.accept("hello Consumer");
 ```
 
 ### Supplier
 
-Functional Interface
+`Supplier` is a functional Interface
 
-- T get()
+- `T get()`
 
 Example
+
+```java
+Supplier supplier = () -> {return "hello Supplier";};
+System.out.println(supplier.get());
+```
 
 ```java
 public static void testSupplier(Supplier supplier){
@@ -137,11 +271,15 @@ public static void main(String[] args) {
 }
 ```
 
+### BinaryOperator
 
+`BinaryOperator` is a functional interface, and it extends `BiFunction<T, U, R>`
 
-## Questions
+- `R apply(T t, U u)`
 
-### what is lambda expression?
+### Lambda Expressions and Method References
+
+**what is lambda expression?**
 
 Implements anonymous inner class of interface that has a single method and have annotation `@FuncationalInterface` can using lambda expression.
 
@@ -180,4 +318,104 @@ File[] files = dir.listFiles((file)->{
 });
 ```
 
-### What is Method Reference?
+**What is Method Reference?**
+
+// TODO
+
+**Kinds of Method References**
+
+There are four kinds of method references:
+
+| Kind                                                         | Example                                |
+| ------------------------------------------------------------ | -------------------------------------- |
+| Reference to a static method                                 | `ContainingClass::staticMethodName`    |
+| Reference to an instance method of a particular object       | `containingObject::instanceMethodName` |
+| Reference to an instance method of an arbitrary object of a particular type | `ContainingType::methodName`           |
+| Reference to a constructor                                   | `ClassName::new`                       |
+
+Examples of Usage
+
+```java
+Arrays.sort(rosterAsArray, Person::compareByAge);
+Arrays.sort(rosterAsArray, myComparisonProvider::compareByName);
+Arrays.sort(stringArray, String::compareToIgnoreCase);
+Set<Person> rosterSet = transferElements(roster, HashSet::new);
+```
+
+## Java Util
+
+### Optional
+
+**What is Optional?**
+
+Convert a object to Optional object, if the value is not null, `isPresent()` will return true and get() return the value; if the value is null, `isPresent()` will return false and get() return empty Optional object. 
+
+In short, you can either get value or empty optional from an optional object, and you never get null.
+
+**Optional Methods**
+
+Static Methods
+
+- `static Optional empty()` // get empty Optional
+- `static Optional of(T value)` // if value is null, it will throw `NullPointerException`
+- `static Optional ofNullable(T value)` // if value is null, return empty Optional
+
+Intermediate Operations
+
+- `Optional filter(Predicate predicate)`
+- `Optional flatMap(Function mapper)`
+- `Optional map(Function mapper)`
+
+Terminal Operations
+
+- Test
+  - `void ifPresent(Consumer consumer)`
+  - `boolean ifPresent()`
+- Get
+  - `T get()`
+  - `T orElse(T other)`
+  - `T orElseGet(Supplier other)`
+  - `T orElseThrow(Supplier exceptionSupplier)`
+
+Example
+
+```java
+int getNotNullValueOrDefault(Integer obj){
+    int defaultValue = -1;
+    Optional<Integer> optional = Optional.ofNullable(obj);
+    return optional.orElse(defaultValue);
+}
+```
+
+### Comparator
+
+Functional interface
+
+- `int compare(T o1, T o2)`
+
+### Spliterator // TODO
+
+An object for traversing and partitioning elements of a source. The source of elements covered by a Spliterator could be, for example, an array, a Collection, an IO channel, or a generator function.
+
+## Questions // TODO
+
+### 
+
+## Summary
+
+**Stream** is similar to "for loop", but it's more concise than "for loop" and it provides many convenient operations implementation. Additionally, it can sequential or parallel operating container elements.
+
+**Functional Interface** represents the class that can be use lambda expression.
+
+**Lambda Expression** is similar to implementation of anonymous inner class, but it's more concise than anonymous inner class.
+
+**Method Reference** is similar to lambda expression, but it's more concise than Lambda Expression. It is a replacement of method implementation of an anonymous inner class when they have the same input and output of the method. It's more convenient and concise than Lambda Expression.
+
+## References
+
+[1] [Java API docs](https://docs.oracle.com/javase/8/docs/api/)
+
+[2] [Lambda Expressions - The Java Tutorials](https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html)
+
+[3] [Method References - The Java Tutorials](https://docs.oracle.com/javase/tutorial/java/javaOO/methodreferences.html)
+
