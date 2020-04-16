@@ -320,7 +320,7 @@ File[] files = dir.listFiles((file)->{
 
 **What is Method Reference?**
 
-// TODO
+You use [lambda expressions](https://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html) to create anonymous methods. Sometimes, however, a lambda expression does nothing but call an existing method. In those cases, it's often clearer to refer to the existing method by name. Method references enable you to do this; they are compact, easy-to-read lambda expressions for methods that already have a name.
 
 **Kinds of Method References**
 
@@ -380,8 +380,7 @@ Terminal Operations
 Example
 
 ```java
-int getNotNullValueOrDefault(Integer obj){
-    int defaultValue = -1;
+int getNotNullValueOrDefault(Integer obj, int defaultValue){
     Optional<Integer> optional = Optional.ofNullable(obj);
     return optional.orElse(defaultValue);
 }
@@ -389,17 +388,66 @@ int getNotNullValueOrDefault(Integer obj){
 
 ### Comparator
 
-Functional interface
+Comparator is a functional interface
 
 - `int compare(T o1, T o2)`
 
-### Spliterator // TODO
+### Spliterator
 
-An object for traversing and partitioning elements of a source. The source of elements covered by a Spliterator could be, for example, an array, a Collection, an IO channel, or a generator function.
+Spliterator is for traversing and partitioning elements of a source. The source of elements covered by a Spliterator could be, for example, an array, a Collection, an IO channel, or a generator function.
 
-## Questions // TODO
+When used in a parallel programming solution, bear in mind that the individual *Spliterator* is not thread safe; instead the parallel processing implementation must insure that each individual *Spliterator* is handled by one thread at a time. A thread calling the *trySplit()* of a *Spliterator*, may hand over the returned new *Spliterator* to a separate thread for processing. This follows the idea of decomposition of a larger task into smaller sub-tasks that can be processed in parallel individually of each other.
 
-### 
+Note Spliterator likes Stream every operate only once. Can't traverse the same spliterator more than once.
+
+**Methods of Spliterator**
+
+- Characteristics
+  - `int characteristics()`
+  - `default boolean hasCharacteristics(int characteristics)`
+- Traversal
+  - `default void forEachRemaining(Consumer action)`
+  - `boolean tryAdvance(Consumer action)`
+- Others
+  - `long estimateSize()`
+  - `default long getExactSizeIfKnow()`
+  - `default Comparator getComparator()`
+  - `Spliterator trySplit()`
+
+**Example**
+
+characteristics
+
+```java
+List<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3));
+Spliterator<Integer> spliterator = list.spliterator();
+System.out.println(spliterator.hasCharacteristics(Spliterator.SIZED)); // true
+int expected = Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
+System.out.println(spliterator.characteristics() == expected); // true
+```
+
+traversal
+
+```java
+spliterator.forEachRemaining(System.out::println);
+```
+
+```java
+while (spliterator.tryAdvance(System.out::println));
+```
+
+split
+
+```java
+List<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3));
+Spliterator<Integer> spliterator = list.spliterator();
+Spliterator<Integer> newPartition = spliterator.trySplit();
+spliterator.forEachRemaining(System.out::println);
+System.out.println("======");
+newPartition.forEachRemaining(System.out::println);
+```
+
+
 
 ## Summary
 
