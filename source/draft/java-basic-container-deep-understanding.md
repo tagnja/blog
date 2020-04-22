@@ -138,33 +138,246 @@ A: The key to this idea is that writes are accomplished by copying the existing 
 
 Hierarchy of `Queue`: 
 
-- I-`java.util.Queue`
-  - `java.util.AbstractQueue`
-    - `java.util.PriorityQueue`
-  - I-`java.util.Deque`
-    - `java.util.ArrayDeque`
-  - I-`java.util.concurent.BlockingQueue`
-    - I-BlockingDeque
-      - LinkedBlockingDeque
-    - I-TransferQueue
-      - LinkedTransferQueue
-    - ArrayBlockingQueue
-    - LinkedBlockingQueue
-    - DelayQueue
-    - PriorityBlockingQueue
-    - SynchronousQueue
-  - `java.util.concurrent.ConcurrentLinkedQueue`
-  - `java.util.concurrent.ConcurrentLinkedDeque`
+```
+(I)java.util.Queue
+|----java.util.AbstractQueue
+|--------java.util.PriorityQueue
+|----(I)java.util.Deque
+|--------java.util.ArrayDeque
+|----(I)java.util.concurent.BlockingQueue
+|--------(I)BlockingDeque
+|------------LinkedBlockingDeque
+|--------(I)TransferQueue
+|------------LinkedBlockingDeque
+|--------ArrayBlockingQueue
+|--------LinkedBlockingQueue
+|--------PriorityBlockingQueue
+|--------DelayQueue
+|--------SynchronousQueue
+|----java.util.concurrent.ConcurrentLinkedQueue
+|----java.util.concurrent.ConcurrentLinkedDeque
+```
 
 ### Queue interface
 
+A group of elements in First in first out manner.
+
+> The `Queue` interface does not define the blocking queue methods, which are common in concurrent programming.
+
+> Queue implementations generally do not allow insertion of null elements, although some implementations do not prohibit. Null should not be inserted into a queue, as null is also used as a special return value by the poll method to indicate that the queue contains no elements.
+
+**Methods of `Queue`**
+
+- insert
+  - `boolean add(E e)` - Inserts element into this queue.
+  - `boolean offer(E e)` - It is similar with `add()`.
+- remove
+  - `E poll()` - Retrieves and remove the head of this queue.
+  - `E reomve()` - It is similar with `poll()`
+- examine
+  - `E element()` - It is similar with `peek()`.
+  - `E peek()` - Retrieves, but does not remove, the head of this queue.
+
 ### Deque interface
+
+A group of elements supports element insertion and removal at both head and tail. Deque can also be used as LIFO (last-in-First-out) stacks.
+
+> The name deque is short for "double ended queue" and is usually pronounced "deck".
+
+**Methods of `Deque`**
+
+- insert
+  - `boolean add(E e)`
+  - `void addFirst(E e)`
+  - `void addLast(E e)`
+  - `boolean offer(E e)`
+  - `boolean offerFirst(E e)`
+  - `boolean offerLast(E e)`
+  - `void push(E e)`
+- remove
+  - `E remove()`
+  - `E removeFirst()`
+  - `E removeLast()`
+  - `boolean removeFirstOccurrence(Object o)`
+  - `boolean removeLastOccurrence(Object o)`
+  - `E poll()`
+  - `E pollFirst()`
+  - `E pollLast()`
+  - `E pop()`
+- examine
+  - `E getFirst()`
+  - `E peekFirst()`
+  - `E getLast()`
+  - `E peekLast()`
+  - `E element()`
+  - `E peek()`
+  - `E peekFirst()`
+  - `E peekLast()`
+- `boolean contains(Object o)`
+- `Iterator descendingIterator()`
+- `Iterator iterator()`
+- `int size()`
 
 ### BlockingQueue interface
 
+`java.util.concurrent.BlockingQueue` is a queue additionally supports operations that wait for the queue to become non-empty when retrieve an element, and wait for space to become available in the queue when storing an element.
+
+`BlockingQueue` implementations are designed to be used primarily for producer-consumer queues. A `BlockingQueue` can safely be used with multiple producers and multiple consumers.
+
+`BlockingQueue` implementations are thread-safe. All `queuing methods` achieve their effects atomically using internal locks or other forms of concurrency control. However, the bulk Collection operations addAll, containsAll, retainAll and removeAll are not necessarily performed atomically. So it is possible, for example, for addAll(c) to fail after adding only some of the elements in c.
+
+**Methods of `BlockingQueue`**
+
+- insert
+  - `boolean add(E e)`
+  - `boolean offer(E e)`
+  - `void put(E e)` - blocks
+  - `boolean offer(E e, long time, TimeUnit unit) `- blocks and times out
+- remove
+  - `boolean remove(Object o)`
+  - `E poll()`
+  - `E take()` - blocks
+  - `E poll(long time, TimeUnit unit)` - blocks and times out
+- examine
+  - `E element()`
+  - `E peek()`
+- `boolean contains(Object o)`
+- `drainTO(Collection c)`
+- `int remainingCapacity()`
+
+Usage example of producer-consumer
+
+```java
+class Producer implements Runnable {
+   private final BlockingQueue queue;
+   Producer(BlockingQueue q) { queue = q; }
+   public void run() {
+     try {
+       while (true) { queue.put(produce()); }
+     } catch (InterruptedException ex) { ... handle ...}
+   }
+   Object produce() { ... }
+ }
+
+ class Consumer implements Runnable {
+   private final BlockingQueue queue;
+   Consumer(BlockingQueue q) { queue = q; }
+   public void run() {
+     try {
+       while (true) { consume(queue.take()); }
+     } catch (InterruptedException ex) { ... handle ...}
+   }
+   void consume(Object x) { ... }
+ }
+
+ class Setup {
+   void main() {
+     BlockingQueue q = new SomeQueueImplementation();
+     Producer p = new Producer(q);
+     Consumer c1 = new Consumer(q);
+     Consumer c2 = new Consumer(q);
+     new Thread(p).start();
+     new Thread(c1).start();
+     new Thread(c2).start();
+   }
+ }
+```
+
+### BlockingDeque interface
+
+It is the combination of `BlockingQueue` and `Deque` interface. You can use this interface for both blocking queues and blocking stacks.
+
+### TransferQueue interface
+
+The `TransferQueue` interface is a refinement of the `BlockingQueue` interface in which producers can wait for consumers to receive elements. The `BlockingQueue` can only put element into queue (and block if queue is full). However, with `TransferQueue`, you can also block producer (whether the queue full or not) until other consumer threads receive your element.
+
+**Methods of `TransferQueue`**
+
+- `int getWaitingConsumerCount()` - Returns an estimate of the number of consumers waiting to receive elements via take() or timed poll.
+- `boolean hasWaitingConsumer()` - Returns true if there is at least one consumer waiting to receive an element via take() or timed poll.
+- `void transfer(E e)` - Transfers the element to a consumer, waiting if necessary to do so.
+- `boolean tryTransfer(E e)` - Transfers the element to a waiting consumer immediately, if possible.
+- `boolean tryTransfer(E e, long timeout, TimeUnit unit)` - Transfers the element to a consumer if it is possible to do so before the timeout elapses.
+
+Usage Example of `TransferQueue`
+
+```java
+public class TransferQueueExample {
+
+    TransferQueue<String> queue = new LinkedTransferQueue<String>();
+
+    class Producer implements Runnable{
+        @Override
+        public void run() {
+            for(int i = 0; i < 2; i++){
+                try{
+                    System.out.println("Producer waiting to transfer: " + i);
+                    queue.transfer("" + i);
+                    System.out.println("Producer transfered: " + i);
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    class Consumer implements Runnable{
+        @Override
+        public void run() {
+            for(int i = 0; i < 2; i++){
+                try{
+                    Thread.sleep(2000);
+                    System.out.println("Consumer waiting to comsume: " + i);
+                    queue.take();
+                    System.out.println("Consumer consumed: " + i);
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static void main(String args[]){
+        TransferQueueExample example = new TransferQueueExample();
+        new Thread(example.new Producer()).start();
+        new Thread(example.new Consumer()).start();
+    }
+}
+```
+
+The output is:
+
+```java
+Producer waiting to transfer: 0
+Consumer waiting to comsume: 0
+Consumer consumed: 0
+Producer transfered: 0
+Producer waiting to transfer: 1
+Consumer waiting to comsume: 1
+Consumer consumed: 1
+Producer transfered: 1
+```
+
+Producer thread is blocked before consumer thread take product away.
+
+### AbstractQueue
+
+This class provides skeletal implementations of some `Queue` operations. Its implemented methods actually implementing by calling abstract methods `offer()`, `poll()`, `peek()`.
+
+### PriorityQueue
+
+An unbounded priority queue based on a priority heap. The elements of the priority queue are ordered according to their natural ordering (ascending order. sort by e1.compareTo(e2)), or by a [`Comparator`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html) provided at queue construction time, depending on which constructor is used. A priority queue does not permit `null` elements. A priority queue relying on natural ordering also does not permit insertion of non-comparable objects.
+
+Its implementation provides O(log(n)) time for the enqueuing and dequeuing methods (`offer`, `poll`, `remove()` and `add`); linear time for the `remove(Object)` and `contains(Object)` methods; and constant time for the retrieval methods (`peek`, `element`, and `size`).
+
 ### Concurrent Queues
 
+### DelayQueue
 
+### SynchronousQueue
+
+### ConcurrentLinkedQueue
 
 ## Stack
 
@@ -236,5 +449,7 @@ Hierarchy of Map
 [5] [How can CopyOnWriteArrayList be thread-safe?](https://stackoverflow.com/questions/2950871/how-can-copyonwritearraylist-be-thread-safe)
 
 [6] [ReentrantLock Example in Java, Difference between synchronized vs ReentrantLock](https://javarevisited.blogspot.com/2013/03/reentrantlock-example-in-java-synchronized-difference-vs-lock.html)
+
+[7] [Difference between BlockingQueue and TransferQueue](https://stackoverflow.com/questions/7317579/difference-between-blockingqueue-and-transferqueue)
 
 --END--
