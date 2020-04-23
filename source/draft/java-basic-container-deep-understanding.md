@@ -6,10 +6,11 @@ Content
 
 - Collection
 - List
-- Set
-- Map
 - Queue
 - Stack
+- Set
+- Map
+- Utility Classes
 
 ## Collection
 
@@ -375,26 +376,218 @@ Its implementation provides O(log(n)) time for the enqueuing and dequeuing metho
 
 ### DelayQueue
 
+An unbounded blocking queue of Delayed elements, in which an element can only be taken when its delay has expired. If no delay has expired there is no head and poll will return null.
+
+`DelayQueue<E extends Delay>` is a `PriorityQueue` order by `Delayed`.
+
+Methods of Delayed interface
+
+- `long getDelay(TimeUnit unit)` - Returns the remaining delay associated with this object, in the given time unit.
+- `int compareTo(Delayed obj)`
+
+Methods of `DelayQueue` similar with `BlockingQueue`.
+
+Usage Example
+
+```java
+class MyDelayed implements Delayed {
+    private String name;
+    private long time;
+
+    public MyDelayed(String name, long delayMillisecond) {
+        this.name = name;
+        this.time = System.currentTimeMillis() + delayMillisecond;
+    }
+
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return unit.convert(time - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public int compareTo(Delayed o) {
+        return (int) (this.getDelay(TimeUnit.MILLISECONDS) - o.getDelay(TimeUnit.MILLISECONDS));
+    }
+    
+    @Override
+    public String toString() {
+        return "MyDelayed{" + "name='" + name + '\'' + ", time=" + time + '}';
+    }
+}
+
+public class Test{
+    public static void main(String[] args) throws InterruptedException {
+        DelayQueue<MyDelayed> delayQueue = new DelayQueue();
+        // offer
+        delayQueue.offer(new MyDelayed("B", 3000L));
+        delayQueue.offer(new MyDelayed("A", 2L));
+        // poll
+        // waiting for the delay is expired to poll
+        Thread.sleep(2L);
+        System.out.println("before poll");
+        // Output: MyDelayed{name='A', time=1587625828209}
+        System.out.println(delayQueue.poll()); 
+        // Output is null, because the delay is not expired
+        System.out.println(delayQueue.poll());
+    }
+}
+```
+
 ### SynchronousQueue
+
+A blocking queue in which each insert operation must wait for a corresponding remove operation by another thread, and vice verse. A synchronous queue does not have any internal capacity.
+
+The insert and remove operations of `SynchronousQueue` may block its thread. The insert and remove operations must occur at the same time, and the fast thread will block to wait for another operation thread.
+
+```java
+public static void main(String[] args) throws InterruptedException {
+    SynchronousQueue<Integer> synchronousQueue = new SynchronousQueue<>();
+    new Thread(()->{
+        try {
+            Thread.sleep(1000L);
+            System.out.println("the put to wait for remove...");
+            synchronousQueue.put(1);
+            System.out.println("end to put.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }).start();
+    new Thread(()->{
+        try {
+            System.out.println("the remove to wait for put...");
+            System.out.println(synchronousQueue.take());
+            System.out.println("end to remove.");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }).start();
+}
+```
+
+Output
+
+```java
+the remove to wait for put...
+the put to wait for remove...
+end put.
+1
+end remove.
+```
 
 ### ConcurrentLinkedQueue
 
+An unbound thread-safe queue based on linked nodes. This queue orders elements FIFO (first-in-first-out). A `ConcurrentLinkedQueue` is an appropriate choice when many threads will share access to a common collection.
+
 ## Stack
 
+Stack represents a last-in-first-out sequence. It extends class Vector. It's thread-safe implemented by synchronized methods. 
 
+If you don't operate in a multithread environment, you should use `Deque` as `Stack` that is fast than `Stack`.
+
+Methods of Stack
+
+- `boolean empty()`
+- `E peek()`
+- `E pop()`
+- `E push(E item)`
+- `int search(Object o)`
 
 ## Set
 
-- I-`Set`
-  - `AbstractSet`
-    - `java.util.concurrent.CopyOnWriteArraySet`
-    - `EnumSet`
-    - `HashSet`
-      - `LinkedHashSet`
-  - I-`SortedSet`
-    - I-`NavigableSet`
-      - `TreeSet`
-      - `java.util.concurrent.ConcurrentSkipListSet`
+Hierarchy of Set
+
+```
+I-Set
+|----AbstractSet
+|--------HashSet
+|------------LinkedHashSet
+|--------EnumSet
+|--------java.util.concurrent.CopyOnWriteArraySet
+|----I-SortedSet
+|--------I-NavigableSet
+|------------TreeSet
+|------------java.util.concurrent.ConcurrentSkipListSet
+```
+
+### Set Interface
+
+A collection that contains no duplicate elements, and at most one null element.
+
+Methods of Set interface
+
+- `boolean add(E e)`, `addAll(Collection c)`
+- `void clear()`
+- `boolean contains(Object o)`, `containsALl(Collection c)`
+- `boolean equals(Object o)`
+- `int hashCode()`
+- `boolean isEmpty()`
+- `Iterator iterator()`
+- `boolean remove(Object o)`, `removeAll(Collection c)`
+- `boolean retainAll(Collection c)`
+- `int size()`
+- `default Spliterator spliterator()`
+- `Object[] toArray()`, `T[] toArray(T[] a)`
+
+### AbstractSet  Class
+
+This class provides a skeletal implementation of the Set interface to minimize the effort required to implement this interface.
+
+Implemented methods: `equals(Object o)`, `hashCode()`, `removeAll(Collection c)`
+
+### HashSet Class
+
+This class implements the Set interface, backed by a hash table (actually a HashMap instance). It makes no guarantees as to the iteration order of the set.
+
+This class offers constant time performance for the basic operation (add, remove, contains and size), assuming the hash function disperses the elements properly among the buckets.
+
+This implementation is not synchronized.
+
+This class's iterator is fail-fast.
+
+### LinkedHashSet
+
+Hash table and linked list implementation of Set interface, with predictable iteration order. This implementation differs from `HashSet` in that it maintains a doubly-linked list running through all of its entries. This linked list defines the iteration ordering, which is insertion-order.
+
+### EnumSet Abstract Class
+
+A specialized Set implementation for use with enum types. All of the elements in an enum set must come from a single enum type. Enum sets are represented internally as bit vectors. This representation is extremely compact and efficient.
+
+### SortedSet Interface
+
+SortedSet is a Set that provides a total ordering on its elements. The elements are ordered using their natural ordering, or by a Comparator typically provided at sorted set creation time. The set's iterator will traverse the set in ascending element order.
+
+### NavigableSet interface
+
+NavigableSet is a SortedSet textended with navigation methods reporting closest matches for given search targets. Methods lower, floor, ceiling, and higher return elements respectively less than, less than or equal, greater than or equal, and greater than a given element, returning null if there is no such element. A NavigableSet may be accessed and traversed in either ascending or descending order. 
+
+Methods of NavigableSet interface
+
+- Navigation
+  - `E ceiling(E e)`
+  - `E floor(E e)`
+  - `E higher(E e)`
+  - `E lower(E e)`
+  - `E pollFirst()`
+  - `E pollLast()`
+- Iterator
+  - `Iterator descendingIterator()`'
+  - `Iterator iterator()`
+- Subset
+  - `SortedSet headSet(E toElement)`, `NavigableSet headSet(E toElement, boolean inclusive)`
+  - `SortedSet tailSet(E fromElement)`, `NavigableSet tailSet(E fromElement, boolean inclusive)`
+  - `SortedSet subSet(E fromElement, E toElement)`, `NavigableSet subSet(E fromElement, boolean fromInclusive, E toElement, boolean toInclusive)`
+- Reverse
+  - `NavigableSet descendingSet()`
+
+### TreeSet Class
+
+`TreeSet` is a `NavigableSet` implementation based on `TreeMap`.
+
+### Concurrent Set
+
+**CopyOnWriteArraySet**
+
+**ConcurrentSkipListSet**
 
 ## Map
 
@@ -434,7 +627,11 @@ Hierarchy of Map
 
 ### Concurrent Maps
 
+## Utility Classes
 
+Collections
+
+Arrays
 
 ## References
 
