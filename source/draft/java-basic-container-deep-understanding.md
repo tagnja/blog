@@ -528,11 +528,17 @@ Methods of Set interface
 - `default Spliterator spliterator()`
 - `Object[] toArray()`, `T[] toArray(T[] a)`
 
+The Set interface does not have any `get` or `find` methods to find an element from the Set container. The only way to find the specified element is by using its iterator to traverse the Set.
+
 ### AbstractSet  Class
 
 This class provides a skeletal implementation of the Set interface to minimize the effort required to implement this interface.
 
-Implemented methods: `equals(Object o)`, `hashCode()`, `removeAll(Collection c)`
+Implemented methods of Set interface: 
+
+- `equals(Object o)`
+- `hashCode()`
+- `removeAll(Collection c)`
 
 ### HashSet Class
 
@@ -581,57 +587,227 @@ Methods of NavigableSet interface
 
 ### TreeSet Class
 
-`TreeSet` is a `NavigableSet` implementation based on `TreeMap`.
+`TreeSet` is a `NavigableSet` implementation based on `TreeMap`. The elements are ordered using their natural ordering, or by a Comparator provided at set creation time, depending on which constructor is used.
+
+This implementation provides guaranteed log(n) time cost for the basic operations (add, remove, and contains).
+
+This implementation is not synchronized. If you want to use TreeSet in multithread environment, you can using the `Collections.synchronizedSortedSet(new TreeSet())` to wrap it.
 
 ### Concurrent Set
 
 **CopyOnWriteArraySet**
 
+`CopyOnWriteArraySet` is a Set that uses an internal `CopyOnWriteArrayList` for all of its operations.
+
+It shares basic properties:
+
+- It is best suited for applications in which set sizes generally stay small, read-only operations vastly outnumber mutative operations, and you need to prevent interference among threads during traversal.
+- It is thread-safe.
+- Mutative operations (`add`, `set`, `remove`, etc.) are expensive since they usually entail copying the entire underlying array.
+- Iterators do not support the mutative `remove` operation.
+- Traversal via iterators is fast and cannot encounter interference from other threads. Iterators rely on unchanging snapshots of the array at the time the iterators were constructed.
+
 **ConcurrentSkipListSet**
+
+`ConcurrentSkipListSet` is a scalable concurrent `NavigableSet` implementation based on a `ConcurrentSkipListMap`. The elements of the set are kept sorted according to their natural ordering, or by a Comparator provided at set creation time, depending on which constructor is used.
+
+This implementation provides expected average *log(n)* time cost for the `contains`, `add`, and `remove` operations and their variants. Insertion, removal, and access operations safely execute concurrently by multiple threads.
+
+Iterators and spliterators are [*weakly consistent*](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/package-summary.html#Weakly).
+
+Beware that, unlike in most collections, the `size` method is *not* a constant-time operation. Because of the asynchronous nature of these sets, determining the current number of elements requires a traversal of the elements, and so may report inaccurate results if this collection is modified during traversal. Additionally, the bulk operations `addAll`, `removeAll`, `retainAll`, `containsAll`, `equals`, and `toArray` are *not* guaranteed to be performed atomically. For example, an iterator operating concurrently with an `addAll` operation might view only some of the added elements.
 
 ## Map
 
 Hierarchy of Map
 
-- I-`Map`
-  - `Hashtable`
-  - `AbstractMap`
-    - `HashMap`
-      - `LinkedHashMap`
-    - `EnumMap`
-    - `IdentityHashMap`
-    - `WeakHashMap`
-  - I-`SortedMap`
-    - I-`NavigableMap`
-      - `TreeMap`
-  - I-`java.util.concurrent.ConcurrentMap`
-    - `ConcurrentHashMap`
-    - I-`ConcurrentNavigableMap`
-      - `ConcurrentSkipListMap`
+```
+I-Map
+|----Hashtable
+|----AbstractMap
+|--------HashMap
+|------------LinkedHashMap
+|--------EnumMap
+|--------IdentityHashMap
+|--------WeakHashMap
+|----SortedMap
+|--------NavigableMap
+|------------TreeMap
+|----java.util.concurrent.ConcurrentMap
+|--------ConcurrentHashMap
+|--------I-ConcurrentNavigableMap
+|------------ConcurrentSkipListMap
+```
 
 ### Map interface
 
+An object that maps keys to values. A map connot contain duplicate keys, and each key can map to at most one value.
+
+The Map interface provides three collection views, a set of keys, collection of values, or set of key-value mappings. 
+
+Methods of Map interface
+
+- Basic
+
+  - `V get(Object key)`
+  - `V put(K key, V value)`
+  - `V remove(Object key)`
+  - `int size()`
+  - `boolean isEmpty()`
+  - `void clear()`
+  - `boolean containsKey(Object key)`
+  - `boolean containsValue(Object value)`
+  - `void putAll(Map m)`
+  - `default V putIfAbsent(K key, V value)`
+  - `default V getOrDefault(Object key, V defaultValue)`
+  - `default boolean remove(Object key, Object value)`
+  - `default V replace(K key, V value)`
+  - `default boolean replace(K key, V oldValue, V newValue)`
+
+- View
+
+  - `Set entrySet()`
+  - `Set keySet()`
+  - `Collection values()`
+
+- Function
+
+  - `default V compute(K key, BiFunction remappingFunction)` - Attempts to compute a mapping for the specified key and its current mapped value. `computeIfAbsent(...)`, `computeIfPresent(...)`
+  - `default void forEach(BiConsumer action)`
+- `default V merge(K key, V value, BiFunction remappingFunction)`
+  - `default void replaceAll(BiFunction function)`
+
+Note that map means mapping keys to values, it does not specify how to mapping. The hash function is one of the ways to map keys to values.
+
+### HashTable
+
+This class implements a hash table, which maps keys to values.
+
+`Hashtable` is synchronized. If a thread-safe implementation is not needed, it is recommended to use [`HashMap`](https://docs.oracle.com/javase/8/docs/api/java/util/HashMap.html) in place of `Hashtable`. If a thread-safe highly-concurrent implementation is desired, then it is recommended to use [`ConcurrentHashMap`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentHashMap.html) in place of `Hashtable`.
+
 ### AbstractMap
+
+This class provides a skeletal implementation of the Map interface, to minimize the effort required to implement this interface.
+
+It simply implemented some methods of Map just using iterator, like `get(), containsKey()`. 
 
 ### HashMap
 
+Hash table based implementation of the Map interface. It permits null values and null key. This class makes no guarantees order of the map. The `HashMap` class is roughly equivalent to `HashTable`, except that it is unsynchronized and permit nulls.
+
+This implementation is not synchronized. If want to use a `HashMap` object in multithread environment, you can using `Collections.synchronizeMap()` to wrap it.
+
 ### EnumMap
+
+A specialized Map implementation for use with enum type keys. All of the keys in an enum map must come from a single enum type that is specified, explicitly or implicitly, when the map is created.
+
+Enum maps are maintained in the *natural order* of their keys (the order in which the enum constants are declared). This is reflected in the iterators returned by the collections views ([`keySet()`](https://docs.oracle.com/javase/8/docs/api/java/util/EnumMap.html#keySet--), [`entrySet()`](https://docs.oracle.com/javase/8/docs/api/java/util/EnumMap.html#entrySet--), and [`values()`](https://docs.oracle.com/javase/8/docs/api/java/util/EnumMap.html#values--)).
+
+Iterators returned by the collection views are *weakly consistent*: they will never throw [`ConcurrentModificationException`](https://docs.oracle.com/javase/8/docs/api/java/util/ConcurrentModificationException.html) and they may or may not show the effects of any modifications to the map that occur while the iteration is in progress.
+
+Null keys are not permitted. Attempts to insert a null key will throw [`NullPointerException`](https://docs.oracle.com/javase/8/docs/api/java/lang/NullPointerException.html).
+
+Like most collection implementations `EnumMap` is not synchronized. If want to use a `EnumMap` object in multithread environment, you can using `Collections.synchronizeMap()` to wrap it.
 
 ### IdentityHashMap
 
+This class implements the Map interface with a hash table, using reference-equality in place of object-equality when comparing keys (and values). In other words, in an `IdentityHashMap`, two keys `k1` and `k2` are considered equal if and only if `(k1==k2)`. For example, the key new String("a") and key "a" will different key in `IdentityHashMap`, but it's same key in `HashMap`.
+
+This class is *not* a general-purpose `Map` implementation! While this class implements the `Map` interface, it intentionally violates `Map's` general contract, which mandates the use of the `equals` method when comparing objects. This class is designed for use only in the rare cases wherein reference-equality semantics are required.
+
+This implementation is not synchronized. If want to use a `IdentityHashMap` object in multithread environment, you can using `Collections.synchronizeMap()` to wrap it.
+
+**Applicability**
+
+// TODO
+
+
+
 ### WeakHashMap
 
-### SortedMap
+Hash table based implementation of the `Map` interface, with *weak keys*. An entry in a `WeakHashMap` will automatically be removed when its key is no longer in ordinary use. More precisely, the presence of a mapping for a given key will not prevent the key from being discarded by the garbage collector, that is, made finalizable, finalized, and then reclaimed. When a key has been discarded its entry is effectively removed from the map, so this class behaves somewhat differently from other `Map` implementations.
+
+Each key object in a `WeakHashMap` is stored indirectly as the referent of a weak reference. Therefore a key will automatically be removed only after the weak references to it, both inside and outside of the map, have been cleared by the garbage collector.
+
+Like most collection classes, this class is not synchronized. A synchronized `WeakHashMap` may be constructed using the [`Collections.synchronizedMap`](https://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#synchronizedMap-java.util.Map-) method.
+
+**Applicability**
+
+// TODO
+
+
+
+### SortedMap interface
+
+A [`Map`](https://docs.oracle.com/javase/8/docs/api/java/util/Map.html) that further provides a *total ordering* on its keys. The map is ordered according to the [natural ordering](https://docs.oracle.com/javase/8/docs/api/java/lang/Comparable.html) of its keys, or by a [`Comparator`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html) typically provided at sorted map creation time. This order is reflected when iterating over the sorted map's collection views (returned by the `entrySet`, `keySet` and `values` methods). Several additional operations are provided to take advantage of the ordering.
+
+### NavigableMap interface
+
+A [`SortedMap`](https://docs.oracle.com/javase/8/docs/api/java/util/SortedMap.html) extended with navigation methods returning the closest matches for given search targets. Methods `lowerEntry`, `floorEntry`, `ceilingEntry`, and `higherEntry` return `Map.Entry` objects associated with keys respectively less than, less than or equal, greater than or equal, and greater than a given key, returning `null` if there is no such key. Similarly, methods `lowerKey`, `floorKey`, `ceilingKey`, and `higherKey` return only the associated keys. All of these methods are designed for locating, not traversing entries.
 
 ### TreeMap
 
+A Red-Black tree based [`NavigableMap`](https://docs.oracle.com/javase/8/docs/api/java/util/NavigableMap.html) implementation. The map is sorted according to the [natural ordering](https://docs.oracle.com/javase/8/docs/api/java/lang/Comparable.html) of its keys, or by a [`Comparator`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html) provided at map creation time, depending on which constructor is used.
+
+This implementation provides guaranteed log(n) time cost for the `containsKey`, `get`, `put` and `remove` operations.
+
+This class is not synchronized. A synchronized `TreeMap` may be constructed using the [`Collections.synchronizedMap`](https://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#synchronizedMap-java.util.Map-) method.
+
 ### Concurrent Maps
+
+**ConcurrentHashMap**
+
+A hash table supporting full concurrency of retrievals and high expected concurrency for updates. This class obeys the same functional specification as [`Hashtable`](https://docs.oracle.com/javase/8/docs/api/java/util/Hashtable.html), and includes versions of methods corresponding to each method of `Hashtable`. However, even though all operations are thread-safe, retrieval operations do *not* entail locking, and there is *not* any support for locking the entire table in a way that prevents all access. This class is fully interoperable with `Hashtable` in programs that rely on its thread safety but not on its synchronization details.
+
+// TODO
+
+**ConcurrentSkipListMap**
+
+
 
 ## Utility Classes
 
 Collections
 
 Arrays
+
+
+
+## Concurrent Collections
+
+Besides Queues, this package supplies Collection implementations designed for use in multithreaded contexts: [`ConcurrentHashMap`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentHashMap.html), [`ConcurrentSkipListMap`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentSkipListMap.html), [`ConcurrentSkipListSet`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentSkipListSet.html), [`CopyOnWriteArrayList`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CopyOnWriteArrayList.html), and [`CopyOnWriteArraySet`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CopyOnWriteArraySet.html). When many threads are expected to access a given collection, a `ConcurrentHashMap` is normally preferable to a synchronized `HashMap`, and a `ConcurrentSkipListMap` is normally preferable to a synchronized `TreeMap`. A `CopyOnWriteArrayList` is preferable to a synchronized `ArrayList` when the expected number of reads and traversals greatly outnumber the number of updates to a list.
+
+The "Concurrent" prefix used with some classes in this package is a shorthand indicating several differences from similar "synchronized" classes. For example `java.util.Hashtable` and `Collections.synchronizedMap(new HashMap())` are synchronized. But [`ConcurrentHashMap`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentHashMap.html) is "concurrent". A concurrent collection is thread-safe, but not governed by a single exclusion lock. In the particular case of ConcurrentHashMap, it safely permits any number of concurrent reads as well as a tunable number of concurrent writes. "Synchronized" classes can be useful when you need to prevent all access to a collection via a single lock, at the expense of poorer scalability. In other cases in which multiple threads are expected to access a common collection, "concurrent" versions are normally preferable. And unsynchronized collections are preferable when either collections are unshared, or are accessible only when holding other locks.
+
+Most concurrent Collection implementations (including most Queues) also differ from the usual `java.util` conventions in that their [Iterators](https://docs.oracle.com/javase/8/docs/api/java/util/Iterator.html) and [Spliterators](https://docs.oracle.com/javase/8/docs/api/java/util/Spliterator.html) provide *weakly consistent* rather than fast-fail traversal:
+
+- they may proceed concurrently with other operations
+- they will never throw [`ConcurrentModificationException`](https://docs.oracle.com/javase/8/docs/api/java/util/ConcurrentModificationException.html)
+- they are guaranteed to traverse elements as they existed upon construction exactly once, and may (but are not guaranteed to) reflect any modifications subsequent to construction.
+
+## Summary
+
+Understanding container Classes core features.
+
+- bounded, or unbounded
+- ordered, or disordered (insert ordering, natural ordering, comparator ordering)
+- null value
+- traverse operation is fail-fast or weakly consistent
+- performance
+  - read, write and traversal operations time and space cost.
+- thread safe: concurrency, consistency
+  - synchronized
+  - concurrent
+  - consistent
+
+Container Class Contrast Table
+
+How to select a effective container class to use.
+
+- thread-safe & strictly consistency, 
+- thread-safe & weak consistency, general read-write
+- thread-safe & weak consistency, most-of-read
+- single thread
 
 ## References
 
