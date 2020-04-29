@@ -717,12 +717,6 @@ This class is *not* a general-purpose `Map` implementation! While this class imp
 
 This implementation is not synchronized. If want to use a `IdentityHashMap` object in multithread environment, you can using `Collections.synchronizeMap()` to wrap it.
 
-**Applicability**
-
-// TODO
-
-
-
 ### WeakHashMap
 
 Hash table based implementation of the `Map` interface, with *weak keys*. An entry in a `WeakHashMap` will automatically be removed when its key is no longer in ordinary use. More precisely, the presence of a mapping for a given key will not prevent the key from being discarded by the garbage collector, that is, made finalizable, finalized, and then reclaimed. When a key has been discarded its entry is effectively removed from the map, so this class behaves somewhat differently from other `Map` implementations.
@@ -733,11 +727,11 @@ Like most collection classes, this class is not synchronized. A synchronized `We
 
 **Applicability**
 
-// TODO
+When you want to automatically remove useless objects from map, you can use `WeakHashMap`. You can manually remove elements of any types of map, but if don't or you forget it. It may cause a memory leak.
 
 **How does the `WeakHashMap` Implement?**
 
-// TODO
+`java.lang.ref.WeakReference`
 
 ### SortedMap interface
 
@@ -759,13 +753,15 @@ This class is not synchronized. A synchronized `TreeMap` may be constructed usin
 
 **ConcurrentHashMap**
 
-A hash table supporting full concurrency of retrievals and high expected concurrency for updates. This class obeys the same functional specification as [`Hashtable`](https://docs.oracle.com/javase/8/docs/api/java/util/Hashtable.html), and includes versions of methods corresponding to each method of `Hashtable`. However, even though all operations are thread-safe, retrieval operations do *not* entail locking, and there is *not* any support for locking the entire table in a way that prevents all access. This class is fully interoperable with `Hashtable` in programs that rely on its thread safety but not on its synchronization details.
+What is it
 
-// TODO
+A concurrent map implements by hash table, and supports full concurrency of retrievals and high concurrency for updates. It likes `Hashtable`, but it has more concurrency.
+
+A hash table supporting full concurrency of retrievals and high expected concurrency for updates. This class obeys the same functional specification as [`Hashtable`](https://docs.oracle.com/javase/8/docs/api/java/util/Hashtable.html), and includes versions of methods corresponding to each method of `Hashtable`. However, even though all operations are thread-safe, retrieval operations do *not* entail locking, and there is *not* any support for locking the entire table in a way that prevents all access. This class is fully interoperable with `Hashtable` in programs that rely on its thread safety but not on its synchronization details.
 
 **ConcurrentSkipListMap**
 
-
+A scalable concurrent [`ConcurrentNavigableMap`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentNavigableMap.html) implementation. The map is sorted according to the [natural ordering](https://docs.oracle.com/javase/8/docs/api/java/lang/Comparable.html) of its keys, or by a [`Comparator`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html) provided at map creation time, depending on which constructor is used.
 
 ## Utility Classes
 
@@ -779,11 +775,21 @@ Arrays
 
 **Fail Fast**
 
+when one thread using iterator for traversal, updating the container object by add, remove operations, the iterator thread will throw a `ConcurrentModificationException`.
+
 ### Ordering
 
 **Natural Ordering**
 
 Elements order by method `compareTo()` of the class.
+
+### Consistency
+
+**Happens-before**
+
+This relationship is simply a guarantee that memory writes by one specific statement are visible to another specific statement in multiple threads.
+
+For example, an variable `int counter=0` shared in thread A and thread B. If thread A increment counter by `counter++`, thread B `print counter` by `System.out.println(counter)`, the printed value would be "1".
 
 ## Concurrent Collections
 
@@ -839,19 +845,19 @@ Set
 
 Map
 
-| Class Type              | Size      | Order               | Allows Null        | Iterator  | Time Cost                            | Space Cost | Thread Safe      | Impl                       |
-| ----------------------- | --------- | ------------------- | ------------------ | --------- | ------------------------------------ | ---------- | ---------------- | -------------------------- |
-| `HashTable`             | Resizable | No Ordering         | **Not Null**       | Fail Fast | Insert: O(1), Remove: O1), Get: O(1) | O(n)       | **Synchronized** | Hash Table (Linked Array)  |
-| `HashMap`               | Resizable | No Ordering         | Allows Single Null | Fail Fast | Insert: O(1), Remove: O1), Get: O(1) | O(n)       | Not Thread Safe  | Hash Table (Linked Array)  |
-| `LinkedHashMap`         | Resizable | **Insert Ordering** | Allows Single Null | Fail Fast | Insert: O(1), Remove: O1), Get: O(1) | O(n)       | Not Thread Safe  | Hash Table and Linked List |
-| `EnumMap`               |           |                     |                    |           |                                      |            |                  |                            |
-| `IdentityHashMap`       |           |                     |                    |           |                                      |            |                  |                            |
-| `WeakHashMap`           |           |                     |                    |           |                                      |            |                  |                            |
-| `TreeMap`               |           |                     |                    |           |                                      |            |                  |                            |
-| `ConcurrentHashMap`     |           |                     |                    |           |                                      |            |                  |                            |
-| `ConcurrentSkipListMap` |           |                     |                    |           |                                      |            |                  |                            |
+| Class Type              | Size      | Order                               | Allows Null        | Iterator              | Time Cost                                            | Space Cost | Thread Safe      | Impl                                          |
+| ----------------------- | --------- | ----------------------------------- | ------------------ | --------------------- | ---------------------------------------------------- | ---------- | ---------------- | --------------------------------------------- |
+| `HashTable`             | Resizable | No Ordering                         | **Not Null**       | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Synchronized** | Hash Table (Linked Array)                     |
+| `HashMap`               | Resizable | No Ordering                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table (Linked Array)                     |
+| `LinkedHashMap`         | Resizable | **Insert Ordering**                 | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table and Linked List                    |
+| `EnumMap`               | Bounded   | Natural Order of keys               | Not Null           | Not Fail Fast         | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Object Array and enum types as index of array |
+| `IdentityHashMap`       | Resizable | No Ordering                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table                                    |
+| `WeakHashMap`           | Resizable | No Ordering                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table                                    |
+| `TreeMap`               | Resizable | **Natural Ordering, or Comparator** | Not Null           | Fail Fast             | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | Not Thread Safe  | Red Black Tree                                |
+| `ConcurrentHashMap`     | Resizable | No Ordering                         | **Not Null**       | **Weakly Consistent** | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Concurrent**   | Hash Table                                    |
+| `ConcurrentSkipListMap` | Resizable | **Natural Ordering, or Comparator** | Not Null           | **Weakly Consistent** | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | **Concurrent**   | Tree-Like Two-Dimensionally Linked `SkipList` |
 
-Understanding container Classes core features.
+**Understanding container Classes core features**
 
 - bounded, or unbounded
 - ordered, or disordered (insert ordering, natural ordering, comparator ordering)
@@ -864,14 +870,25 @@ Understanding container Classes core features.
   - concurrent
   - consistent
 
+**How to select a effective container class to use**
 
+List
 
-How to select a effective container class to use.
+- `ArrayList` and `LinkedList` is common lists. `ArrayList` implemented by array, it is fast to random access, but slow to insert and remove. `LinkedList` implemented by nodes, it is fast to insert and remove, but slow to random access. 
+- `Vector` is thread-safe list by synchronized. If you want to use list in multithread environment, you can choose it.
+- `CopyOnWriteArrayList` is thread-safe list, and It is more concurrent than synchronized, but its write operations is very costly. If you want to use list in multithread environment with high concurrent, and operations are almost read operations(90%+), you can choose it. You will have high concurrent in read and write operations.
 
-- thread-safe & strictly consistency, 
-- thread-safe & weak consistency, general read-write
-- thread-safe & weak consistency, most-of-read
-- single thread
+Stack
+
+- 
+
+Queue
+
+Set
+
+Map
+
+String
 
 ## References
 
@@ -888,5 +905,7 @@ How to select a effective container class to use.
 [6] [ReentrantLock Example in Java, Difference between synchronized vs ReentrantLock](https://javarevisited.blogspot.com/2013/03/reentrantlock-example-in-java-synchronized-difference-vs-lock.html)
 
 [7] [Difference between BlockingQueue and TransferQueue](https://stackoverflow.com/questions/7317579/difference-between-blockingqueue-and-transferqueue)
+
+[8] [Memory Consistency Errors](https://docs.oracle.com/javase/tutorial/essential/concurrency/memconsist.html)
 
 --END--
