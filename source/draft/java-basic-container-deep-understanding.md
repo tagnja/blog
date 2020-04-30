@@ -22,19 +22,15 @@ The root interface in collection hierarchy. A collection represents a group of o
 
 basic operations
 
-- `boolean add(E e)`
-- `boolean addAll(Collection<? extends E> c)`
-- `boolean remove(Object o)`
-- `boolean removeAll(Collection<?> c)`
+- `boolean add(E e)`, `boolean addAll(Collection<? extends E> c)`
+- `boolean remove(Object o)`, `boolean removeAll(Collection<?> c)`
 - `void clear()`
-- `boolean contains(Object o)`
-- `boolean contains(Collection<?> c)`
+- `boolean contains(Object o)`, `boolean contains(Collection<?> c)`
 - `int size()`
 - `boolean equals(Object o)`
 - `boolean isEmpty()`
 - `Iterator<E> iterator()`
-- `object[] toArray()`
-- `<T> T[] toArray(T[] a)`
+- `object[] toArray()`, `<T> T[] toArray(T[] a)`
 
 advanced operations
 
@@ -54,7 +50,17 @@ Non-abstract methods in this class may be overridden if its subclass implemented
 
 ## List
 
-Subclass of `List`: `AbstractList`, `ArrayList`, `Vector`, `AbstractSequentialList`, `LinkedList`, `CopyOnWriteArrayList`.
+Hierarchy of `List`:
+
+```
+(I)List
+|----(A)AbstractList
+|--------ArrayList
+|--------Vector
+|--------(A)AbstractSequentialList
+|------------LinkedList
+|----java.util.concurrent.CopyOnWriteArrayList
+```
 
 ### List interface
 
@@ -141,7 +147,7 @@ Hierarchy of `Queue`:
 
 ```
 (I)java.util.Queue
-|----java.util.AbstractQueue
+|----(A)java.util.AbstractQueue
 |--------java.util.PriorityQueue
 |----(I)java.util.Deque
 |--------java.util.ArrayDeque
@@ -163,9 +169,9 @@ Hierarchy of `Queue`:
 
 A group of elements in First in first out manner.
 
-> The `Queue` interface does not define the blocking queue methods, which are common in concurrent programming.
+The `Queue` interface does not define the blocking queue methods, which are common in concurrent programming.
 
-> Queue implementations generally do not allow insertion of null elements, although some implementations do not prohibit. Null should not be inserted into a queue, as null is also used as a special return value by the poll method to indicate that the queue contains no elements.
+Queue implementations generally do not allow insertion of null elements, although some implementations do not prohibit. Null should not be inserted into a queue, as null is also used as a special return value by the poll method to indicate that the queue contains no elements.
 
 **Methods of `Queue`**
 
@@ -183,37 +189,23 @@ A group of elements in First in first out manner.
 
 A group of elements supports element insertion and removal at both head and tail. Deque can also be used as LIFO (last-in-First-out) stacks.
 
-> The name deque is short for "double ended queue" and is usually pronounced "deck".
+The name deque is short for "double ended queue" and is usually pronounced "deck".
 
 **Methods of `Deque`**
 
 - insert
-  - `boolean add(E e)`
-  - `void addFirst(E e)`
-  - `void addLast(E e)`
-  - `boolean offer(E e)`
-  - `boolean offerFirst(E e)`
-  - `boolean offerLast(E e)`
+  - `boolean add(E e)`, `void addFirst(E e)`, `void addLast(E e)`
+  - `boolean offer(E e)`, `boolean offerFirst(E e)`, `boolean offerLast(E e)`
   - `void push(E e)`
 - remove
-  - `E remove()`
-  - `E removeFirst()`
-  - `E removeLast()`
-  - `boolean removeFirstOccurrence(Object o)`
-  - `boolean removeLastOccurrence(Object o)`
-  - `E poll()`
-  - `E pollFirst()`
-  - `E pollLast()`
+  - `E remove()`, `E removeFirst()`, `E removeLast()`
+  - `boolean removeFirstOccurrence(Object o)`, `boolean removeLastOccurrence(Object o)`
+  - `E poll()`, `E pollFirst()`, `E pollLast()`
   - `E pop()`
 - examine
-  - `E getFirst()`
-  - `E peekFirst()`
-  - `E getLast()`
-  - `E peekLast()`
+  - `E getFirst()`, `E getLast()`
+  - `E peek()`, `E peekFirst()`, `E peekLast()`
   - `E element()`
-  - `E peek()`
-  - `E peekFirst()`
-  - `E peekLast()`
 - `boolean contains(Object o)`
 - `Iterator descendingIterator()`
 - `Iterator iterator()`
@@ -480,31 +472,40 @@ An unbound thread-safe queue based on linked nodes. This queue orders elements F
 
 ## Stack
 
-Stack represents a last-in-first-out sequence. It extends class Vector. It's thread-safe implemented by synchronized methods. 
+Hierarchy of `Stack`:
+
+```
+java.util.Stack
+java.util.Deque
+java.util.LinkedList
+java.util.ArrayList
+```
+
+`java.util.Stack` class represents a last-in-first-out sequence. It extends class Vector. It's thread-safe implemented by synchronized methods. 
 
 If you don't operate in a multithread environment, you should use `Deque` as `Stack` that is fast than `Stack`.
 
-Methods of Stack
+Methods of  `Stack`
 
-- `boolean empty()`
 - `E peek()`
 - `E pop()`
 - `E push(E item)`
+- `boolean empty()`
 - `int search(Object o)`
 
 ## Set
 
-Hierarchy of Set
+Hierarchy of `Set`:
 
 ```
-I-Set
-|----A-AbstractSet
+(I)Set
+|----(A)AbstractSet
 |--------HashSet
 |------------LinkedHashSet
-|--------A-EnumSet
+|--------(A)EnumSet
 |--------java.util.concurrent.CopyOnWriteArraySet
-|----I-SortedSet
-|--------I-NavigableSet
+|----(I)SortedSet
+|--------(I)NavigableSet
 |------------TreeSet
 |------------java.util.concurrent.ConcurrentSkipListSet
 ```
@@ -619,23 +620,23 @@ Beware that, unlike in most collections, the `size` method is *not* a constant-t
 
 ## Map
 
-Hierarchy of Map
+Hierarchy of `Map`:
 
 ```
-I-Map
+(I)Map
 |----Hashtable
-|----AbstractMap
+|----(A)AbstractMap
 |--------HashMap
 |------------LinkedHashMap
 |--------EnumMap
 |--------IdentityHashMap
 |--------WeakHashMap
-|----I-SortedMap
-|--------I-NavigableMap
+|----(I)SortedMap
+|--------(I)NavigableMap
 |------------TreeMap
-|----java.util.concurrent.ConcurrentMap
+|----(I)java.util.concurrent.ConcurrentMap
 |--------ConcurrentHashMap
-|--------I-ConcurrentNavigableMap
+|--------(I)ConcurrentNavigableMap
 |------------ConcurrentSkipListMap
 ```
 
@@ -765,9 +766,75 @@ A scalable concurrent [`ConcurrentNavigableMap`](https://docs.oracle.com/javase/
 
 ## Utility Classes
 
-Collections
+### Collections
 
-Arrays
+**What Is It**
+
+This class consists of static methods that operate on or return collections.
+
+**Methods of `Collections`**
+
+- Operations
+  - `static boolean addAll(Collection c, T... elements)`
+  - `static int binarySearch(List list, T key)`, `binarySearch(List list, T key, Comparator c)`
+  - `static void copy(List dest, List src)`
+  - `static boolean disjoint(Collection c1, Collection c2)`
+  - `static void fill(List list, T obj)`
+  - `static int frequency(Collection c, Object o)`
+  - `static int indexOfSubList(List source, List target)`, `int lastIndexOfSubList(List source, List target)`
+  - `static T max(Collection c)`, `max(Collection coll, Comparator comp)`
+  - `static T min(Collection c)`, `min(Collection coll, Comparator comp)`
+  - `static boolean replaceAll(List list, T oldVal, T newVal)`
+  - `static void reverse(List list)`
+  - `static Comparator reverseOrder()`, `reverseOrder(Comparator comp)`
+  - `static void rotate(List list, int distance)`
+  - `static void shuffle(List list)`, `shuffle(List list, Random rnd)`
+  - `static void sort(List list)`, `sort(List list, Comparator comp)`
+  - `static void swap(List list, int i, int j)`
+- Transforms
+  - `static Queue asLifoQueue(Deque deque)`
+  - `static Collection checkedCollection(Collection c, Class type)`, `checkedList(List list, Class type)`, `checkedMap`, `checkedNavigableMap`, ...
+  - `static Enumeration enumeration(Collecdtion c)`
+  - `static ArrayList List(Enumeration e)`
+  - `static newSetFromMap(Map map)`
+  -  `static Collection synchronizedCollection(Collection c)`, `synchronizedList(List list)`, `synchronizedMap(Map map)`, `synchronizedSet(Set set)`, ...
+  - `static Collection unmodifiableCollection(Collection)`, `unmodifiableList(List list)`, `unmodifiableMap(Map map)`, ...
+- Creations
+  - `static List emptyList()`, `emptyMap()`, `emptySet()`, ...
+  - `static List nCopies(int n, T o)`
+  - `static Set singleton(T o)`, `singletonList(T o)`, `singletonMap(K key, V value)`
+
+### Arrays 
+
+**What Is It**
+
+This class contains various static methods for manipulating arrays (such as sorting and searching). This class also contains a static factory that allows arrays to be viewed as lists.
+
+**Methods of `Arrays`**
+
+- Manipulations
+  - `static int binarySearch(byte[] a, byte key)`, `binarySearch(byte[] a, int fromIndex, int toIndex, byte key)`, `binarySearch(char[] a, char key)`, `binarySearch(int[] a, int key)`, ...
+  - `static boolean deepEquals(Object[] a1, object[] a2)`
+  - `static int deepHashcode(Object[] a)`
+  - `static String deepToString(Object[] a)`
+  - `static boolean equals(int[] a, int[] a2)`, `equals(byte[] a, byte[] a2)`, ...
+  - `static void fill(int[] a, int val)`, `fill(byte[] a, byte val)`, ...
+  - `static int hashcode(int[] a)`, `hashcode(byte[] a)`, ...
+  - `static void parallelPrefix(int[] array, IntBinaryOperator op)`, ...
+  - `static void setAll(int[] a, IntUnaryOperator generator)`, ...
+  - `static void parallelSetAll(int[] a, IntUnaryOperator generator)`, ...
+  - `static void sort(int[] a)`, `sort(int[] a, int fromIndex, int toIndex)`, ...
+  - `static void parallelSort(int[] a)`, `parallelSort(int[] a, int fromIndex, int toIndex)`, `parallelSort(byte[] a)`
+  - `static Spliterator spliterator(int[] a)`, ...
+  - `static Stream stream(int[] a)`, ...
+  - `static toString(int[] a)`, ...
+- Transforms
+  - `static int[] copyOf(int[] original, int newLength)`, `copyOf(byte[] original, int newLength)`, ...
+  - `static int[] copyOfRange(int[] original, int from, int to)`, `copyOfRange(byte[] original, int from, int to)`, ...
+- Creations
+  - `static List asList(T... a)`
+
+
 
 ## Container Features
 
@@ -857,7 +924,7 @@ Map
 | `ConcurrentHashMap`     | Resizable | No Ordering                         | **Not Null**       | **Weakly Consistent** | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Concurrent**   | Hash Table                                    |
 | `ConcurrentSkipListMap` | Resizable | **Natural Ordering, or Comparator** | Not Null           | **Weakly Consistent** | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | **Concurrent**   | Tree-Like Two-Dimensionally Linked `SkipList` |
 
-**Understanding container Classes core features**
+**Container Classes core features**
 
 - bounded, or unbounded
 - ordered, or disordered (insert ordering, natural ordering, comparator ordering)
@@ -874,21 +941,34 @@ Map
 
 List
 
-- `ArrayList` and `LinkedList` is common lists. `ArrayList` implemented by array, it is fast to random access, but slow to insert and remove. `LinkedList` implemented by nodes, it is fast to insert and remove, but slow to random access. 
-- `Vector` is thread-safe list by synchronized. If you want to use list in multithread environment, you can choose it.
-- `CopyOnWriteArrayList` is thread-safe list, and It is more concurrent than synchronized, but its write operations is very costly. If you want to use list in multithread environment with high concurrent, and operations are almost read operations(90%+), you can choose it. You will have high concurrent in read and write operations.
+- **`ArrayList`** and **`LinkedList`** is common lists. `ArrayList` implemented by array, it is fast to random access, but slow to insert and remove. `LinkedList` implemented by nodes, it is fast to insert and remove, but slow to random access. 
+- **`Vector`** is thread-safe list by synchronized. If you want to use list in multithread environment, you can choose it.
+- **`CopyOnWriteArrayList`** is thread-safe list, and It is more concurrent than synchronized, but its write operations is very costly. If you want to use list in multithread environment with high concurrent, and operations are almost read operations(90%+), you can choose it. You will have high concurrent in read and write operations.
 
 Stack
 
-- 
+- If you want to use stack in single thread environment, you can use **`ArrayDeque`** and **`LinkedList`**, or construct by wrapper `ArrayList` or array. `ArrayDeque` > `LinkedList`
+- If you want to use stack with thread-safe. You can use **`Stack`** or **`ConcurrentLikedDeque`**. The `Stack` has strictly consistent and poor concurrency. the `ConcurrentLinkedDeque` has high concurrency and weakly consistent.
 
 Queue
 
+- In single thread environments, the **`ArrayDeque`** is the most common queue. If you want a queue has priority, you can use **`PriorityQueue`**.
+- In multithread environments, There have two type queues: blocking queue and concurrent queue. Blocking queues is commonly using for the producer-consumer scenario. About blocking queue selection, blocking queues for general using you can select **`LinkedBlockingDeque`**, **`ArrayBlockingQueue`**, and **`LinkedBlockingQueue`**. There are many blocking queues that have special features. They are **`LinkedTransferQueue`**, **`PriorityBlockingQueue`**, **`DelayQueue`**, **`SynchronousQueue`**. You can use it according to their features.
+- Another thread-safe queue type is concurrent queues. They are **`ConcurrentLinkedQueue`** and **`ConcurrentLinkedDeque`**. They are very similar, just `ConcurrentLinkedDeque` can use as both queue and stack.
+
 Set
+
+- In single thread environments, the **`HashSet`** is the most common set. Other sets are **`LinkedHashSet`** and **`TreeSet`**. The `LinkedHashSet` is similar to `HashSet`, but it has additional functionality that keeps elements insert order by linking them. The `TreeSet` has lower performance than `HashSet`, but it can keep elements order with natural order or comparator.
+- In multithread environments, We can use thread-safe sets **`CopyOnWriteArraySet`** and **`ConcurrentSkipListSet`**. The `CopyOnWriteArraySet` only use when most of operations (90%+) are reads. The `ConcurrentSkipListSet` use when you want to keep elements ordering.
 
 Map
 
+- In single thread environments, the **`HashMap`** is the most common map. It's for general using. Other maps are `LinkedHashMap`, `EnumMap`, `IdentityHashMap`, `WeakHashMap`, `TreeMap`. The **`LinkedHashMap`** is similar to `HashMap`, but it keeps elements insert order. The **`EnumMap`** use in when all keys of map are from an `Enum` types. The **`IdentityHashMap`** and **`WeakHashMap`** are rarely using, just using in special scenario according to their features. The `TreeMap` is lower performance than `HashMap`, but it keep elements of map order (natural order or comparators).
+
 String
+
+- `String` is the most common class for representing a string. It's final or immutable. If you want to concatenate multiple strings to one, you better use `StringBuilder`, it doesn't generate middle strings that saving memory cost.
+- The `StringBuffer` is similar to `StringBuilder`, only difference between `StringBuffer` and `StringBuilder` is `StringBuffer` is thread-safe by synchronized. 
 
 ## References
 
