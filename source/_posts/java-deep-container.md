@@ -1,5 +1,5 @@
 ---
-title: java-deep-container
+title: Understanding Java Container
 date: 2020-05-01 09:17:11
 categories: 
 - 编程语言
@@ -357,7 +357,7 @@ This class provides skeletal implementations of some `Queue` operations. Its imp
 
 ### PriorityQueue
 
-An unbounded priority queue based on a priority heap. The elements of the priority queue are ordered according to their natural ordering (ascending order. sort by e1.compareTo(e2)), or by a [`Comparator`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html) provided at queue construction time, depending on which constructor is used. A priority queue does not permit `null` elements. A priority queue relying on natural ordering also does not permit insertion of non-comparable objects.
+An unbounded priority queue based on a priority heap. The elements of the priority queue are ordered according to their natural Order (ascending order. sort by e1.compareTo(e2)), or by a [`Comparator`](https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html) provided at queue construction time, depending on which constructor is used. A priority queue does not permit `null` elements. A priority queue relying on natural Order also does not permit insertion of non-comparable objects.
 
 Its implementation provides O(log(n)) time for the enqueuing and dequeuing methods (`offer`, `poll`, `remove()` and `add`); linear time for the `remove(Object)` and `contains(Object)` methods; and constant time for the retrieval methods (`peek`, `element`, and `size`).
 
@@ -550,7 +550,7 @@ This class's iterator is fail-fast.
 
 ### LinkedHashSet
 
-Hash table and linked list implementation of Set interface, with predictable iteration order. This implementation differs from `HashSet` in that it maintains a doubly-linked list running through all of its entries. This linked list defines the iteration ordering, which is insertion-order.
+Hash table and linked list implementation of Set interface, with predictable iteration order. This implementation differs from `HashSet` in that it maintains a doubly-linked list running through all of its entries. This linked list defines the iteration Order, which is insertion-order.
 
 ### EnumSet Abstract Class
 
@@ -558,7 +558,7 @@ A specialized Set implementation for use with enum types. All of the elements in
 
 ### SortedSet Interface
 
-SortedSet is a Set that provides a total ordering on its elements. The elements are ordered using their natural ordering, or by a Comparator typically provided at sorted set creation time. The set's iterator will traverse the set in ascending element order.
+SortedSet is a Set that provides a total Order on its elements. The elements are ordered using their natural Order, or by a Comparator typically provided at sorted set creation time. The set's iterator will traverse the set in ascending element order.
 
 ### NavigableSet interface
 
@@ -841,9 +841,9 @@ This class contains various static methods for manipulating arrays (such as sort
 
 when one thread using iterator for traversal, updating the container object by add, remove operations, the iterator thread will throw a `ConcurrentModificationException`.
 
-### Ordering
+### Order
 
-**Natural Ordering**
+**Natural Order**
 
 Elements order by method `compareTo()` of the class.
 
@@ -873,58 +873,58 @@ Most concurrent Collection implementations (including most Queues) also differ f
 
 List
 
-| Class Type             | Size      | Order           | Allows Null | Iterator     | Time Cost                             | Space Cost                            | Thread Safe      | Impl         |
-| ---------------------- | --------- | --------------- | ----------- | ------------ | ------------------------------------- | ------------------------------------- | ---------------- | ------------ |
-| `ArrayList`            | Resizable | Insert Ordering | Allows Null | Fail Fast    | Insert: O(n), remove: O(n), get: O(1) | O(n)                                  | Not Thread Safe  | Array        |
-| `Vector`               | Resizable | Insert Ordering | Allows Null | Fail Fast    | Insert: O(n), remove: O(n), get: O(1) | O(n)                                  | **Synchronized** | Array        |
-| `LinkedList`           | Resizable | Insert Ordering | Allows Null | Fail Fast    | Insert: O(1), remove: O(1), get: O(n) | O(n)                                  | Not Thread Safe  | Linked Nodes |
-| `CopyOnWriteArrayList` | Resizable | Insert Ordering | Allows Null | **Snapshot** | Insert: O(n), remove: O(n), get: O(1) | O(n), Traverse and write need to copy | **Concurrent**   | Array        |
+| Class Type             | Size      | Order        | Null        | Iterator     | Time Cost                             | Space Cost                            | Thread Safe      | Impl         |
+| ---------------------- | --------- | ------------ | ----------- | ------------ | ------------------------------------- | ------------------------------------- | ---------------- | ------------ |
+| `ArrayList`            | Resizable | Insert Order | Allows Null | Fail Fast    | Insert: O(n), remove: O(n), get: O(1) | O(n)                                  | Not Thread Safe  | Array        |
+| `Vector`               | Resizable | Insert Order | Allows Null | Fail Fast    | Insert: O(n), remove: O(n), get: O(1) | O(n)                                  | **Synchronized** | Array        |
+| `LinkedList`           | Resizable | Insert Order | Allows Null | Fail Fast    | Insert: O(1), remove: O(1), get: O(n) | O(n)                                  | Not Thread Safe  | Linked Nodes |
+| `CopyOnWriteArrayList` | Resizable | Insert Order | Allows Null | **Snapshot** | Insert: O(n), remove: O(n), get: O(1) | O(n), Traverse and write need to copy | **Concurrent**   | Array        |
 
 Queue & Stack
 
-| Class Type              | Size               | Order                               | Allows Null | Iterator              | Time Cost                  | Space Cost | Thread Safe      | Impl                      |
-| ----------------------- | ------------------ | ----------------------------------- | ----------- | --------------------- | -------------------------- | ---------- | ---------------- | ------------------------- |
-| `Stack`                 | Resizable          | Insert Ordering                     | Allows Null | Fail Fast             | Pop: O(1), Push: O(1)      | O(n)       | **Synchronized** | extends vector            |
-| `ArrayDeque`            | Resizable          | Insert Ordering                     | Not Null    | Fail Fast             | **Enqueue Dequeue: O(1)**  | O(n)       | Not Thread Safe  | Arrays                    |
-| `PriorityQueue`         | Resizable          | **Natural Ordering, or Comparator** | Not Null    | Fail Fast             | Enqueue Dequeue: O(log(n)) | O(n)       | Not Thread Safe  | Priority Heap by Arrays   |
-| `LinkedBlockingDeque`   | Optionally Bounded | Insert Ordering                     | Not Null    | **Weakly Consistent** | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
-| `LinkedTransferQueue`   | Resizable          | Insert Ordering                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
-| `ArrayBlockingQueue`    | Bounded            | Insert Ordering                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Array                     |
-| `LinkedBlockingQueue`   | Optionally Bounded | Insert Ordering                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
-| `PriorityBlockingQueue` | Resizable          | Natural Ordering, or Comparator     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(log(n)) | O(n)       | **Concurrent**   | Priority Heap by Arrays   |
-| `DelayQueue`            | Resizable          | Insert Ordering                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(log(n)) | O(n)       | **Concurrent**   | Wrapped Priority Queue    |
-| `SynchronousQueue`      | No Capacity        | No Exist                            | Not Null    | Can't Iterator        | Enqueue Dequeue: O(1)      | O(1)       | **Concurrent**   | Dual Stack and Dual Queue |
-| `ConcurrentLinkedQueue` | Resizable          | Insert Ordering                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
-| `ConcurrentLinkedDeque` | Resizable          | Insert Ordering                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
+| Class Type              | Size               | Order                            | Null        | Iterator              | Time Cost                  | Space Cost | Thread Safe      | Impl                      |
+| ----------------------- | ------------------ | -------------------------------- | ----------- | --------------------- | -------------------------- | ---------- | ---------------- | ------------------------- |
+| `Stack`                 | Resizable          | Insert Order                     | Allows Null | Fail Fast             | Pop: O(1), Push: O(1)      | O(n)       | **Synchronized** | extends vector            |
+| `ArrayDeque`            | Resizable          | Insert Order                     | Not Null    | Fail Fast             | **Enqueue Dequeue: O(1)**  | O(n)       | Not Thread Safe  | Arrays                    |
+| `PriorityQueue`         | Resizable          | **Natural Order, or Comparator** | Not Null    | Fail Fast             | Enqueue Dequeue: O(log(n)) | O(n)       | Not Thread Safe  | Priority Heap by Arrays   |
+| `LinkedBlockingDeque`   | Optionally Bounded | Insert Order                     | Not Null    | **Weakly Consistent** | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
+| `LinkedTransferQueue`   | Resizable          | Insert Order                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
+| `ArrayBlockingQueue`    | Bounded            | Insert Order                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Array                     |
+| `LinkedBlockingQueue`   | Optionally Bounded | Insert Order                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
+| `PriorityBlockingQueue` | Resizable          | Natural Order, or Comparator     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(log(n)) | O(n)       | **Concurrent**   | Priority Heap by Arrays   |
+| `DelayQueue`            | Resizable          | Insert Order                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(log(n)) | O(n)       | **Concurrent**   | Wrapped Priority Queue    |
+| `SynchronousQueue`      | No Capacity        | No Exist                         | Not Null    | Can't Iterator        | Enqueue Dequeue: O(1)      | O(1)       | **Concurrent**   | Dual Stack and Dual Queue |
+| `ConcurrentLinkedQueue` | Resizable          | Insert Order                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
+| `ConcurrentLinkedDeque` | Resizable          | Insert Order                     | Not Null    | Weakly Consistent     | Enqueue Dequeue: O(1)      | O(n)       | **Concurrent**   | Linked Nodes              |
 
 Set
 
-| Class Type              | Size      | Order                               | Allows Null        | Iterator          | Time Cost                                                 | Space Cost          | Thread Safe     | Impl                          |
-| ----------------------- | --------- | ----------------------------------- | ------------------ | ----------------- | --------------------------------------------------------- | ------------------- | --------------- | ----------------------------- |
-| `HashSet`               | Resizable | No Ordering                         | Allows Single Null | Fail Fast         | Insert: O(1), Remove: O(1), Contains: O(1)                | O(n)                | Not Thread Safe | Hash Table or `HashMap`       |
-| `LinkedHashSet`         | Resizable | **Insert Ordering**                 | Allows Single Null | Fail Fast         | Insert: O(1), Remove: O(1), Contains: O(1)                | O(n)                | Not Thread Safe | Hash Table or `LinkedHashMap` |
-| `CopyOnWriteArraySet`   | Resizable | Insert Ordering                     | Allows Single Null | **Snapshot**      | Insert: O(n), Remove: O(n), Contains: O(n)                | O(n), Cost to Write | **Concurrent**  | `CopyOnWriteArrayList`        |
-| `TreeSet`               | Resizable | **Natural Ordering, or Comparator** | Not Null           | Fail Fast         | Insert: O(log(n)), Remove: O(log(n)), Contains: O(log(n)) | O(n)                | Not Thread Safe | `TreeMap`                     |
-| `ConcurrentSkipListSet` | Resizable | **Natural Ordering, or Comparator** | Not Null           | Weakly Consistent | Insert: O(log(n)), Remove: O(log(n)), Contains: O(log(n)) | O(n)                | **Concurrent**  | `ConcurrentSkipListMap`       |
+| Class Type              | Size      | Order                            | Null               | Iterator          | Time Cost                                                 | Space Cost          | Thread Safe     | Impl                          |
+| ----------------------- | --------- | -------------------------------- | ------------------ | ----------------- | --------------------------------------------------------- | ------------------- | --------------- | ----------------------------- |
+| `HashSet`               | Resizable | No Order                         | Allows Single Null | Fail Fast         | Insert: O(1), Remove: O(1), Contains: O(1)                | O(n)                | Not Thread Safe | Hash Table or `HashMap`       |
+| `LinkedHashSet`         | Resizable | **Insert Order**                 | Allows Single Null | Fail Fast         | Insert: O(1), Remove: O(1), Contains: O(1)                | O(n)                | Not Thread Safe | Hash Table or `LinkedHashMap` |
+| `CopyOnWriteArraySet`   | Resizable | Insert Order                     | Allows Single Null | **Snapshot**      | Insert: O(n), Remove: O(n), Contains: O(n)                | O(n), Cost to Write | **Concurrent**  | `CopyOnWriteArrayList`        |
+| `TreeSet`               | Resizable | **Natural Order, or Comparator** | Not Null           | Fail Fast         | Insert: O(log(n)), Remove: O(log(n)), Contains: O(log(n)) | O(n)                | Not Thread Safe | `TreeMap`                     |
+| `ConcurrentSkipListSet` | Resizable | **Natural Order, or Comparator** | Not Null           | Weakly Consistent | Insert: O(log(n)), Remove: O(log(n)), Contains: O(log(n)) | O(n)                | **Concurrent**  | `ConcurrentSkipListMap`       |
 
 Map
 
-| Class Type              | Size      | Order                               | Allows Null        | Iterator              | Time Cost                                            | Space Cost | Thread Safe      | Impl                                          |
-| ----------------------- | --------- | ----------------------------------- | ------------------ | --------------------- | ---------------------------------------------------- | ---------- | ---------------- | --------------------------------------------- |
-| `HashTable`             | Resizable | No Ordering                         | **Not Null**       | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Synchronized** | Hash Table (Linked Array)                     |
-| `HashMap`               | Resizable | No Ordering                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table (Linked Array)                     |
-| `LinkedHashMap`         | Resizable | **Insert Ordering**                 | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table and Linked List                    |
-| `EnumMap`               | Bounded   | Natural Order of keys               | Not Null           | Not Fail Fast         | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Object Array and enum types as index of array |
-| `IdentityHashMap`       | Resizable | No Ordering                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table                                    |
-| `WeakHashMap`           | Resizable | No Ordering                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table                                    |
-| `TreeMap`               | Resizable | **Natural Ordering, or Comparator** | Not Null           | Fail Fast             | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | Not Thread Safe  | Red Black Tree                                |
-| `ConcurrentHashMap`     | Resizable | No Ordering                         | **Not Null**       | **Weakly Consistent** | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Concurrent**   | Hash Table                                    |
-| `ConcurrentSkipListMap` | Resizable | **Natural Ordering, or Comparator** | Not Null           | **Weakly Consistent** | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | **Concurrent**   | Tree-Like Two-Dimensionally Linked `SkipList` |
+| Class Type              | Size      | Order                            | Null               | Iterator              | Time Cost                                            | Space Cost | Thread Safe      | Impl                                          |
+| ----------------------- | --------- | -------------------------------- | ------------------ | --------------------- | ---------------------------------------------------- | ---------- | ---------------- | --------------------------------------------- |
+| `HashTable`             | Resizable | No Order                         | **Not Null**       | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Synchronized** | Hash Table (Linked Array)                     |
+| `HashMap`               | Resizable | No Order                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table (Linked Array)                     |
+| `LinkedHashMap`         | Resizable | **Insert Order**                 | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table and Linked List                    |
+| `EnumMap`               | Bounded   | Natural Order of keys            | Not Null           | Not Fail Fast         | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Object Array and enum types as index of array |
+| `IdentityHashMap`       | Resizable | No Order                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table                                    |
+| `WeakHashMap`           | Resizable | No Order                         | Allows Single Null | Fail Fast             | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | Not Thread Safe  | Hash Table                                    |
+| `TreeMap`               | Resizable | **Natural Order, or Comparator** | Not Null           | Fail Fast             | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | Not Thread Safe  | Red Black Tree                                |
+| `ConcurrentHashMap`     | Resizable | No Order                         | **Not Null**       | **Weakly Consistent** | Insert: O(1), Remove: O1), Get: O(1)                 | O(n)       | **Concurrent**   | Hash Table                                    |
+| `ConcurrentSkipListMap` | Resizable | **Natural Order, or Comparator** | Not Null           | **Weakly Consistent** | Insert: O(log(n)), Remove: O(log(n)), Get: O(log(n)) | O(n)       | **Concurrent**   | Tree-Like Two-Dimensionally Linked `SkipList` |
 
 **Container Classes core features**
 
 - bounded, or unbounded
-- ordered, or disordered (insert ordering, natural ordering, comparator ordering)
+- ordered, or disordered (insert Order, natural Order, comparator Order)
 - null value
 - traverse operation is fail-fast or weakly consistent
 - performance
@@ -938,40 +938,41 @@ Map
 
 List
 
-- **`ArrayList`** and **`LinkedList`** is common lists. `ArrayList` implemented by array, it is fast to random access, but slow to insert and remove. `LinkedList` implemented by nodes, it is fast to insert and remove, but slow to random access. 
+- **`ArrayList`** and **`LinkedList`** are common lists. `ArrayList` implemented by array, it is fast to random access, but slow to insert and remove. `LinkedList` implemented by nodes, it is fast to insert and remove, but slow to random access. 
 - **`Vector`** is thread-safe list by synchronized. If you want to use list in multithread environment, you can choose it.
-- **`CopyOnWriteArrayList`** is thread-safe list, and It is more concurrent than synchronized, but its write operations is very costly. If you want to use list in multithread environment with high concurrent, and operations are almost read operations(90%+), you can choose it. You will have high concurrent in read and write operations.
+- **`CopyOnWriteArrayList`** is also thread-safe list, and It is more concurrent than synchronized, but its write operations is very costly. If you want to use list in multithread environment with high concurrent, and operations are almost read operations(90%+), you can choose it. You will have high concurrent in read and write operations.
 
 Stack
 
-- If you want to use stack in single thread environment, you can use **`ArrayDeque`** and **`LinkedList`**, or construct by wrapper `ArrayList` or array. `ArrayDeque` > `LinkedList`
+- If you want to use stack in single thread environment, you can use **`ArrayDeque`** and **`LinkedList`**, or construct by wrapper `ArrayList` or array. Selection priority: `ArrayDeque` > `LinkedList`
 - If you want to use stack with thread-safe. You can use **`Stack`** or **`ConcurrentLikedDeque`**. The `Stack` has strictly consistent and poor concurrency. the `ConcurrentLinkedDeque` has high concurrency and weakly consistent.
 
 Queue
 
 - In single thread environments, the **`ArrayDeque`** is the most common queue. If you want a queue has priority, you can use **`PriorityQueue`**.
-- In multithread environments, There have two type queues: blocking queue and concurrent queue. Blocking queues is commonly using for the producer-consumer scenario. About blocking queue selection, blocking queues for general using you can select **`LinkedBlockingDeque`**, **`ArrayBlockingQueue`**, and **`LinkedBlockingQueue`**. There are many blocking queues that have special features. They are **`LinkedTransferQueue`**, **`PriorityBlockingQueue`**, **`DelayQueue`**, **`SynchronousQueue`**. You can use it according to their features.
-- Another thread-safe queue type is concurrent queues. They are **`ConcurrentLinkedQueue`** and **`ConcurrentLinkedDeque`**. They are very similar, just `ConcurrentLinkedDeque` can use as both queue and stack.
+- In multithread environments, There have two type queues: blocking queue and concurrent queue. Blocking queues is commonly using for the producer-consumer scenario. About blocking queue selection, blocking queues for general using you can select **`LinkedBlockingDeque`**, **`ArrayBlockingQueue`**, and **`LinkedBlockingQueue`**. There are many special features blocking queues **`LinkedTransferQueue`**, **`PriorityBlockingQueue`**, **`DelayQueue`**, and **`SynchronousQueue`** that for special using scenario. You can use it according to their features.
+- Another thread-safe queue type is concurrent queues that have high concurrency. Concurrent queues **`ConcurrentLinkedQueue`** and **`ConcurrentLinkedDeque`** are very similar, just `ConcurrentLinkedDeque` can use as both queue and stack.
 
 Set
 
-- In single thread environments, the **`HashSet`** is the most common set. Other sets are **`LinkedHashSet`** and **`TreeSet`**. The `LinkedHashSet` is similar to `HashSet`, but it has additional functionality that keeps elements insert order by linking them. The `TreeSet` has lower performance than `HashSet`, but it can keep elements order with natural order or comparator.
-- In multithread environments, We can use thread-safe sets **`CopyOnWriteArraySet`** and **`ConcurrentSkipListSet`**. The `CopyOnWriteArraySet` only use when most of operations (90%+) are reads. The `ConcurrentSkipListSet` use when you want to keep elements ordering.
+- In single thread environments, the **`HashSet`** is the most common set. Other sets  using in single thread environments are `LinkedHashSet` and `TreeSet`. The **`LinkedHashSet`** is similar to `HashSet`, but it has additional functionality that keeps elements insert order by linking them up. The **`TreeSet`** has lower performance than `HashSet`, but it can keep elements order with natural order or comparator.
+- In multithread environments, We can use thread-safe sets `CopyOnWriteArraySet` and `ConcurrentSkipListSet`. The **`CopyOnWriteArraySet`** only use when most of operations (90%+) are reads. The **`ConcurrentSkipListSet`** use when you want to keep elements Order.
 
 Map
 
-- In single thread environments, the **`HashMap`** is the most common map. It's for general using. Other maps are `LinkedHashMap`, `EnumMap`, `IdentityHashMap`, `WeakHashMap`, `TreeMap`. The **`LinkedHashMap`** is similar to `HashMap`, but it keeps elements insert order. The **`EnumMap`** use in when all keys of map are from an `Enum` types. The **`IdentityHashMap`** and **`WeakHashMap`** are rarely using, just using in special scenario according to their features. The `TreeMap` is lower performance than `HashMap`, but it keep elements of map order (natural order or comparators).
+- In single thread environments, the **`HashMap`** is the most common map. It's for general using. Other maps using in single thread environments are `LinkedHashMap`, `EnumMap`, `IdentityHashMap`, `WeakHashMap`, `TreeMap`. The **`LinkedHashMap`** is similar to `HashMap`, but it keeps elements insert order. The **`EnumMap`** use when all keys of map are from an `Enum` types. The **`IdentityHashMap`** and **`WeakHashMap`** are rarely using, just using in special scenario according to their features. The **`TreeMap`** is lower performance than `HashMap`, but it keep elements of map order with natural order or comparators.
+- In multithread environments, you can choose `Hashtable` or concurrent maps. The `Hashtable` is a thread-safe map by synchronized. It's strictly consistent and lowly concurrent. If you want to thread-safe and highly concurrent map, you can choose concurrent maps `ConcurrentHashMap` or `ConcurrentSkipListMap`.  The **`ConcurrentHashMap`** is similar to `HashMap`, but have more concurrent. The **`ConcurrentSkipListMap`** have high concurrency and keeps elements order.
 
 String
 
 - `String` is the most common class for representing a string. It's final or immutable. If you want to concatenate multiple strings to one, you better use `StringBuilder`, it doesn't generate middle strings that saving memory cost.
-- The `StringBuffer` is similar to `StringBuilder`, only difference between `StringBuffer` and `StringBuilder` is `StringBuffer` is thread-safe by synchronized. 
+- The `StringBuffer` is similar to `StringBuilder`, the only difference between `StringBuffer` and `StringBuilder` that is `StringBuffer` is thread-safe by synchronized. 
 
 ## References
 
 [1] [Java SE 8 API Documentation](https://docs.oracle.com/javase/8/docs/api/)
 
-[2] Java Source Code - `java.util.*`, `java.util.concurrent.*`
+[2] Java Source Code - java.util, java.util.concurrent
 
 [3] [Why CopyOnWriteArrayList copys when writing?](https://stackoverflow.com/questions/18973925/why-copyonwritearraylist-copys-when-writing)
 
