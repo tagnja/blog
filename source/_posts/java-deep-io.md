@@ -9,7 +9,7 @@ tags: Java
 
 
 
-This post will discuss content in Java IO. It is based Java SE 8.
+This post will discuss content in Java IO streams. It is based Java SE 8.
 
 ## Input Stream
 
@@ -198,7 +198,7 @@ Writes one character or write some characters to somewhere, e.g char array, file
   - `PrintWriter(Writer out)`
   - `void println(String s)`
 
-## Standard Streams
+## Standard IO Streams
 
 `java.lang.System`
 
@@ -356,13 +356,13 @@ System.out.println(file.getAbsolutePath());
 
 ## Summary
 
-### Streams Function
+### IO Streams Functionality
 
 `InputStream` or `Reader` it read data from somewhere, e.g byte or char array, file, pipe. It can read single-unit data from the stream to return or read multiple units data from the stream to store into an array every time. **`read()` methods** can implement by java code or implements by calling native method. **Filter streams** use the **Decorator Pattern** to add additional functionality (e.g unread) that implements by internal buffer array to other stream objects.
 
 `OutputStream` or `Writer` it write data to somewhere, e.g byte or char array, file, pipe. 
 
-### Stream Types
+### IO Stream Types
 
 - Byte or Char Array
 - File
