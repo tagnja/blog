@@ -20,7 +20,7 @@ The root interface in collection hierarchy. A collection represents a group of o
 
 **Methods of Collection**
 
-basic operations
+Basic Operations
 
 - `boolean add(E e)`, `boolean addAll(Collection<? extends E> c)`
 - `boolean remove(Object o)`, `boolean removeAll(Collection<?> c)`
@@ -32,7 +32,7 @@ basic operations
 - `Iterator<E> iterator()`
 - `object[] toArray()`, `<T> T[] toArray(T[] a)`
 
-advanced operations
+Advanced Operations
 
 - `default Stream<E> stream()`
 - `default Stream<E> parallelStream()`
