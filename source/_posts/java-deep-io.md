@@ -9,7 +9,7 @@ tags: Java
 
 
 
-This post will discuss content in Java IO. It is based java SE 8.
+This post will discuss content in Java IO. It is based Java SE 8.
 
 ## Input Stream
 
