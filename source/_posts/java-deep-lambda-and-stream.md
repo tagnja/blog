@@ -15,10 +15,6 @@ This post will discuss content in Java lambda and stream. It's based Java SE 8.
 
 **What is Stream**
 
-Stream 
-
-**What is Stream?**
-
 A sequence of elements supporting sequential and parallel aggregate operations. 
 
 Special Stream class (like `IntStream`) that they provide additional methods for its type of stream (like `sum()` of `IntStream`)
