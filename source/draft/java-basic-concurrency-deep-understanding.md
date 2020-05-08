@@ -102,17 +102,49 @@ Methods of `Thread` class:
 
 **Interrupts**
 
-An interrupt is an indication to a thread that it should stop what it is doing and do something else. Thread interruption is a gentle way to stop a thread. It is used to give threads a chance to exit cleanly, as opposed by `Thread.stop()` that force to stop the thread.
+An interrupt is an indication to a thread that it should stop what it is doing and do something else. `Thread.interrupt()` sets the interrupted status/flag of the target thread. The code running in that target thread MAY poll the interrupted status and handle it appropriately. Some methods that block such as `Object.wait()` may consume the interrupted status immediately and throw an appropriate exception (usually `InterruptedException`). Thread interruption is a gentle way to stop a thread. It is used to give threads a chance to exit cleanly, as opposed by deprecated `Thread.stop()` that force to stop the thread.
 
-**The Interrupt Status Flag**
+Interruption in Java is not preemptive. Threads have to cooperate in order to process the interrupt properly. If the target thread does not poll the interrupted status the interrupt is effectively ignored. Polling occurs via the `Thread.interrupted()` method which returns the current thread's interrupted status and clears that interrupt flag. Usually the thread might then do something such as throw `InterruptedException`. If a thread goes a long time without invoking a method that throws `InterruptedException` Then it must periodically invoke `Thread.interrupted()`, which returns if an interrupt has been received. For example:
 
-...
+```java
+while (...){
+    doSometing();
+    if (Thread.interrupted()){
+        // We've been interrupted
+        System.out.println("Thread interrupted!");
+        return; // or break loop
+    }
+}
+```
+
+```java
+if (Thread.interrupted()){
+	throw new InterrupteException();
+}
+```
+
+Some API methods have built in interrupt handling
+
+- `Object.wait()`
+- `Thread.sleep()`, `Thread.join()`
+- Most `java.util.concurrent` structures.
+- Java NIO (it does not use `InterruptedException`, instead using `ClosedByInterruptException`).
+
+**Joins**
+
+The `join` method allows one thread to wait for the completion of another. Example of current thread wait for thread t to be complete:
+
+```java
+t.join()
+```
+
+`join` is similar to `sleep` doesn't release the locks it holds, it just suspends the current thread.
 
 **Difference Between Wait and Sleep**
 
 - `wait` is for concurrent programming but `sleep` not. Sleeping does not release the locks it holds, while waiting releases the lock on `wait()` is called.
 - `sleep` just suspends a thread execution for a fixed time, but `wait` suspend a thread execution until `notify` is called. 
-- `wait` must happen in a block synchronized on the monitor object whereas `sleep` does not.
+- `wait` must happen in a block synchronized on the monitor object (otherwise occurs `IllegalMonitorStateException` ) whereas `sleep` does not.
 
 ```java
 Object lock = ...;
@@ -123,11 +155,63 @@ synchronized (lock) {
 
 - You can wait on object itself whereas you call sleep on `Thread`.
 
-**Examples of Thread**
+## Synchronization
+
+Threads communicate primarily by sharing access to fields and the objects reference fields refer to. This form of communication is extremely efficient, but makes two kinds of errors possible: thread interference and memory consistency errors. The tool needed to prevent these errors is **synchronization**.
+
+However, synchronization can introduce threads deadlock and thread contention (starvation and livelock). 
+
+- Thread Interference: Errors are introduced when multiple threads access shared data.
+- Memory Consistency Errors: Errors that result form inconsistent views of shared memory.
+- Synchronized Methods: It can effectively prevent thread interference and memory consistency errors.
+- Implicit Locks: synchronization is based on implicit locks.
+- Atomic Access: operations that can't be interfered with by other threads.
+
+**Thread Interference**
+
+```java
+class Counter {
+    private int c = 0;
+    public void increment(){
+        c++;
+    }
+    public void decrement(){
+        c--;
+    }
+    public int value(){
+        return c;
+    }
+}
+```
+
+The increment() and decrement() are not atomic operations. Each method has three steps operations: retrieve variable, update value, store result in variable. When multiple threads invoke these methods, they interfere with each other, because the three steps of each thread are interleaving executed. So the result of each thread is unpredictable.
+
+**Memory Consistency Errors**
+
+Memory consistency errors occur when different threads have inconsistent views of what should be the same data. When other thread update value of a variable, your current thread still read old value of the variable.
+
+The key to avoiding memory consistency errors is understanding the **happens-before** relationship. This relationship is simply a guarantee that memory writes by one specific statement are visible to another specific statement.
+
+There are several actions that create happens-before relationships:
+
+- Single thread rule: Each action in a single thread happens-before every action in that thread that comes later in the program order.
+- Monitor lock rule (synchronization): An unlock on a monitor lock (exiting synchronized method/block) happens-before every subsequent acquiring on the same monitor lock.
+- Volatile variable rule: A write to a volatile field happens-before every subsequent read of that same field.
+- Thread start rule: A call to `Thread.start()` on a thread happens-before every action in the started thread.
+- Thread join rule: All actions in a thread happen-before any other thread successfully returns from a join on that thread.
+- Transitivity: If A happens-before B, and B happens-before C, then A happens-before C.
+
+**Synchronized Methods**
+
+The Java programming language provides two basic synchronization idioms: synchronized methods and synchronized statements. `synchronized` make non-atomic operations become to atomic operations and establish happens-before relationships between threads that access the same variables.
+
+
+
+Intrinsic Locks and Synchronization
 
 ...
 
-## Synchronization
+Atomic Access
 
 ...
 
@@ -168,3 +252,5 @@ Thread safe Problem
 [Difference between wait() and sleep()](https://stackoverflow.com/questions/1036754/difference-between-wait-and-sleep)
 
 [What does java.lang.Thread.interrupt() do?](https://stackoverflow.com/questions/3590000/what-does-java-lang-thread-interrupt-do)
+
+[Java - Understanding Happens-before relationship](https://www.logicbig.com/tutorials/core-java-tutorial/java-multi-threading/happens-before.html)
