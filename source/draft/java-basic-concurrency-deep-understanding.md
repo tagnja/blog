@@ -203,35 +203,276 @@ There are several actions that create happens-before relationships:
 
 **Synchronized Methods**
 
-The Java programming language provides two basic synchronization idioms: synchronized methods and synchronized statements. `synchronized` make non-atomic operations become to atomic operations and establish happens-before relationships between threads that access the same variables.
+The Java programming language provides two basic synchronization idioms: **synchronized methods** and **synchronized statements**. `synchronized` make non-atomic operations become to atomic operations and establish happens-before relationships between threads that access the same variables.
 
+```java
+class SynchronizedCounter {
+    private int c = 0;
+    public synchronized void increment(){
+        c++;
+    }
+    public synchronized void decrement(){
+        c--;
+    }
+    public synchronized int value(){
+        return c;
+    }
+}
+```
 
+Synchronized methods enable a simple strategy for preventing thread interference and memory errors. First, it is not possible for two invocations of synchronized methods on the same object to interleave. Second, when a synchronized method exists, it automatically establishes a happens-before relationship with any subsequent invocation of a synchronized method for the same object.
 
-Intrinsic Locks and Synchronization
+**Intrinsic Locks and Synchronization**
 
-...
+Synchronization is built around an internal entity known as the intrinsic lock or monitor lock. (The API specification often refers to this entity simply as a “monitor.”) Intrinsic locks play a role in both aspects of synchronization: enforcing exclusive access to an object's state and establishing happens-before relationships. 
 
-Atomic Access
+Every object has an intrinsic lock associated with it.
 
-...
+Locks in Synchronized Methods
+
+When a thread invokes a synchronized method, it automatically acquires the intrinsic lock for that method's object and release it when the method returns. The lock release occurs even if the return was caused by an uncaught exception.
+
+A static synchronized method is associated with a class. A thread acquires the intrinsic lock for the Class object associated with the class.
+
+Synchronized Statements
+
+```java
+public void add(String name){
+    synchronized(this){
+        lastName = name;
+        nameCount++;
+    }
+    nameList.add(name);
+}
+```
+
+Invoking other objects' methods from synchronized code can create liveness problems.
+
+Synchronized statements are also useful for improving concurrency with fine-grained synchronization.
+
+Reentrant Synchronization
+
+Allowing a thread acquire the same lock more than once enable reentrant synchronization.
+
+**Atomic Access**
+
+Common Atomic Actions
+
+- Reads and writes are atomic for reference variables and for most primitive variable (except `long` and `double`).
+- Reads and writes are atomic for all variable declared `volatile` (including `long` and `double` variables)
+
+Atomic actions cannot be interleaved, so they can be used without fear of thread interference. However this does not eliminate all need to synchronize atomic actions, because memory consistency errors are still possible. Using `volatile` variables reduces the risk of memory consistency errors, because any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of the same variable.
+
+Using simple atomic variable access is more efficient than accessing these variables through synchronized code, but requires more care by the programmer to avoid memory consistency errors. Some of the classes in the `java.util.concurrent` package provide atomic methods that do not rely on synchronization.
 
 ## Liveness
 
-...
+The most common kind of liveness problem is the deadlock, others are starvation and livelock.
+
+**Deadlock**
+
+Deadlock describes a situation where two or more threads are blocked forever, waiting for each other.
+
+```java
+public class DeadlockExample{
+    private static Object lock1 = new Object();
+    private static Object lock2 = new Object();
+
+    public static void main(String[] args) {
+        new Thread(()->{
+            synchronized (lock1){
+                try {
+                    // ensure both two threads acquired their first lock, 
+                    // and waiting for acquired the second lock.
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                synchronized (lock2){}
+            }
+        }).start();
+        new Thread(()->{
+            synchronized (lock2){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                synchronized (lock1){}
+            }
+        }).start();
+    }
+}
+```
+
+**Starvation and Livelock**
+
+Starvation and livelock are much less common a problem than deadlock, but are still problems that every designer of concurrent software is likely to encounter.
+
+Starvation describes a situation where a thread is unable to gain regular access to shared resources and is unable to make progress.
+
+Livelock is a situation threads simply too busy responding to each other and unable to make further progress.
 
 ## Guarded Blocks
 
-...
+Threads often have to coordinate their actions. The most common coordination idiom is the guarded block. Such a block begins by polling a condition that must be true before the block can proceed.
+
+Guard by simply loop
+
+```java
+public void guardedJoy(){
+	while(!joy) {}
+	System.out.println("Joy has been achived!");
+}
+```
+
+Guard by invokes `Object.wait`. A more efficient guard.
+
+```java
+public synchronized void guardedJoy(){
+    while(!joy){
+        try{
+            wait();
+        } catch (InterruptedException e){}
+    }
+    System.out.println("Joy efficiently has been achived!");
+}
+```
+
+```java
+public synchronized notifyJoy() {
+    joy = true;
+    notifyAll();
+}
+```
+
+Using guarded blocks can create a Producer-Consumer application.
 
 ## Immutable Objects
 
-...
+An object is considered immutable if its state connot change after it is constructed.
+
+Immutable objects are particularly useful in concurrent applications. Since they cannot change state, they cannot be corrupted by thread interference or observed in an inconsistent state.
+
+Immutable objects using strategies
+
+- Don't provide "setter" methods. Methods that modify fields or objects referred to by fields.
+- Make all fields `final` and `private`.
+- Don't allow subclass to override methods. The simplest way to do this is to declare the class as `final`. A more sophisticated approach is to make the constructor private and construct instances in factory methods in this class.
+- If the instance fields include references to mutable objects, don't allow those objects to be change. Don't provide methods that modify the mutable objects. Don't share references to the mutable objects.
 
 ## High Level Concurrency Objects
 
+These low-level APIs are adequate for very basic tasks, but higher-level building blocks are needed for more advanced tasks. This is especially useful for massively concurrent applications in multiprocessor and multi-core systems.
+
+High Level Concurrency Features:
+
+- Lock object support locking idioms that simplify many concurrent applications.
+- Executors define a high-level API for launching and managing threads. Executor implementations provided by `java.util.concurrent` provide thread pool management suitable for large-scale applications.
+- Concurrent collections make it easier to manage large collections of data, and can greatly reduce the need for synchronization.
+- Atomic variables have features that minimize synchronization and help avoid memory consistency errors.
+- `ThreadLocalRandom` provides efficient generation of pseudorandom numbers from multiple threads.
+
+**Lock Objects**
+
+Synchronized code relies on a simple kind of reentrant lock. This kind of lock is easy to use, but many limitations. More sophisticated locking idioms are supported by the `java.util.concurrent.locks` package.
+
+Lock objects work very much like the implicit locks used by synchronized code. The biggest advantage of `Lock` objects over implicit locks is their ability to back out of an attempt to acquire a lock. The `tryLock` method backs out if the lock is not available immediately or before a timeout expires. 
+
+We can use Lock objects to solve the deadlock problem. First we use `Lock.tryLock()` method to acquire all locks we needed, if fail to acquire, then unlock all acquired locks, else we can acquire all locks and without deadlock problem.
+
+**Executors**
+
+In large-scale applications, it makes sense to separate thread management and creation from the rest of the application. Objects that encapsulate these functions are known as `executors`.
+
+- Executor Interfaces: defines the three executor object types.
+- Thread Pools: are the most common kind of executor implementation.
+- Fork/Join: is a framework for taking advantage of multiple processors.
+- Executors: is a utility class that has factory and utility methods for Executor, ExecutorService, ScheduledExecutorService, ThreadFactory, and Callable classes.
+
+Hierarchy of Executor
+
+```
+(I)Executor
+|----(I)ExecutorService
+|--------(I)ScheduledExecutorService
+|--------(A)AbstractExecutorService
+|------------ForkJoinPool
+|------------ThreadPoolExecutor
+|----------------ScheduledThreadPoolExecutor
+Executors
+```
+
+Executor Interfaces
+
+The `java.util.concurrent` package defines three executor interfaces: `Executor`, `ExecutorService`, `ScheduledExecutorService`. Typically, variables that refer to executor objects are declared as one of these three interface types, not with an executor class type.
+
+The `Executor` interface provides a single method `execute()` designed to be a replacement for a common thread-creation idiom.
+
+```java
+new Thread(r).start();
+```
+
+```java
+executor.execute(r);
+```
+
+The `ExecutorService` interface provides methods `execute` and `submit`. Like `execute`, the `submit` method accepts `Runnable` objects, but also accepts `Callable` object, which allow the task to return a value. The `submit` method returns a `Future` object.
+
+The `ScheduledExecutorService` interface supplements the methods of its parent `ExecutorService` with `schedule`, which executes a `Runnable` or `Callable` task after a specified delay. In addition, the interface defines `scheduleAtFixedRate` and `scheduleWithFixedDelay`, which executes specified tasks repeatedly, at defined intervals.
+
+Thread Pools
+
+Most of executor implementations use thread pools. One common type of thread pool is the fixed thread pool.
+
+One common type of thread pool is the fixed thread pool. A simple way to create an executor that uses a fixed thread pool is to invoke the `newFixedThreadPool` factory method of `java.util.concurrent.Executors`. This class also provides the following factory methods:
+
+- `newCachedThreadPool`
+- `new SingleThreadExecutor`
+- several factory methods returns `ScheduledExecuteorService` executors.
+
+If none of the executors provided by the factory methods of `Executors` meet your needs, constructing instance of `ThreadPoolExecutor` or `ScheduledThreadPoolExecutor` will give you additional options.
+
+To construct a `ThreadPoolExecutor` object, you least specify five arguments: 
+
+- `ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue)`
+
+Fork/Join
+
+The fork/join framework is an implementation of `ExecutorService` interface that helps you take advantage of multiple processors. It is designed for work that can be broken into smaller pieces recursively.
+
+The fork/join framework is distinct because it uses a work-stealing algorithm. Worker threads that run out of things to do can steal tasks from other threads that are still busy.
+
+The center of the fork/join framework is the `ForkJoinPool` class, an extension of the `AbstractExecutorService` class. `ForkJoinPool` implements the core work-stealing algorithm and can execute `ForkJoinTask` processes.
+
+Subclasses of the abstract class `ForkJoinTask` are: `RecursiveTask` (which can return a result), `RecursiveAction`.
+
+Example of `ForkJoinPool`
+
+```java
+// TODO
+```
+
+There are some generally useful features in JavaSE which are already implemented using the fork/join framework.
+
+- `Arrays` class methods: `parallelSort()`
+- `java.util.stream` package
+
+
+
+
+
+**Concurrent Collections**
+
 ...
 
+**Atomic Variables**
 
+...
+
+**Concurrent Random Numbers**
+
+...
 
 ## Others
 
