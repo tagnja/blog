@@ -52,6 +52,23 @@ A process is a minimal resource assignment unit, but a thread is a minimal execu
 
 A process has a self-contained execution environment. No resources are shared between processes. But threads have a private resource from a process, and multiple threads in the same process also can share the resource of their process.
 
+**The Advantages and Disadvantages of Threads**
+
+Advantages
+
+- Improve the performance of applications.
+- Asynchronous workflows.
+- Exploiting multiple processors.
+- More responsive user interfaces.
+
+Disadvantages
+
+- Safety.
+- Liveness. 
+- Performance. Thread introduces additional performance costs, for example context switches, and synchronization costs.
+
+Properly using multi-thread is more beneficial than disadvantages.
+
 ## Thread Objects
 
 Each thread is associated with an instance of the class `Thread`. There are two basic strategies for using `Thread` objects to create a concurrent application.
@@ -572,7 +589,7 @@ In multi-threads programming, we may simultaneously access shared resources in m
 
 **Thread interference** can be solved by atomic access (common using exclusive locks). **Memory consistency errors** can be solved by establishing a happens-before relationship (that between reads and writes the same variable). 
 
-We can simply use `synchronized` to solve the two thread-safe problems. But for **high concurrency** and thread-safe, we should use as few locks as possible, even have no locks. So we consider using a combination of reentrant locks, immutable objects, volatile objects, and atomic variables to solve the two thread-safe problems.
+We can simply use `synchronized` to solve the two thread-safe problems. But for **high concurrency** and thread-safe, we should use as few locks as possible, even have no locks. So we consider using a combination of explicit locks (reentrant locks), immutable objects, volatile variables, and atomic variables to solve the two thread-safe problems.
 
 Locks may cause **liveness** problems: deadlock, starvation, and livelock. we can follow some coding principles to avoid these problems happens.
 
