@@ -10,6 +10,12 @@ Content
 - Guarded Blocks
 - Immutable Objects
 - High Level Concurrency Objects
+  - Lock Objects
+  - Executors
+  - Concurrent Collections
+  - Atomic Variables
+  - Concurrent Random Numbers
+- Conclusion
 - References
 
 ## Introduction
@@ -445,53 +451,147 @@ The fork/join framework is distinct because it uses a work-stealing algorithm. W
 
 The center of the fork/join framework is the `ForkJoinPool` class, an extension of the `AbstractExecutorService` class. `ForkJoinPool` implements the core work-stealing algorithm and can execute `ForkJoinTask` processes.
 
-Subclasses of the abstract class `ForkJoinTask` are: `RecursiveTask` (which can return a result), `RecursiveAction`.
-
-Example of `ForkJoinPool`
-
-```java
-// TODO
-```
+You submit tasks to a `ForkJoinPool` similarly to how you submit tasks to an `ExecutorService`. You can submit two types of tasks. One is `RecursiveAction` that does not return any result. Another is `RecursiveTask` can return a result. They are a subclass of `ForkJoinTask`, and all of the tasks classes are abstract.
 
 There are some generally useful features in JavaSE which are already implemented using the fork/join framework.
 
 - `Arrays` class methods: `parallelSort()`
 - `java.util.stream` package
 
+fork/join framework pseudocode:
 
+```
+if (my portion of the work is small enough)
+	do the work directly
+else
+	split my work into two pieces
+```
+
+Example of `ForkJoinPool`
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        ForkJoinPool forkJoinPool = new ForkJoinPool(5);
+        forkJoinPool.invoke(new MyRecursiveAction(100));
+    }
+}
+```
+
+```java
+public class MyRecursiveAction extends RecursiveAction {
+    private long workload = 0;
+    private static final long THRESHOLD = 16;
+    
+    public MyRecursiveAction(long workload) {
+        this.workload = workload;
+    }
+
+    @Override
+    protected void compute() {
+        if (this.workload <= THRESHOLD) {
+            System.out.println("Doing workload myself : " + this.workload);
+        } else {
+            System.out.println("Splitting workload : " + this.workload);
+            List<MyRecursiveAction> subtasks = new ArrayList<>();
+            subtasks.addAll(createSubtasks());
+            for (RecursiveAction subtask : subtasks) {
+                subtask.fork();
+            }
+        }
+    }
+
+    private List<MyRecursiveAction> createSubtasks() {
+        List<MyRecursiveAction> subtasks = new ArrayList<>();
+        MyRecursiveAction subtask1 = new MyRecursiveAction(this.workload / 2);
+        MyRecursiveAction subtask2 = new MyRecursiveAction(this.workload / 2);
+        subtasks.add(subtask1);
+        subtasks.add(subtask2);
+        return subtasks;
+    }
+}
+```
 
 
 
 **Concurrent Collections**
 
-...
+Concurrent collections are high concurrency and thread-safe collection implementation. For example, `CopyOnWriteArrayList`, `ConcurrentHashMap`.
 
 **Atomic Variables**
 
-...
+The `java.util.concurrent.atomic` package defines classes that support atomic operations on single variable. All classes have `get` and `set` methods that work like reads and writes on volatile variables. A `set` has a happens-before relationship with any subsequent `get` on the same variable. The atomic `compareAndSet` method also has these memory consistency feature, as do the simple atomic arithmetic methods that apply to integer atomic variables.
+
+Example of Basic Usage of `AtomicInteger`
+
+```java
+AtomicInteger atomicInteger = new AtomicInteger(0);
+atomicInteger.accumulateAndGet(10, (x, y)->{return x + y;});
+System.out.println(atomicInteger.get());
+```
+
+Example of Using Atomic Variable instead of Synchronized Methods
+
+```java
+public class AtomicCounter {
+    private AtomicInteger c = new AtomicInteger(0);
+
+    public void increment() {
+        c.incrementAndGet();
+    }
+
+    public void decrement() {
+        c.decrementAndGet();
+    }
+
+    public int value() {
+        return c.get();
+    }
+}
+```
+
+
 
 **Concurrent Random Numbers**
 
-...
+The package `java.util.concurrent` includes a convenience class, `ThreadLocalRandom`, for applications that expect to use random numbers from multiple threads or `ForkJoinTasks`. 
 
-## Others
+For concurrent access, using `ThreadLocalRandom` instead of `Math.random()` results in less contention and better performance.
 
-[Happens before](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/package-summary.html#MemoryVisibility)
+Example of `ThreadLocalRandom`
 
-[Memory Consistency - happens-before relationship in Java](https://stackoverflow.com/questions/16248898/memory-consistency-happens-before-relationship-in-java)
-
-Thread safe Problem
-
-- Thread safe problems caused by multiple threads share the same object, or reference the same object that injects by its constructors. They lead to false read and unpredicted results.
+```java
+int r = ThreadLocalRandom.current().nextInt(1, 10);
+```
 
 
+
+## Conclusion
+
+In multi-threads programming, we may simultaneously access shared resources in multiple threads that may cause unpredicted results or corrupted values. For **thread-safe**, we need to consider two factors: thread interference and memory consistency errors. 
+
+**Thread interference** can be solved by atomic access (common using exclusive locks). **Memory consistency errors** can be solved by establishing a happens-before relationship (that between reads and writes the same variable). 
+
+We can simply use `synchronized` to solve the two thread-safe problems. But for **high concurrency** and thread-safe, we should use as few locks as possible, even have no locks. So we consider using a combination of reentrant locks, immutable objects, volatile objects, and atomic variables to solve the two thread-safe problems.
+
+Locks may cause **liveness** problems: deadlock, starvation, and livelock. we can follow some coding principles to avoid these problems happens.
+
+**Guarded blocks** common using for in threads cooperation. The most common example is the Producer-Consumer application.
+
+**Executors** are for efficient thread creation and management.
+
+**Concurrent collections** are high concurrency and thread-safe collection implementation.
+
+## 
 
 ## References
 
 [1] The Java Tutorial: A Short Course on the Basics
 
-[Difference between wait() and sleep()](https://stackoverflow.com/questions/1036754/difference-between-wait-and-sleep)
+[2] [Difference between wait() and sleep()](https://stackoverflow.com/questions/1036754/difference-between-wait-and-sleep)
 
-[What does java.lang.Thread.interrupt() do?](https://stackoverflow.com/questions/3590000/what-does-java-lang-thread-interrupt-do)
+[3] [What does java.lang.Thread.interrupt() do?](https://stackoverflow.com/questions/3590000/what-does-java-lang-thread-interrupt-do)
 
-[Java - Understanding Happens-before relationship](https://www.logicbig.com/tutorials/core-java-tutorial/java-multi-threading/happens-before.html)
+[4] [Java - Understanding Happens-before relationship](https://www.logicbig.com/tutorials/core-java-tutorial/java-multi-threading/happens-before.html)
+
+[5] [Memory Consistency - happens-before relationship in Java](https://stackoverflow.com/questions/16248898/memory-consistency-happens-before-relationship-in-java)
