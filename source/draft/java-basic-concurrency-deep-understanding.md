@@ -20,7 +20,7 @@ Content
 
 ## Introduction
 
-Computer user want to do more than one thing at a time. A single application do more than one things at a time that called concurrent software.
+Computer users want to do more than one thing at a time. A single application does more than one things at a time called concurrent software.
 
 The Java platform is designed to support concurrent programming. Since Java SE 5, the Java platform has also included high-level concurrency APIs.
 
@@ -28,15 +28,15 @@ The Java platform is designed to support concurrent programming. Since Java SE 5
 
 In concurrent programming, there are two basic **units of execution**: process and threads. In the Java programming language, concurrent programming is mostly concerned with threads.
 
-A computer system has many active processes and threads. If in computer systems that only have a single execution core, there are one thread actually executing at any given moment. Processing time for a single core is shared among processes and thread through an OS feature called **time slicing**. 
+A computer system has many active processes and threads. If in computer systems that only have a single execution core, there is one thread actually executing at any given moment. Processing time for a single core is shared among processes and threads through an OS feature called **time slicing**. 
 
 It's becoming more and more common for computer systems to have multiple processors or processors with multiple execution cores.
 
 **Processes**
 
-A process has a self-contained execution environment. A process generally has a complete, private set of basic run-time resources, for example memory space.
+A process has a self-contained execution environment. A process generally has a complete, private set of basic run-time resources, for example, memory space.
 
-Processes are often seen as synonymous with programs or applications. Most implementations of Java Virtual machine  run as a single process. A Java application can create additional processes using `ProcessBuilder` object.
+Processes are often seen as synonymous with programs or applications. Most implementations of Java Virtual machines run as a single process. A Java application can create additional processes using `ProcessBuilder` object.
 
 **Threads**
 
@@ -65,7 +65,7 @@ Disadvantages
 
 - Safety.
 - Liveness. 
-- Performance. Thread introduces additional performance costs, for example context switches, and synchronization costs.
+- Performance. Thread introduces additional performance costs, for example, context switches, and synchronization costs.
 
 Properly using multi-thread is more beneficial than disadvantages.
 
@@ -76,12 +76,12 @@ Each thread is associated with an instance of the class `Thread`. There are two 
 - To directly control thread creation and management, simply **instantiate `Thread`** each time.
 - To abstract thread management from the rest of your application, pass the application's task to an **executor**.
 
-Creating an instance of `Thread` must provide the code that will run in that thread. There are two ways to create `Thread` instance:
+Creating an instance of `Thread` must provide the code that will run in that thread. There are two ways to create a `Thread` instance:
 
 - Provide a runnable object.
 - Subclass `Thread`.
 
-Using a class of implemented `Runnable` interface to create `Thread` instance is more general, because the `Runnable` object can subclass a class other than `Thread`.
+Using a class of implemented `Runnable` interface to create an instance of `Thread` is more general because of the `Runnable` object can subclass a class other than `Thread`.
 
 Methods of `Thread` class:
 
@@ -127,7 +127,7 @@ Methods of `Thread` class:
 
 An interrupt is an indication to a thread that it should stop what it is doing and do something else. `Thread.interrupt()` sets the interrupted status/flag of the target thread. The code running in that target thread MAY poll the interrupted status and handle it appropriately. Some methods that block such as `Object.wait()` may consume the interrupted status immediately and throw an appropriate exception (usually `InterruptedException`). Thread interruption is a gentle way to stop a thread. It is used to give threads a chance to exit cleanly, as opposed by deprecated `Thread.stop()` that force to stop the thread.
 
-Interruption in Java is not preemptive. Threads have to cooperate in order to process the interrupt properly. If the target thread does not poll the interrupted status the interrupt is effectively ignored. Polling occurs via the `Thread.interrupted()` method which returns the current thread's interrupted status and clears that interrupt flag. Usually the thread might then do something such as throw `InterruptedException`. If a thread goes a long time without invoking a method that throws `InterruptedException` Then it must periodically invoke `Thread.interrupted()`, which returns if an interrupt has been received. For example:
+Interruption in Java is not preemptive. Threads have to cooperate in order to process the interrupt properly. If the target thread does not poll the interrupted status the interrupt is effectively ignored. Polling occurs via the `Thread.interrupted()` method which returns the current thread's interrupted status and clears that interrupt flag. Usually, the thread might then do something such as throw `InterruptedException`. If a thread goes a long time without invoking a method that throws `InterruptedException` Then it must periodically invoke `Thread.interrupted()`, which returns if an interrupt has been received. For example:
 
 ```java
 while (...){
@@ -146,7 +146,7 @@ if (Thread.interrupted()){
 }
 ```
 
-Some API methods have built in interrupt handling
+Some API methods have built-in interrupt handling
 
 - `Object.wait()`
 - `Thread.sleep()`, `Thread.join()`
@@ -165,8 +165,8 @@ t.join()
 
 **Difference Between Wait and Sleep**
 
-- `wait` is for concurrent programming but `sleep` not. Sleeping does not release the locks it holds, while waiting releases the lock on `wait()` is called.
-- `sleep` just suspends a thread execution for a fixed time, but `wait` suspend a thread execution until `notify` is called. 
+- `wait` is for concurrent programming but `sleep` not. Sleeping does not release the locks it holds while `wait` releases the lock on `wait()` is called.
+- `sleep` just suspends a thread execution for a fixed time, but `wait` suspends a thread execution until `notify` is called. 
 - `wait` must happen in a block synchronized on the monitor object (otherwise occurs `IllegalMonitorStateException` ) whereas `sleep` does not.
 
 ```java
@@ -213,7 +213,7 @@ The increment() and decrement() are not atomic operations. Each method has three
 
 Memory consistency errors occur when different threads have inconsistent views of what should be the same data. When other thread update value of a variable, your current thread still read old value of the variable.
 
-The key to avoiding memory consistency errors is understanding the **happens-before** relationship. This relationship is simply a guarantee that memory writes by one specific statement are visible to another specific statement.
+The key to avoiding memory consistency errors is understanding the **happens-before** relationship. This relationship is simply a guarantee that memory writes by one specific statement is visible to another specific statement.
 
 There are several actions that create happens-before relationships:
 
@@ -226,7 +226,7 @@ There are several actions that create happens-before relationships:
 
 **Synchronized Methods**
 
-The Java programming language provides two basic synchronization idioms: **synchronized methods** and **synchronized statements**. `synchronized` make non-atomic operations become to atomic operations and establish happens-before relationships between threads that access the same variables.
+The Java programming language provides two basic synchronization idioms: **synchronized methods** and **synchronized statements**. `synchronized` make non-atomic operations become atomic operations and establish happens-before relationships between threads that access the same variables.
 
 ```java
 class SynchronizedCounter {
@@ -275,16 +275,16 @@ Synchronized statements are also useful for improving concurrency with fine-grai
 
 Reentrant Synchronization
 
-Allowing a thread acquire the same lock more than once enable reentrant synchronization.
+Allowing a thread to acquire the same lock more than once enable reentrant synchronization.
 
 **Atomic Access**
 
 Common Atomic Actions
 
-- Reads and writes are atomic for reference variables and for most primitive variable (except `long` and `double`).
+- Reads and writes are atomic for reference variables and for most of primitive variables (except `long` and `double`).
 - Reads and writes are atomic for all variable declared `volatile` (including `long` and `double` variables)
 
-Atomic actions cannot be interleaved, so they can be used without fear of thread interference. However this does not eliminate all need to synchronize atomic actions, because memory consistency errors are still possible. Using `volatile` variables reduces the risk of memory consistency errors, because any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of the same variable.
+Atomic actions cannot be interleaved, so they can be used without fear of thread interference. However, this does not eliminate all need to synchronize atomic actions, because memory consistency errors are still possible. Using `volatile` variables reduce the risk of memory consistency errors, because any write to a `volatile` variable establishes a happens-before relationship with subsequent reads of the same variable.
 
 Using simple atomic variable access is more efficient than accessing these variables through synchronized code, but requires more care by the programmer to avoid memory consistency errors. Some of the classes in the `java.util.concurrent` package provide atomic methods that do not rely on synchronization.
 
@@ -593,7 +593,7 @@ We can simply use `synchronized` to solve the two thread-safe problems. But for 
 
 Locks may cause **liveness** problems: deadlock, starvation, and livelock. we can follow some coding principles to avoid these problems happens.
 
-**Guarded blocks** common using for in threads cooperation. The most common example is the Producer-Consumer application.
+**Guarded blocks** common use for in threads cooperation. The most common example is the Producer-Consumer application.
 
 **Executors** are for efficient thread creation and management.
 
