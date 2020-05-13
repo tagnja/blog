@@ -576,7 +576,7 @@ int r = ThreadLocalRandom.current().nextInt(1, 10);
 
 ## Conclusion
 
-In multi-threads programming, we may simultaneously access shared resources in multiple threads that may cause unpredicted results or corrupted values. For **thread-safe**, we need to consider two factors: thread interference and memory consistency errors. 
+In multi-threads programming, allows multiple threads simultaneously access shared resources that may cause unpredicted results or corrupted values. For **thread-safe**, we need to consider two factors: thread interference and memory consistency errors.
 
 **Thread interference** can be solved by atomic access (common using exclusive locks). **Memory consistency errors** can be solved by establishing a happens-before relationship (that between reads and writes the same variable). 
 
