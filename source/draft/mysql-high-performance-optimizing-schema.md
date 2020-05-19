@@ -6,10 +6,10 @@ Content
 
 - Choosing Optimal Data Types
 - Data Types Choice for Specific Usage
-- Schema Design Problems in MySQL
-- //Normalization and Denormalization
-- //Cache and Summary Tables
-- //Speeding Up Alter Table
+- Schema Design Pitfalls in MySQL
+- Normalization and Denormalization
+- Cache and Summary Tables
+- Speeding Up Alter Table
 - Conclusion
 - References
 
@@ -184,23 +184,205 @@ SELECT INET_NTOA(ip_addr) from yourtable;
 
 
 
-## Schema Design Problems in MySQL
+## Schema Design Pitfalls in MySQL
 
-...
+There are also issues that arise from how MySQL is implemented, and that means you can make MySQL-specific mistakes, too. We need to avoid those mistakes and choose alternatives that work better with MySQL's specific implementation. 
 
-## //Normalization and Denormalization
+Too many columns
 
-...
+MySQL's storage engine API works by copying rows between the server and the storage engine in a row buffer format. The server then decodes the buffer into columns. But it can be costly to turn the row buffer into the row data structure with the decoded columns. If you are planning for hundreds of columns, be aware that the server's performance characteristics will be a bit different.
 
-## //Cache and Summary Tables
+Too many joins
 
-...
+Too many joins will be problematic in MySQL, because the cost of planning and optimizing the query is very expensive. MySQL has a limitation of 61 tables per join, and entity-attribute-value database require many self-joins. As a rough rule of thumb, it's better to have a dozen or fewer tables per query if you need queries to execute very fast with high concurrency.
 
-## //Speeding Up Alter Table
+The all-powerful ENUM
 
-...
+Beware of overusing ENUM. For example, 
+
+```sql
+CREATE TABLE ... (
+	country enum('', '1', '2',..., '31')
+```
+
+This would be a questionable design decision in any database with an enumerated value type, because it really should be an integer that is foreign-keyed to a "dictionary" or "lookup" table anyway. Before MySQL 5.1 you can't add a new country to the list without an ALTER TABLE, which is a blocking operation, and even in 5.1 and newer if you add the value anywhere but at the end of the list.
+
+The ENUM in disguise
+
+An ENUM permits the column to hold one value from a set of defined values. A SET permits the column to hold one or more values from a set of defined values. Sometimes these can be easy to confuse. For example, 
+
+```sql
+CREATE TABLE ...(
+	is_default set('Y', 'N') NOT NULL default 'N'
+```
+
+That almost surely ought to be an ENUM instead of a SET, assuming that it can't be both true and false at the same time.
+
+NULL not invented here
+
+There are some benefit of avoiding NULL, and indeed you  can consider alternatives when possible. Even when you do need to store a "no value" fact in a table, you might not need to use NULL. Perhaps you can use zero, a special value, or an empty string instead. 
+
+To store a not null value is better performance, but sometimes it will confuse its meaning, complicate your code, and introduce bugs. Therefore you can take this to extremes. Don't be too afraid of using NULL when you need to represent an unknown value. In some cases, it's better to use NULL than a magical constant. Handling NULL isn't always easy, but it's often better than alternative, for example
+
+```
+CREATE TABLE ...(
+	dt DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00'
+```
+
+That bogus all-zeros value can cause lots of problems.
+
+## Normalization and Denormalization
+
+There are usually many ways to represent any given data, ranging from fully normalized to fully denormalized and anything in between. In a normalized database, each fact is represented once and only once. Conversely, in a denormalized database, information is duplicated, or stored in multiple places.
+
+Storing duplicate data may cause inconsistency of data and need more storage space. Normalization is a way to avoid this problems.
+
+**Pros and Cons of a Normalized Schema**
+
+Advantages
+
+- Normalized updates are usually faster than denormalized updates.
+- Normalization makes your tables have little or no duplicated data, so there's less data to change.
+- Normalized tables are usually smaller, so they fit better in memory and perform better.
+- The lack of redundant data means there's less need for DISTINCT or GROUP BY queries when retrieving lists of values.
+
+Disadvantages
+
+- Any nontrivial query on a well-normalized schema will probably require at least one join, and perhaps several. This is not only expensive, but it can make some indexing strategies impossible.
+
+**Pros and Cons of a Denormalized Schema**
+
+A denormalized schema works well because everything is in the same table, which avoids joins. 
+
+Advantages
+
+- Avoids joins. If you don't need to join tables, the worst case for most queries, even the ones that don't use indexes is a full table scan. This can be much faster than a join when the data doesn't fit in memory, because it avoids random I/O.
+- A single table can also allow more efficient indexing strategies.
+
+**A Mixture of Normalized and Denormalized**
+
+The truth is fully normalized and fully denormalized schemas are not fit the real world, you often need to mix the approaches, possibly using a partially normalized schema, cache tables, and other techniques.
+
+Denomalization is more expensive to updates, because you have to change it in all tables. You must consider how frequently you'll have to make such changes and how long they will take, compared to how often you'll run the SELECT query.
+
+## Cache and Summary Tables
+
+Sometimes the best way to improve performance is to keep redundant data in the same table as the data from which it was derived. However, sometimes you'll need to build completely separate summary or cache tables, specially tuned for your retrieval needs. This approach works best if you can tolerate slightly stale data, but sometimes you really don't have a choice. For instance, when you need to avoid complex and expensive real-time updates.
+
+**Cache tables** mean tables that contain data that can be easily retrieved from the schema. Some column data of tables are logically redundant. Cache tables are useful for optimizing search and retrieval queries. For example, you might need many different index combinations to speed up various types of queries. These conflicting requirements sometimes demand that you create a cache table that contains only some of the columns from the main table.
+
+**Summary tables** mean tables that hold aggregated data from GOURP BY queries. The data that is not logically redundant. They also use the term "roll-up table". For example, it would be impossible to maintain an accurate real-time counter on a busy site. Instead, you could generate a summary table every hour. You can often do this with a single query, and it's more efficient than maintaining counters in real time. The drawback is that the counts are not 100% accurate.
+
+When using cache and summary tables, you have to decide whether to maintain their data in real time or with periodic rebuilds. Which is better will depend on your application, but a periodic rebuild not only can save resource but also can result in a more efficient table that's not fragmented and has fully sorted indexes.
+
+When you rebuild summary and cache tables, you'll often need their data to remain available during the operation. You can achieve this by using a "shadow table", which is a table you build behind the real table. When you're done building it, you can swap the tables with an atomic rename. For example
+
+```sql
+DROP TABLE IF EXISTS my_summary_new, my_summary_old;
+CREATE TABLE my_summary_new LIKE my_summary;
+RENAME TABLE my_summary TO my_summary_old, my_summary_new TO my_summary;
+```
+
+**Materialized Views**
+
+View are a logical virtual table created by "select query" but the result is not stored anywhere in the disk and every time we need to fire the query when we need data, so always we get updated or latest data from original tables. 
+
+Materialized views are also the logical view of our data-driven by the select query but the result of the query will get stored in the table or disk, also the definition of the query will also store in the database.
+
+MySQL doesn't support this natively. However, you can implement materialized view yourself, using Justin Swanhart's open source Flexviews tools.
+
+**Counter Tables**
+
+An application that keeps counts in a table can run into concurrency problems when updating the counters. Such tables are very common in web applications. You can use them to cache the number friends a user has, the number of downloads of a file, and so on. It's often a good idea to build a separate table for the counters, to keep it small and fast.
+
+```sql
+CREATE TABLE hit_counter (
+	cnt int unsigned not null
+) ENGINE=InnoDB;
+UPDATE hit_counter SET cnt = cnt + 1;
+```
+
+```sql
+CREATE TABLE hit_counter (
+	slot tinyint unsigned not null primary key,
+    cnt int unsigned not null
+) ENGINE=InnoDB;
+UPDATE hit_counter SET cnt = cnt + 1 WHERE slot = RAND() * 100;
+SELECT SUM(cnt) FROM hit_counter;
+```
+
+
+
+## Speeding Up Alter Table
+
+MySQL's ALTER TABLE performance can become a problem with very large tables. MySQL performs most **alterations** by making an empty table with the desired new structure, inserting all the data from the old table into the new one, and deleting the old table. This can take a very long time, especially if you're short on memory and the table is large and has lots of indexes.
+
+In general, most ALTER TABLE operations will cause interruption of service in MySQL. For the general case, you need to use either operational **tricks** such as swapping servers around and performing the ALTER on servers that are not in production service, or a shadow copy approach. Tools can help with to build a new table for a shadow copy. For example, the "online schema change" tools from Facebook's database operations team, Shlomi Noach's openark toolkit, and Percona Toolkit.
+
+Not all ALTER TABLE operations cause table rebuilds. For example, change or drop a column's default value in two ways (one fast, and one slow).
+
+```sql
+ALTER TABLE your_table
+MODIFY COLUMN your_column TINYINT(3) NOT NULL DEFAULT 5;
+```
+
+The following code is a fast way to modify column's default value. The default value for the column is actually stored in the table's .frm file, so you should be able to change it without touching the table itself. Any MODIFY COLUMN will cause a table rebuild, but you can use ALTER COLUMN to change column's default value.
+
+```sql
+ALTER TABLE your_table
+ALTER COLUMN your_column SET DEFAULT 5;
+```
+
+
 
 ## Conclusion
+
+The general principles for choosing a data type are introduced earlier in this article. They are "smaller is usually better", "simple is good", and "avoid NULL if possible".
+
+Sometimes, the data type of a column doesn't limit one kind of data type, so we can use the principle "simple is good" to determine what kind of data type we use.
+
+When we determine what kind of data type for the column, we can follow the principle of "smaller is usually better" to choose a specific data type. Then, we also can follow the principle "avoid NULL if possible" to determine does the column allows NULL.
+
+The kinds of data types are whole numbers, real numbers, strings (text), binary, temporal (time) and other.
+
+For choosing a specific data type from a kind of data types.
+
+Data Types
+
+| data type                               | Storage                                                      | Values Signed                   | Values  Unsigned                                             | Null     |
+| --------------------------------------- | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------ | -------- |
+| BIT(M)                                  | 1~64 bit                                                     | Not Signed                      | binary value (0~2^64-1)                                      |          |
+| TINYINT(M)                              | 1 byte                                                       | -128~127                        | 0~255                                                        |          |
+| BOOL, BOOLEAN (TINYINT(1))              | 1 byte                                                       | -128~127                        | 0~255                                                        |          |
+| SMALLINT(M)                             | 2 bytes                                                      | -32768~32767                    | 0~65535                                                      |          |
+| MEDIUMINT(M)                            | 3 bytes                                                      | -8388608~8388607                | 0~16777215                                                   |          |
+| INT(M), INTEGER(M)                      | 4 bytes                                                      | -2147483648~2147483647          | 0~4294967295                                                 |          |
+| BIGINT(M)                               | 8 bytes                                                      | -2^63~2^63-1                    | 0~2^64 -1                                                    |          |
+| DECIMAL(M, D), (DEC, NUMERIC, FIXED)    |                                                              | M: 1~65, D: 0~30                | To disallow negative values                                  |          |
+| FLOAT(M, D)                             |                                                              | Approximately 7 decimal places  | To disallow negative values                                  |          |
+| DOUBLE(M, D)                            |                                                              | Approximately 15 decimal places | To disallow negative values                                  |          |
+| DATE                                    |                                                              |                                 | '1000-01-01' to '9999-12-31'                                 |          |
+| TIME                                    |                                                              |                                 | '-838:59:59.000000' to '838:59:59.000000'                    |          |
+| DATETIME                                | 8 bytes                                                      |                                 | '1000-01-01 00:00:00.000000' to '9999-12-31 23:59:59.999999' |          |
+| TIMESTAMP                               | 4 bytes                                                      |                                 | '1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC |          |
+| YEAR                                    |                                                              |                                 | 1901 to 2155                                                 |          |
+| CHAR(M) [charset] [collate]             | M: 0~255 characters, fixed length                            |                                 |                                                              |          |
+| VARCHAR(M)  [charset] [collate]         | M: 0~65535 characters, have length prefix (1byte or 2bytes)  |                                 |                                                              |          |
+| BINARY(M)                               | M: 0~255 bytes,  fixed bytes. (like CHAR)                    |                                 |                                                              |          |
+| VARBINARY(M)                            | M: 0~65535 bytes. (like VARCHAR)                             |                                 |                                                              |          |
+| TINYTEXT [charset] [collate]            | max 255(2^8-1) characters, 1 byte length prefix              |                                 |                                                              |          |
+| TEXT(M) [charset] [collate]             | max 65535(2^16-1) characters, smallest M chars, 2 byte length prefix |                                 |                                                              |          |
+| MEDIUMTEXT [charset] [collate]          | max 16,777,215 (2^24 − 1) characters, 3 bytes length prefix  |                                 |                                                              |          |
+| LONGTEXT [charset] [collate]            | max 4,294,967,295 or 4GB (2^32 − 1) characters, 4 bytes length prefix |                                 |                                                              |          |
+| TINYBLOB                                | max 255(2^8-1) bytes, 1 byte length prefix                   |                                 |                                                              |          |
+| BOLB(M)                                 | max 65535 (2^16-1) bytes, smallest M chars, 2 bytes length prefix |                                 |                                                              |          |
+| MEDIUMBLOB                              | max 16,777,215 (2^24 − 1) bytes, 3 bytes length prefix       |                                 |                                                              |          |
+| LONGBLOB                                | max 4,294,967,295 or 4GB (2^32 − 1) bytes, 4 bytes length prefix |                                 |                                                              |          |
+| ENUM('value1', ...) [charset] [collate] | less than 3000 list of values, internally as integers        |                                 |                                                              |          |
+| SET('value1', ...) [charset] [collate]  | max 64 distinct members, internally as integers              |                                 |                                                              |          |
+| JSON                                    | roughly same as LONGTEXT, limit by max_allowed_packet system variable. |                                 |                                                              | Not NULL |
+
+
 
 (0. Basic conclusion. 1. Numeric, String ,date time types, and special types choose methods. 2. Common usage scenario of a data types choose methods. For example, financial data.)
 
