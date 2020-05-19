@@ -337,50 +337,19 @@ ALTER COLUMN your_column SET DEFAULT 5;
 
 ## Conclusion
 
-The general principles for choosing a data type are introduced earlier in this article. They are "smaller is usually better", "simple is good", and "avoid NULL if possible".
+The **general principles** for choosing a data type are introduced earlier in this article. They are "smaller is usually better", "simple is good", and "avoid NULL if possible".
 
-Sometimes, the data type of a column doesn't limit one kind of data type, so we can use the principle "simple is good" to determine what kind of data type we use.
+- Sometimes, the data type of a column doesn't limit one kind of data type, so we can use the principle "simple is good" to determine what kind of data type we use.
+- When we determine what kind of data type for the column, we can follow the principle of "smaller is usually better" to choose a specific data type. Then, we also can follow the principle "avoid NULL if possible" to determine does the column allows NULL.
 
-When we determine what kind of data type for the column, we can follow the principle of "smaller is usually better" to choose a specific data type. Then, we also can follow the principle "avoid NULL if possible" to determine does the column allows NULL.
+The kinds of data types are whole numbers, real numbers, strings (text), binary, temporal (time), and others. For **choosing a specific data type** from a kind of data type, you can use the following methods.
 
-The kinds of data types are whole numbers, real numbers, strings (text), binary, temporal (time) and other.
+(how to select a specific data type, and this kind of data type common applications)
 
-For choosing a specific data type from a kind of data types.
+- For choosing **whole numbers**, you should choose less size of integer type if possible. If you don't there are no negative numbers, you should set it to be unsigned (that makes values range larger). For storing **bool data**, you can use BIT(1) or BOOL data type. 
 
-Data Types
 
-| data type                               | Storage                                                      | Values Signed                   | Values  Unsigned                                             | Null     |
-| --------------------------------------- | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------ | -------- |
-| BIT(M)                                  | 1~64 bit                                                     | Not Signed                      | binary value (0~2^64-1)                                      |          |
-| TINYINT(M)                              | 1 byte                                                       | -128~127                        | 0~255                                                        |          |
-| BOOL, BOOLEAN (TINYINT(1))              | 1 byte                                                       | -128~127                        | 0~255                                                        |          |
-| SMALLINT(M)                             | 2 bytes                                                      | -32768~32767                    | 0~65535                                                      |          |
-| MEDIUMINT(M)                            | 3 bytes                                                      | -8388608~8388607                | 0~16777215                                                   |          |
-| INT(M), INTEGER(M)                      | 4 bytes                                                      | -2147483648~2147483647          | 0~4294967295                                                 |          |
-| BIGINT(M)                               | 8 bytes                                                      | -2^63~2^63-1                    | 0~2^64 -1                                                    |          |
-| DECIMAL(M, D), (DEC, NUMERIC, FIXED)    |                                                              | M: 1~65, D: 0~30                | To disallow negative values                                  |          |
-| FLOAT(M, D)                             |                                                              | Approximately 7 decimal places  | To disallow negative values                                  |          |
-| DOUBLE(M, D)                            |                                                              | Approximately 15 decimal places | To disallow negative values                                  |          |
-| DATE                                    |                                                              |                                 | '1000-01-01' to '9999-12-31'                                 |          |
-| TIME                                    |                                                              |                                 | '-838:59:59.000000' to '838:59:59.000000'                    |          |
-| DATETIME                                | 8 bytes                                                      |                                 | '1000-01-01 00:00:00.000000' to '9999-12-31 23:59:59.999999' |          |
-| TIMESTAMP                               | 4 bytes                                                      |                                 | '1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC |          |
-| YEAR                                    |                                                              |                                 | 1901 to 2155                                                 |          |
-| CHAR(M) [charset] [collate]             | M: 0~255 characters, fixed length                            |                                 |                                                              |          |
-| VARCHAR(M)  [charset] [collate]         | M: 0~65535 characters, have length prefix (1byte or 2bytes)  |                                 |                                                              |          |
-| BINARY(M)                               | M: 0~255 bytes,  fixed bytes. (like CHAR)                    |                                 |                                                              |          |
-| VARBINARY(M)                            | M: 0~65535 bytes. (like VARCHAR)                             |                                 |                                                              |          |
-| TINYTEXT [charset] [collate]            | max 255(2^8-1) characters, 1 byte length prefix              |                                 |                                                              |          |
-| TEXT(M) [charset] [collate]             | max 65535(2^16-1) characters, smallest M chars, 2 byte length prefix |                                 |                                                              |          |
-| MEDIUMTEXT [charset] [collate]          | max 16,777,215 (2^24 − 1) characters, 3 bytes length prefix  |                                 |                                                              |          |
-| LONGTEXT [charset] [collate]            | max 4,294,967,295 or 4GB (2^32 − 1) characters, 4 bytes length prefix |                                 |                                                              |          |
-| TINYBLOB                                | max 255(2^8-1) bytes, 1 byte length prefix                   |                                 |                                                              |          |
-| BOLB(M)                                 | max 65535 (2^16-1) bytes, smallest M chars, 2 bytes length prefix |                                 |                                                              |          |
-| MEDIUMBLOB                              | max 16,777,215 (2^24 − 1) bytes, 3 bytes length prefix       |                                 |                                                              |          |
-| LONGBLOB                                | max 4,294,967,295 or 4GB (2^32 − 1) bytes, 4 bytes length prefix |                                 |                                                              |          |
-| ENUM('value1', ...) [charset] [collate] | less than 3000 list of values, internally as integers        |                                 |                                                              |          |
-| SET('value1', ...) [charset] [collate]  | max 64 distinct members, internally as integers              |                                 |                                                              |          |
-| JSON                                    | roughly same as LONGTEXT, limit by max_allowed_packet system variable. |                                 |                                                              | Not NULL |
+
 
 
 
@@ -388,7 +357,7 @@ Data Types
 
 (1. Data size (disk and memory cost), 2. comparison cost)
 
-comparison and sorting
+Comparison and Sorting
 
 - Same data types comparison is faster than different data types.
 - Numeric data types comparison is faster than character data types.
@@ -412,6 +381,46 @@ Suggestions of data types choice
 ### Beware of Autogenerated Schemas
 
 Autogenerate schemas can cause severe performance problems. Some programs use large VARCHAR fields for everything, or use difference data types for columns that will be compared in joins. Be sure to double-check a schema if it was created for you automatically.
+
+## Appendix
+
+I. Basic Information of Data Types
+
+| data type                               | Storage                                                      | Values Range                                                 | Note                                                         |
+| --------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| BIT(M)                                  | 1~64 bit                                                     | binary value (0~2^64-1)                                      |                                                              |
+| TINYINT(M)                              | 1 byte                                                       | Signed: -128~127, Unsigned: 0~255                            | M doesn't limit length of number, it just for client display format. |
+| BOOL, BOOLEAN (TINYINT(1))              | 1 byte                                                       | Signed: -128~127, Unsigned: 0~255                            |                                                              |
+| SMALLINT(M)                             | 2 bytes                                                      | Signed: -32768~32767, Unsigned: 0~65535                      |                                                              |
+| MEDIUMINT(M)                            | 3 bytes                                                      | Signed: -8388608~8388607, Unsigned: 0~16777215               |                                                              |
+| INT(M), INTEGER(M)                      | 4 bytes                                                      | Signed: -2147483648~2147483647, Unsigned: 0~4294967295       |                                                              |
+| BIGINT(M)                               | 8 bytes                                                      | Signed: -2^63~2^63-1, Unsigned: 0~2^64 -1                    |                                                              |
+| DECIMAL(M, D), (DEC, NUMERIC, FIXED)    |                                                              | M: 1~65, D: 0~30. Unsigned means to disallow negative values |                                                              |
+| FLOAT(M, D)                             |                                                              | Approximately 7 decimal places. Unsigned means to disallow negative values |                                                              |
+| DOUBLE(M, D)                            |                                                              | Approximately 15 decimal places. Unsigned means to disallow negative values |                                                              |
+| DATE                                    |                                                              | '1000-01-01' to '9999-12-31'                                 |                                                              |
+| TIME                                    |                                                              | '-838:59:59.000000' to '838:59:59.000000'                    |                                                              |
+| DATETIME                                | 8 bytes                                                      | '1000-01-01 00:00:00.000000' to '9999-12-31 23:59:59.999999' |                                                              |
+| TIMESTAMP                               | 4 bytes                                                      | '1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC |                                                              |
+| YEAR                                    |                                                              | 1901 to 2155                                                 |                                                              |
+| CHAR(M) [charset] [collate]             | M: 0~255 characters, fixed length                            |                                                              |                                                              |
+| VARCHAR(M)  [charset] [collate]         | M: 0~65535 characters, have length prefix (1byte or 2bytes)  |                                                              |                                                              |
+| BINARY(M)                               | M: 0~255 bytes,  fixed bytes. (like CHAR)                    |                                                              |                                                              |
+| VARBINARY(M)                            | M: 0~65535 bytes. (like VARCHAR)                             |                                                              |                                                              |
+| TINYTEXT [charset] [collate]            | max 255(2^8-1) characters, 1 byte length prefix              |                                                              |                                                              |
+| TEXT(M) [charset] [collate]             | max 65535(2^16-1) characters, 2 byte length prefix           |                                                              | M means smallest numbers of characters                       |
+| MEDIUMTEXT [charset] [collate]          | max 16,777,215 (2^24 − 1) characters, 3 bytes length prefix  |                                                              |                                                              |
+| LONGTEXT [charset] [collate]            | max 4,294,967,295 or 4GB (2^32 − 1) characters, 4 bytes length prefix |                                                              |                                                              |
+| TINYBLOB                                | max 255(2^8-1) bytes, 1 byte length prefix                   |                                                              |                                                              |
+| BOLB(M)                                 | max 65535 (2^16-1) bytes, 2 bytes length prefix              |                                                              | M means smallest numbers of bytes                            |
+| MEDIUMBLOB                              | max 16,777,215 (2^24 − 1) bytes, 3 bytes length prefix       |                                                              |                                                              |
+| LONGBLOB                                | max 4,294,967,295 or 4GB (2^32 − 1) bytes, 4 bytes length prefix |                                                              |                                                              |
+| ENUM('value1', ...) [charset] [collate] | less than 3000 list of values, internally as integers        |                                                              |                                                              |
+| SET('value1', ...) [charset] [collate]  | max 64 distinct members, internally as integers              |                                                              |                                                              |
+| JSON                                    | roughly same as LONGTEXT, limit by max_allowed_packet system variable. |                                                              |                                                              |
+
+
+
 
 ## References
 
