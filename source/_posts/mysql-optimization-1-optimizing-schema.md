@@ -10,8 +10,7 @@ tags: MySQL
 
 This post is talking about MySQL schema optimization, if you are familiar with this topic, you can go to the conclusion part that's a good summary of the schema optimization of MySQL that may give you some enlightenment.
 
-Good logical and physical design is the cornerstone of high performance, and you must design your schema for the specific queries you will run. This often involves trade-offs. For example, a denormalized schema can speed up some types of queries but slow down
-others. Adding counter and summary tables is a great way to optimize queries, but they
+Good logical and physical design is the cornerstone of high performance, and you must design your schema for the specific queries you will run. This often involves trade-offs. For example, a denormalized schema can speed up some types of queries but slow down others. Adding counter and summary tables is a great way to optimize queries, but they
 can be expensive to maintain.
 
 ## Choosing Optimal Data Types
