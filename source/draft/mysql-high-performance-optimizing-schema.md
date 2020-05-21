@@ -13,6 +13,8 @@ Content
 - Conclusion
 - References
 
+This post is talking about MySQL schema optimization, if you are familiar with this topic, you can go to the conclusion part that's a good summary of the schema optimization of MySQL that may give you some enlightenment.
+
 Good logical and physical design is the cornerstone of high performance, and you must design your schema for the specific queries you will run. This often involves trade-offs. For example, a denormalized schema can speed up some types of queries but slow down
 others. Adding counter and summary tables is a great way to optimize queries, but they
 can be expensive to maintain.
@@ -101,6 +103,8 @@ Most of date and time types have no alternatives, so there is no question of whi
 DATETIME
 
 DATETIME can stores values from the year 1001 to the year 9999, with a precision of one second. It stores the date and time packed into an integer in **YYYYMMDDHHMMSS** format, independent of time zone. This uses eight bytes of storage space.
+
+It **is not** recommended to use a numeric column type (`INT`) to store datetime information. MySQL (and other systems too) provides many functions to handle datetime information. These functions are faster and more optimized than custom functions or calculations
 
 TIMESTAMP
 
@@ -344,18 +348,10 @@ The **general principles** for choosing a data type are introduced earlier in th
 
 The kinds of data types are whole numbers, real numbers, strings (text), binary, temporal (time), and others. For **choosing a specific data type** from a kind of data type, you can use the following methods.
 
-(how to select a specific data type, and this kind of data type common applications)
-
-- For choosing **whole numbers**, you should choose less size of integer type if possible. If you don't there are no negative numbers, you should set it to be unsigned (that makes values range larger). For storing **bool data**, you can use BIT(1) or BOOL data type. 
-
-
-
-
-
-
-(0. Basic conclusion. 1. Numeric, String ,date time types, and special types choose methods. 2. Common usage scenario of a data types choose methods. For example, financial data.)
-
-(1. Data size (disk and memory cost), 2. comparison cost)
+- For choosing **a data type of whole numbers**. 1. First, you should choose the **less** length of integer type if possible. 2. If you don't there are no negative numbers, you should set it to be **unsigned** (that makes values range larger). 3. For storing **bool data**, the better choice is BOOL(TINYINT) data type, others choices are BIT(1), CHAR(0). 4. There are many common usage scenarios of whole numbers. For example, table's identifiers, counter numbers. For **identifiers** of tables, integers are the best choice for identifiers, and all tables' identifiers should be the same integer type.
+- For choosing **a data type of real numbers**. 1. If you need **exact calculations** you should choose the DECIMAL type. 2. If you can accept **approximate calculations** you can choose the FLOAT and DOUBLE data type by different precisions. 3. Note that you should use DECIMAL only when you need exact results for fractional numbers because it needs more cost than floating numbers. 4. There are many common usage scenarios of real numbers, for example, financial data. For **financial data**, the DECIMAL type is a better choice for representing financial data, but if the financial data have small limit precision you can convert all data to integer values and use BIGINTEGER to store them.
+- For choosing **a data type of temporal types**. 1. Sometimes you can use integers to replace temporal types because integer types are simpler and faster than temporal types, but you will lose lots of very convenient built-in functions with temporal types, such as `WEEK()`, `ADDDATE()`.  2. In the choice of temporal types, the most common question is how to choose a data type that contains both date and time types from DATETIME and TIMESTAMP. The main differences between DATETIME and TIMESTAMP are representing range, space cost, and affect by time zone.
+- For choosing a specific string type. 1. The most choice are VARCHAR and CHAR. When your column values limit by small length, you can use CHAR to store it, otherwise use VARCHAR. 2. When you need to store large amounts of characters, you can choose a text type from text family types according to your range of characters of text. 3. For binary data, the basic choices are BINARY and VARBINARY that same with CHAR and VARCHAR, but store binary. 4. When you want to store large amounts of binary, you can choose a binary type from blob family types. 5. There are some special data types in string types, such as ENUM, SET, and JSON. 6. There are many common usage scenarios of string types, for example, ID card No., account number, name, URI, and so on. 7. Note that sometimes you can use integers to replace strings it has much performance improvement, such as IPv4 address can use BIGINTEGER to represent.
 
 Comparison and Sorting
 
@@ -369,16 +365,7 @@ Comparison and Sorting
 | DATETIME or TIMESTAMP | Numeric value (Integer value) |
 | CHAR or VARCHAR       | Characters                    |
 
-
-
-## Others
-
-Suggestions of data types choice
-
-- Storing dates and times data using MySQL's built-in types instead of as strings.
-- Using integers for IP addresses.
-
-### Beware of Autogenerated Schemas
+Beware of Autogenerated Schemas
 
 Autogenerate schemas can cause severe performance problems. Some programs use large VARCHAR fields for everything, or use difference data types for columns that will be compared in joins. Be sure to double-check a schema if it was created for you automatically.
 
@@ -388,36 +375,45 @@ I. Basic Information of Data Types
 
 | data type                               | Storage                                                      | Values Range                                                 | Note                                                         |
 | --------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| BIT(M)                                  | 1~64 bit                                                     | binary value (0~2^64-1)                                      |                                                              |
+| BIT(M)                                  | 1~64 bit, approximately (M+7)/8 bytes (Fixed space cost specified by M) | binary value (0~2^64-1)                                      | MySQL treats BIT as a string type, not a numeric type. This data type very confused, so you should use BIT with caution. |
 | TINYINT(M)                              | 1 byte                                                       | Signed: -128~127, Unsigned: 0~255                            | M doesn't limit length of number, it just for client display format. |
 | BOOL, BOOLEAN (TINYINT(1))              | 1 byte                                                       | Signed: -128~127, Unsigned: 0~255                            |                                                              |
 | SMALLINT(M)                             | 2 bytes                                                      | Signed: -32768~32767, Unsigned: 0~65535                      |                                                              |
 | MEDIUMINT(M)                            | 3 bytes                                                      | Signed: -8388608~8388607, Unsigned: 0~16777215               |                                                              |
 | INT(M), INTEGER(M)                      | 4 bytes                                                      | Signed: -2147483648~2147483647, Unsigned: 0~4294967295       |                                                              |
 | BIGINT(M)                               | 8 bytes                                                      | Signed: -2^63~2^63-1, Unsigned: 0~2^64 -1                    |                                                              |
-| DECIMAL(M, D), (DEC, NUMERIC, FIXED)    |                                                              | M: 1~65, D: 0~30. Unsigned means to disallow negative values |                                                              |
-| FLOAT(M, D)                             |                                                              | Approximately 7 decimal places. Unsigned means to disallow negative values |                                                              |
-| DOUBLE(M, D)                            |                                                              | Approximately 15 decimal places. Unsigned means to disallow negative values |                                                              |
-| DATE                                    |                                                              | '1000-01-01' to '9999-12-31'                                 |                                                              |
-| TIME                                    |                                                              | '-838:59:59.000000' to '838:59:59.000000'                    |                                                              |
-| DATETIME                                | 8 bytes                                                      | '1000-01-01 00:00:00.000000' to '9999-12-31 23:59:59.999999' |                                                              |
-| TIMESTAMP                               | 4 bytes                                                      | '1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC |                                                              |
-| YEAR                                    |                                                              | 1901 to 2155                                                 |                                                              |
-| CHAR(M) [charset] [collate]             | M: 0~255 characters, fixed length                            |                                                              |                                                              |
-| VARCHAR(M)  [charset] [collate]         | M: 0~65535 characters, have length prefix (1byte or 2bytes)  |                                                              |                                                              |
-| BINARY(M)                               | M: 0~255 bytes,  fixed bytes. (like CHAR)                    |                                                              |                                                              |
-| VARBINARY(M)                            | M: 0~65535 bytes. (like VARCHAR)                             |                                                              |                                                              |
-| TINYTEXT [charset] [collate]            | max 255(2^8-1) characters, 1 byte length prefix              |                                                              |                                                              |
-| TEXT(M) [charset] [collate]             | max 65535(2^16-1) characters, 2 byte length prefix           |                                                              | M means smallest numbers of characters                       |
-| MEDIUMTEXT [charset] [collate]          | max 16,777,215 (2^24 − 1) characters, 3 bytes length prefix  |                                                              |                                                              |
-| LONGTEXT [charset] [collate]            | max 4,294,967,295 or 4GB (2^32 − 1) characters, 4 bytes length prefix |                                                              |                                                              |
-| TINYBLOB                                | max 255(2^8-1) bytes, 1 byte length prefix                   |                                                              |                                                              |
-| BOLB(M)                                 | max 65535 (2^16-1) bytes, 2 bytes length prefix              |                                                              | M means smallest numbers of bytes                            |
-| MEDIUMBLOB                              | max 16,777,215 (2^24 − 1) bytes, 3 bytes length prefix       |                                                              |                                                              |
-| LONGBLOB                                | max 4,294,967,295 or 4GB (2^32 − 1) bytes, 4 bytes length prefix |                                                              |                                                              |
-| ENUM('value1', ...) [charset] [collate] | less than 3000 list of values, internally as integers        |                                                              |                                                              |
-| SET('value1', ...) [charset] [collate]  | max 64 distinct members, internally as integers              |                                                              |                                                              |
+| FLOAT(M, D)                             | 4 bytes                                                      | Approximately 7 decimal places. Unsigned means to disallow negative values |                                                              |
+| DOUBLE(M, D)                            | 8 bytes                                                      | Approximately 15 decimal places. Unsigned means to disallow negative values |                                                              |
+| DECIMAL(M, D), (DEC, NUMERIC, FIXED)    | Length + 1 or 2 bytes (Fixed space cost specified by M)      | M: 1~65, D: 0~30. Unsigned means to disallow negative values |                                                              |
+| YEAR                                    | 1 byte                                                       | 1901 to 2155                                                 |                                                              |
+| DATE                                    | 3 bytes                                                      | '1000-01-01' to '9999-12-31'                                 |                                                              |
+| TIME                                    | 3 bytes, (Since MySQL 5.6.4, it's 3 bytes + fractional seconds storage) | '-838:59:59.000000' to '838:59:59.000000'                    |                                                              |
+| DATETIME                                | 8 bytes, (Since MySQL 5.6.4, it's **5 bytes** + fractional seconds storage) | '1000-01-01 00:00:00.000000' to '9999-12-31 23:59:59.999999' |                                                              |
+| TIMESTAMP                               | 4 bytes, (Since MySQL 5.6.4, it's 4 bytes + fractional seconds storage) | '1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC |                                                              |
+| CHAR(M) [charset] [collate]             | M: 0~255 characters, (Fixed space cost specified by M)       |                                                              |                                                              |
+| VARCHAR(M)  [charset] [collate]         | M: 0~65535 characters (Variable space cost and max specified by M), have length prefix (1byte or 2bytes) |                                                              |                                                              |
+| TINYTEXT [charset] [collate]            | 0~255(2^8-1) characters, (Variable space cost and max limit by 255 chars cost), 1 byte length prefix |                                                              |                                                              |
+| TEXT(M) [charset] [collate]             | max 65535(2^16-1) characters (Variable space cost and max limit by 65535 chars cost), 2 byte length prefix |                                                              | M means smallest numbers of characters                       |
+| MEDIUMTEXT [charset] [collate]          | max 16,777,215 (2^24 − 1) characters (Variable space cost) , 3 bytes length prefix |                                                              |                                                              |
+| LONGTEXT [charset] [collate]            | max 4,294,967,295 or 4GB (2^32 − 1) characters (Variable space cost), 4 bytes length prefix |                                                              |                                                              |
+| BINARY(M)                               | M: 0~255 bytes,  (Fixed space cost specified by M). (like CHAR) |                                                              |                                                              |
+| VARBINARY(M)                            | M: 0~65535 bytes (Variable space cost and max specified by M). (like VARCHAR) |                                                              |                                                              |
+| TINYBLOB                                | max 255(2^8-1) bytes (Variable space cost and max limit by 255 bytes), 1 byte length prefix |                                                              |                                                              |
+| BOLB(M)                                 | max 65535 (2^16-1) bytes (Variable space cost and max limit by 65535 bytes), 2 bytes length prefix |                                                              | M means smallest numbers of bytes                            |
+| MEDIUMBLOB                              | max 16,777,215 (2^24 − 1) bytes (Variable space cost), 3 bytes length prefix |                                                              |                                                              |
+| LONGBLOB                                | max 4,294,967,295 or 4GB (2^32 − 1) bytes (Variable space cost), 4 bytes length prefix |                                                              |                                                              |
+| ENUM('value1', ...) [charset] [collate] | less than 3000 list of values (Variable space cost), internally as integers |                                                              |                                                              |
+| SET('value1', ...) [charset] [collate]  | max 64 distinct members (Variable space cost), internally as integers |                                                              |                                                              |
 | JSON                                    | roughly same as LONGTEXT, limit by max_allowed_packet system variable. |                                                              |                                                              |
+
+Fractional Seconds Precision Storage (Since MySQL 5.6.4)
+
+| Precision | Storage Required |
+| --------- | ---------------- |
+| 0         | 0 bytes          |
+| 1, 2      | 1 bytes          |
+| 3, 4      | 2 bytes          |
+| 5, 6      | 3 bytes          |
 
 
 
@@ -425,3 +421,5 @@ I. Basic Information of Data Types
 ## References
 
 [1] High Performance MySQL by Baron Schwartz, Vadim Tkachenko, Peter Zaitsev, Derek J. Balling
+
+[2] MySQL 5.7 Reference Manual
