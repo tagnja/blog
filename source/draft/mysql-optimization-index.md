@@ -153,9 +153,49 @@ The correct order depends on the queries that will use the index, and you must t
 
 The order of columns in a multicolumn B-Tree index means that the index is sorted first by the leftmost column, the by the next column, and so on. Therefore, the index can be scanned in either forward or reverse order, to satisfy queries with ORDER BY, GOURP BY, and DISTINCT clauses that match the column order exactly.
 
+There is **a rule of thumb** for choosing column order: place the most selective columns first in the index. It can be helpful in some cases, but it's usually much less important than avoiding random I/O and sorting, all things considered. Specific cases vary, so there's no one-size-fits-all rule. This rule of thumb is probably less important than you think.
 
+Placing the most selective columns first can be a good idea when there is no sorting or grouping to consider, and thus the purpose of the index is only to optimize WHERE lookups. For exmaple:
 
+```sql
+SELECT * FROM payment WHERE staff_id = 2 AND customer_id = 584;
+```
 
+Should you create an index on (staff_id, customer_id), or should you reverse the column order? We can run some quick queries to help examine the distribution of values in the table and determine which column has higher selectivity.
+
+```sql
+SELECT SUM(staff_id = 2), SUM(customer_id = 584) FROM payment
+```
+
+```
+The Result:
+SUM(staff_id = 2): 7992
+SUM(customer_id = 584): 30
+```
+
+According to the rule of thumb, we should place customer_id first in the index, because the predicate matches fewer rows in the table (it has high selectivity).
+
+If you don't have specific samples to run, it might be better to use the rule of thumb, which is to look at the cardinality across the board, not just for one query:
+
+```sql
+SELECT COUNT(DISTINCT staff_id)/COUNT(*) AS staff_id_selectivity,
+COUNT(DISTINCT customer_id)/COUNT(*) AS customer_id_selectivity,
+COUNT(*) 
+FROM payment
+```
+
+```
+THe Result:
+staff_id_selectivity: 0.0001
+customer_id_selectivity: 0.0373
+COUNT(*): 16049
+```
+
+customer_id has higher selectivity, so again the anwser is to put that column first in the index.
+
+You have to be careful not to assume that average-case performance is representative of special-case performance. Special cases can wreck performance for the whole application.
+
+Although the rule of thumb about selectivity and cardinality is important, other factors--such as sorting, grouping, and the presence of range conditions the query's WHERE clause--can make a much bigger difference to query performance.
 
 ## Index and Table Maintenance
 
