@@ -149,7 +149,7 @@ When you see an index merge in EXPLAIN, you should examine the query and table s
 
 **Choosing a Good Column Order**
 
-The correct order depends on the queries that will use the index, and you must think about how to choose the index order such that rows are sorted and gourped in a way that will benefit the query.
+The correct order depends on the queries that will use the index, and you must think about how to choose the index order such that rows are sorted and grouped in a way that will benefit the query.
 
 The order of columns in a multicolumn B-Tree index means that the index is sorted first by the leftmost column, the by the next column, and so on. Therefore, the index can be scanned in either forward or reverse order, to satisfy queries with ORDER BY, GOURP BY, and DISTINCT clauses that match the column order exactly.
 
@@ -191,11 +191,76 @@ customer_id_selectivity: 0.0373
 COUNT(*): 16049
 ```
 
-customer_id has higher selectivity, so again the anwser is to put that column first in the index.
+customer_id has higher selectivity, so again the answer is to put that column first in the index.
 
 You have to be careful not to assume that average-case performance is representative of special-case performance. Special cases can wreck performance for the whole application.
 
 Although the rule of thumb about selectivity and cardinality is important, other factors--such as sorting, grouping, and the presence of range conditions the query's WHERE clause--can make a much bigger difference to query performance.
+
+**Clustered Indexes**
+
+Clustered indexes aren't separate type of index, but make adjacent key values together. The exact detail vary between implementations, but InnoDB's clustered indexes actually store a B-Tree index. The term "clustered" refers to the fact that rows with adjacent key values are stored close to each other. 
+
+You can have only one clustered index per table, because you can't store the rows in two places at once. Storage engines are responsible for implementing indexes, but not all storage engines support clustered indexes.
+
+InnoDB clusters the data by the primary key. If you don't define a primary key, InnoDB will try to use a unique nonnullable index instead. If there is no such index, InnoDB will define a hidden primary key for you and then cluster on that. InnoDB clusters records together only within a page. 
+
+A clustering primary key can help performance, but it can also cause serious performance problems.  Thus, you should think carefully about clustering, especially when you change a table's storage engine from InnoDB to something else.
+
+Advantages of clustering indexes
+
+- It keeps related data close together.
+- Data access is fast.
+
+Disadvantages of clustered indexes
+
+- Insert speeds depend heavily on insertion order. Inserting rows in primary key order is the fastest way.
+- Updating the clustered index columns is expensive, because it forces InnoDB to move each updated row to a new location.
+- Secondary (nonclustered) indexes access require two index lookups instead of one. Because it stores the row's primary key values rather than stores the pointer to the row's physical location.
+
+**Covering Indexes**
+
+An index that contains (or covers) all the data needed to satisfy a query is called a covering index. In other words, a covering index is a multi-columns index that indexes on all columns needed for your queries. In MySQL, secondary indexes in your table default contain the primary key column values.
+
+Benefits of covering indexes
+
+- Index entries are usually much smaller than the full row size, so MySQL can access significantly less data if it reads only the index.
+- Indexes are sorted by their index values, so I/O-bound range accesses will need to do less I/O compared to fetching each row from a random disk location.
+
+A covering index can't be any kind of index. The index must store the values from the columns it contains. Hash, spatial, and full-text indexes don't store these values, so MySQL can use only B-Tree indexes to cover queries.
+
+When you issue a query that is covered by an index, you will see "Using index" in the Extra column in EXPLAIN. For example, the inventory table has a multicolumn index on (store_id, film_id)
+
+```sql
+EXPLAIN SELECT store_iid, file_id FROM inventory;
+```
+
+```
+Result:
+...
+Extra: Using index
+```
+
+**Using Index Scans for Sorts**
+
+MySQL has two ways to produce ordered result: using a sort operation, or scanning an index in order. You can tell when MySQL plans to scan an index by looking for "index" in the `type` column in EXPLAIN.
+
+Scanning the ordered index itself is fast, because it simply requires moving from one index entry to the next. However, if MySQL isn't using the index to scanning, it will have to look up each row it finds in the index. Reading data in index order is usually much slower than a sequential table scan, especially for I/O-bound workloads. 
+
+MySQL can use the same index for both sorting and finding rows. It's a good idea to design your indexes so that they're useful for both tasks at once.
+
+Ordering the result by the index works:
+
+- only when the index's order is exactly the same as the ORDER BY clause and all columns are sorted in the same direction (ascending or descending). 
+- If the query joins multiple tables, it works only when all columns in the ORDER BY clause refer to the first table. 
+- The ORDER BY clause also needs to from a leftmost prefix of the index.
+- One case where the ORDER BY clause doesn't have to specify a leftmost prefix of the index is if there are constants for the leading columns. If the WHERE clause or a JOIN clause specifies constants for these columns, they can "fill the gaps" in the index.
+
+
+
+
+
+
 
 ## Index and Table Maintenance
 
@@ -222,3 +287,5 @@ index constract Table
 [1] High Performance MySQL by Baron Schwartz, Vadim Tkachenko, Peter Zaitsev, Derek J. Balling
 
 [2] MySQL 5.7 Reference Manual
+
+[3] [Speed up your queries using the covering index in MySQL](https://blog.toadworld.com/2017/04/06/speed-up-your-queries-using-the-covering-index-in-mysql)
