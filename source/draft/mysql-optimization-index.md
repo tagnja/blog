@@ -28,7 +28,7 @@ There are many types of indexes, each designed to perform well for different pur
 
 When people talk about an index without mentioning a type, they are probably referring to a B-Tree index, which uses a B-Tree data structure to store its data. Most of MySQL's storage engines support this index type.
 
-Storage engines use B-Tree indexes in various ways, which can affect performance. For example, MyISAM uses a prefix compression technique that makes indexes samller, but InnoDB leaves values uncompressed in its indexes. Also, MyISAM indexes refer to the indexed rows by their physical storage locations, but InnoDB refers to them by their primary key values. Each variation has benefits and drawbacks.
+Storage engines use B-Tree indexes in various ways, which can affect performance. For example, MyISAM uses a prefix compression technique that makes indexes smaller, but InnoDB leaves values uncompressed in its indexes. Also, MyISAM indexes refer to the indexed rows by their physical storage locations, but InnoDB refers to them by their primary key values. Each variation has benefits and drawbacks.
 
 A B-Tree index speeds up data access because the storage engine doesn't have to scan the whole table to find the desired data. And you can find a specific row using O(log n) time cost from an index file.
 
@@ -42,16 +42,16 @@ Column order in index is very important, because limitations of B-Tree indexes a
 
 **Hash Indexes**
 
-A hash index is built on a hash table and is useful only for exact lookups that use every column in the index. For each row, the storage engine computes a hash code of the indexed columns, which is a small value that will probably differ from the hash codes computerd for other rows with different key values. It stores the hash codes in the index and stores a pointer to each row in a hash table.
+A hash index is built on a hash table and is useful only for exact lookups that use every column in the index. For each row, the storage engine computes a hash code of the indexed columns, which is a small value that will probably differ from the hash codes computed for other rows with different key values. It stores the hash codes in the index and stores a pointer to each row in a hash table.
 
-Because the indexes themselves store only short hash values, hash indexes are very compact. As a result, lookups are usually ligntning fast. However, hash indexes have some limitations:
+Because the indexes themselves store only short hash values, hash indexes are very compact. As a result, lookups are usually lightning fast. However, hash indexes have some limitations:
 
 - Because the index contains only hash codes and row pointer rather than the values themselves, MySQL can't use the values in the index to avoid reading the rows. Fortunately, accessing the in-memory rows is very fast.
 - MySQL can't use hash indexes for sorting because they don't store rows in sorted order.
-- Hash indexes don't support partial key matching, because they compute the hash from the entrie indexed value. That is, if you have an index on (A, B) and your query's WHERE clause refers only to A, the index won't help.
+- Hash indexes don't support partial key matching, because they compute the hash from the entire indexed value. That is, if you have an index on (A, B) and your query's WHERE clause refers only to A, the index won't help.
 - Hash indexes support only equality comparisons that use the =, in(), and <=> operators (note that <> and <=> are not the same operator). They can't speed up range queries.
 - Accessing data in hash index is very quick, unless there are many collisions (multiple values with the same hash). When there are collisions, the storage engine must follow each row pointer in the linked list to sequence lookup the right rows.
-- Some index maintenance operations (delete or add a row to table) can be slow if there are many hash collisons.
+- Some index maintenance operations (delete or add a row to table) can be slow if there are many hash collisions.
 
 These limitations make hash indexes useful only in special cases. However, when they match the application's needs, they can improve performance dramatically.
 
@@ -59,7 +59,7 @@ If your storage engine doesn't support hash indexes, you can emulate them yourse
 
 **Full-text Indexes**
 
-FULLTEXT is a special type of index that finds keyworkds in the text instead of  compariing values directly to the values in the index. Full-text searching is completely different from other types of matching. It has many subtleties, such as stopwords, stemming and plurals, and Boolean searching. It is much more analogous to what a search engine does than to simple WHERE parameter matching.
+FULLTEXT is a special type of index that finds keywords in the text instead of  comparing values directly to the values in the index. Full-text searching is completely different from other types of matching. It has many subtleties, such as stopwords, stemming and plurals, and Boolean searching. It is much more analogous to what a search engine does than to simple WHERE parameter matching.
 
 Having a full-text index on a column does not eliminate the value of a B-Tree index on the same column. Full-text indexes are for MATCH AGAINST operations, not ordinary WHERE clause operations.
 
@@ -155,7 +155,7 @@ The order of columns in a multicolumn B-Tree index means that the index is sorte
 
 There is **a rule of thumb** for choosing column order: place the most selective columns first in the index. It can be helpful in some cases, but it's usually much less important than avoiding random I/O and sorting, all things considered. Specific cases vary, so there's no one-size-fits-all rule. This rule of thumb is probably less important than you think.
 
-Placing the most selective columns first can be a good idea when there is no sorting or grouping to consider, and thus the purpose of the index is only to optimize WHERE lookups. For exmaple:
+Placing the most selective columns first can be a good idea when there is no sorting or grouping to consider, and thus the purpose of the index is only to optimize WHERE lookups. For example:
 
 ```sql
 SELECT * FROM payment WHERE staff_id = 2 AND customer_id = 584;
@@ -256,11 +256,37 @@ Ordering the result by the index works:
 - The ORDER BY clause also needs to from a leftmost prefix of the index.
 - One case where the ORDER BY clause doesn't have to specify a leftmost prefix of the index is if there are constants for the leading columns. If the WHERE clause or a JOIN clause specifies constants for these columns, they can "fill the gaps" in the index.
 
+**Packed (Prefix-Compressed) Indexes**
 
+Prefix compression reduce index size, allowing more of the index to fit in memory and dramatically improving performance in some cases. 
 
+Compressed blocks use less space, but they make some operations slower. For example, binary searches, ORDER BY. 
 
+The trade-off is one of CUP and memory resources versus disk resources. Packed indexes can be about one-tenth the size on disk, and if you have an I/O-bound workload they can more than offset the cost for some queries.
 
+You can control how a table's indexes are packed with the PACK_KEYS option to CREATE TABLE or ALTER TABLE. For example,
 
+```sql
+CREATE  TABLE `test_database`.`new_table` (
+  `id` INT NOT NULL ,
+  `address` VARCHAR(45) NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `address` (`address` ASC) )
+  PACK_KEYS = 1;
+```
+
+This option PACK_KEYS can have following three values: 1, 0, DEFAULT. Set this option to 1 to pack indexes of all kind of columns. Set it to 0 will disable all kind of indexes compression. Set it to DEFAULT will pack only CHAR, VARCHAR, BINARY, or VARBINARY type columns. 
+
+Conclusion of using packed indexes
+
+- Packed indexes may give great space savings.
+- PACK_KEYS applies to MyISAM tables only.
+- Packed indexes can slow down your integer joins a lot.
+- Packed indexes will make you read faster and updates will become slower.
+
+**Redundant and Duplicate Indexes**
+
+...
 
 ## Index and Table Maintenance
 
@@ -272,7 +298,7 @@ Ordering the result by the index works:
 
 ## Others
 
-index constract Table
+Indexes contrast Table
 
 | Index Type   | Indexed Columns Count | Time Complexity | Equality Query                | Range Query                                           | Order and Group | Covering |
 | ------------ | --------------------- | --------------- | ----------------------------- | ----------------------------------------------------- | --------------- | -------- |
