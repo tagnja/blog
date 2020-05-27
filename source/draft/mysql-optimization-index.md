@@ -6,6 +6,7 @@ Content
 - Index Strategies
 - Index and Table Maintenance
 - Conclusion
+- Appendixes
 - References
 
 This post is talking about MySQL index, if you are familiar with this topic, you can go to the conclusion part that's a good summary of the indexing of MySQL that may give you some enlightenment.
@@ -286,25 +287,170 @@ Conclusion of using packed indexes
 
 **Redundant and Duplicate Indexes**
 
-...
+MySQL allows you to create multiple indexes on the same column; it does not notice and protect you from your mistake. MySQL has to maintain each duplicate index separately, and the query optimizer will consider each of them when it optimizes queries.
+
+**Duplicate indexes** are indexes of the same type, created on the same set of columns in the same order. You should try to avoid creating them, and you should remove them if you find them.
+
+Sometimes you can create duplicate indexes without knowing it. For example:
+
+```sql
+CREATE TABLE table_name(
+    ID INT NOT NULL PRIMARY KEY,
+    ...
+    UINQUE(ID),
+    INDEX(ID)
+)
+```
+
+MySQL implements UNIQUE constraints and PRIMARY KEY constraints with indexes, so this example actually creates three indexes on the same column.
+
+**Redundant indexes** are a bit different from duplicate indexes. If there is an index on (A, B), another index on (A) would be redundant because it is a prefix of the first index. The index on (A, B) can also be used as an index on (A) when they are B-Tree indexes. 
+
+Redundant indexes usually appear when people add indexes to a table. In most cases you don't want redundant indexes, and to avoid them you should extend existing indexes rather than add new ones. Still, there are times when you will need redundant indexes for performance reasons. Extending an existing index might make it much larger and reduce performance for some queries.
+
+The drawback of having two indexes is the maintenance cost. Inserting new rows into the table with more indexes is slower. Adding new indexes might have a performance impact for INSERT, UPDATE, DELETE operations, especially if a new index causes you to hit memory limits.
+
+The solution for redundant and duplicate indexes is simply to drop them, but first you need to identify them. You can write various complicated queries against the INFORMATION_SCHEMA tables. You can also use tools to analyze them, such as common_schema, and pt-duplicate-keychecker tool.
+
+Be careful when determining which indexes are candidates for dropping or extending. It's good to validate your planned changes carefully with a tool such as pt-upgrade from Percona Toolkit.
+
+**Unused Indexes**
+
+In addition to duplicate and redundant indexes, you might have some indexes that the server simply doesn't use. You should consider dropping them. There are two tools that can help you identify unused indexes. The easiest and most accurate is the INFORMATION_SCHEMA.INDEX_STATISTICS table in Percona Server and MariaDB. Alternatively, you can use the pt-index-usage tool included in Percona Toolkit.
+
+**Indexes and Locking**
+
+Indexes permit queries to lock fewer rows. If you queries never touch rows they don't need, they'll lock fewer rows, and that's better for performance.
+
+InnoDB locks rows only when it accesses them, and an index can reduce the number of rows InnoDB accesses and therefore locks. However, this works only if InnoDB can filter out the undesired rows at the storage engine level. For example, 
+
+```sql
+SET AUTOCOMMIT=0;
+BEGIN;
+SELECT actor_id FROM actor WHERE actor_id < 5 
+    AND actor_id <> 1 FOR UPDATE;
+```
+
+```
+Result:
++----------+
+| actor_id |
++----------+
+|        2 |
+|        3 |
+|        4 |
++----------+
+```
+
+This query returns only rows 2 through 4, but it actually gets exclusive locks on rows 1 through 4. InnoDB locked row 1 because the plan MySQL chose for this query was an index range access:
+
+```sql
+EXPLAIN SELECT actor_id FROM actor WHERE actor_id < 5 
+    AND actor_id <> 1 FOR UPDATE;
+```
+
+```
+Result:
++----+-------------+-------+-------+---------+--------------------------+
+| id | select_type | table | type  | key     | Extra                    |
++----+-------------+-------+-------+---------+--------------------------+
+| 1  | SIMPLE      | actor | range | PRIMARY | Using where; Using index |
++----+-------------+-------+-------+---------+--------------------------+
+```
+
+In other words, the low-level storage engine operation was "begin at the start of the index and fetch all rows until actor_id < 5 is false". The server didn't tell InnoDB about the WHERE condition that eliminated row 1. Note the presence of "Using where" in the Extra column in EXPLAIN. This indicates that MySQL server is applying a WHERE filter after the storage engine returns the rows.
 
 ## Index and Table Maintenance
 
-...
+Once you have created tables with proper data types and added indexes, you work isn't over: you still need to maintain your tables and indexes to make sure they perform well. The three main goals of table maintenance are: finding and fixing corruption, maintaining accurate index statistics, and reducing fragmentation.
+
+**Finding and Repairing Table Corruption**
+
+The worst thing is table corruption. This often happens due to crashes. However, all storage engines can experience index corruption due to hardware problems or internal bugs in MySQL or the operating system.
+
+Corrupted indexes can cause queries to return incorrect results, raise duplicate-key errors when there is no duplicate value, or even cause lockups and crashes. If you experience odd behavior you can run CHECK TABLE to see if the table is corrupt. CHECK TABLE usually catches most table and index errors. (Note that some storage engines don't support this command.)
+
+You can fix corrupt tables with the REPAIR TABLE command, but not all storage engines support this.
+
+Alternatively, you can either use an offline engine-specific repair utility, such as myisamchk, or dump the data and reload it.
+
+If you experience data corruption, the most important thing to do is try to determine why it's occurring; don't simply repair the data, or the corruption could return.
+
+**Updating Index Statistics**
+
+The MySQL query optimizer uses two API calls to ask the storage engines how index values are distributed when deciding how to use indexes. The first is the records_in_range() call, which accepts range end points and returns the number of records in that range. 
+
+The second API call is info(), which can return various types of data, including index cardinality (approximately how many records there are for each key value).
+
+If the statistics were never generated, or if they are out of date, the optimizer can make bad decisions. The solution is to run ANALYZE TABLE, which regenerates the statistics.
+
+Each storage engine implements index statistics differently, so the frequency with which you'll need to run ANALYZE TABLE differs, as does the cost of running the statement:
+
+- The memory storage engine does not store index statistics at all.
+- MyISAM stores statistics on disk, and ANALYZE TABLE performs a full index scan to compute cardinality. The entire table is locked during this process.
+- InnoDB does not store statistics on disk as of MySQL 5.5, but rather estimates them with random index dives and stores them in memory.
+
+You can examine the cardinality of your indexes with the SHOW INDEX FROM command. 
+
+InnoDB calculates statistics for indexes when tables are first opened, when you run ANALYZE TABLE, and when the table's size changes significantly.
+
+For even more query plan stability, and for faster system warmups, you can use a system table to store index statistics so they are stable across server restarts and don't need to be recomputed when InnoDB opens the table for the first time after booting up. Index statistics persistence in MySQL 5.6 controlled by the innodb_analyze_is_persistent option.
+
+If you configure your server not to update index statistics automatically, you need to do it manually with periodic ANALYZE TABLE commands, unless you know that the statistics won't change in ways.
+
+**Reducing Index and Data Fragmentation**
+
+B-Tree indexes can become fragmented, which might reduce performance. Fragmented indexes can be poorly filled and non-sequential on disk.
+
+The table's data storage can also become fragmented. However, data storage fragmentation is more complex than index fragmentation. There are three types of data fragmentation:
+
+- Row fragmentation
+- Intra-row fragmentation
+- Free space fragmentation
+
+MyISAM tables might suffer from all types of fragmentation, but InnoDB never fragments short rows; it moves them and rewrites them in a single piece.
+
+To defragment data, you can either run OPTIMIZE TABLE or dump and reload data. These approaches work for most storage engines. For storage engines that don't support OPTIMIZE TABLE, you can rebuild the table with a no-op ALTER TABLE. Just alter the table to have the same engine it currently uses:
+
+```sql
+ALTER TABLE <table> ENGINE=<engine>;
+```
+
+Don't assume that you need to defragment your index and tables--measure them first to find out. Percona XtraBackup has a --stats option that can help for to measure fragmentation .
 
 ## Conclusion
 
-...
+Indexing is a very complex question. There are no fixed rules to guide how to indexing. It depends on many factors, such as what are your data structures, how did you use the data in your application, what results are you want, how did storage engines implement the index, properties of each type of index. If you want to improve a slow query, you can profiling the query and to see which subtask costs the most time. **Note that Indexes are good for queries, but too many indexes may slow to write operations.**
 
-## Others
+There are some basic principles to choose indexes:
 
-Indexes contrast Table
+- General using of index is the B-Tree index, and the other types of indexes are rather more suitable for special purposes.
+- Reads data from index files are faster than reads from physical data files.
+- Single-row access is slow. You better to read in a block that contains lots of rows you need.
+- Accessing ranges of rows in order is fast. First, sequential I/O doesn't require disk seek, so it is faster than random I/O. Secondly, it doesn't need to perform any follow-up work to sort it.
+- Index-only access is fast. If an index contains all the columns that the query needs, the storage engine don't need to find the other columns by looking up rows in the table. This avoids lots of single-row access.
 
-| Index Type   | Indexed Columns Count | Time Complexity | Equality Query                | Range Query                                           | Order and Group | Covering |
-| ------------ | --------------------- | --------------- | ----------------------------- | ----------------------------------------------------- | --------------- | -------- |
-| B-Tree Index | Multiple              | O(log n)        | Yes. (Leftmost indexed value) | Yes                                                   | Yes             | Yes      |
-| Hash Index   | Multiple              | O(1)            | Yes. (Entire indexed value)   | No                                                    | No              | No       |
-| Bitmap Index | One                   | O(1)            | Yes                           | No. Indexing on a column that has small range values. | No              | No       |
+General process for choosing indexes:
+
+1. Choosing a type of index
+2. Determining what properties of the index to use.
+   - prefix indexes and compressed indexes
+   - multicolumn indexes (like B-Tree index, hash index) and covering indexes (like B-Tree index), also consider indexes columns order)
+3. Avoid to add redundant and duplicate indexes, and remove unused indexes.
+
+It's very important to be able to reason through how indexes work, and to choose them based on that understanding, not on rules of thumb or heuristics such as "place the most selective columns first in multicolumn indexes" or "you should index all of the columns that appear in the WHERE clause".
+
+If you find a query that doesn't benefit from all of these possible advantages of indexes, see if a better index can be created to improve performance. If not, perhaps a rewrite can transform the query so that it can use an index.
+
+## Appendixes
+
+I. Indexes contrast Table
+
+| Index Type   | Indexed Columns | Time Complexity | Equality Query                | Range Query                                           | Order and Group Query | Covering Index |
+| ------------ | --------------- | --------------- | ----------------------------- | ----------------------------------------------------- | --------------------- | -------------- |
+| B-Tree Index | Multiple        | O(log n)        | Yes. (Leftmost indexed value) | Yes                                                   | Yes                   | Yes            |
+| Hash Index   | Multiple        | O(1)            | Yes. (Entire indexed value)   | No                                                    | No                    | No             |
+| Bitmap Index | One             | O(1)            | Yes                           | No. Indexing on a column that has small range values. | No                    | No             |
 
 
 
