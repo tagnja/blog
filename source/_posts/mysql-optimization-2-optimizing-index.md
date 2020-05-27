@@ -419,7 +419,9 @@ Don't assume that you need to defragment your index and tables--measure them fir
 
 ## Conclusion
 
-Indexing is a very complex topic. There are no fixed rules to guide how to indexing. It depends on many factors, such as what are your data structures, how did you use the data in your application, what results are you want, how did storage engines implement the index, properties of each type of index. If you want to improve a slow query, you can profiling the query and to see which subtask costs the most time. **Note that Indexes are good for queries, but too many indexes may slow to write operations.**
+Indexing is a very complex topic. There are no fixed rules to guide how to indexing. It depends on many factors, such as what are your data structures, how did you use the data in your application, what results are you want, how did storage engines implement the index, properties of each type of index. 
+
+If you want to improve a slow query, you can profiling the query that lets you see which subtask costs the most time, or using the EXPLAIN command. Whatever you use what ways to analyze, but you always need to find the reasons for the cause slow to query. There are some methods that may be helpful to improve a query, such as update the table's schema, add or extend indexes, and rewrite the query statement. Remember that indexing is part of improving a query. **Note that Indexes are good for queries, but too many indexes may slow to write operations.**
 
 There are some basic principles to choose indexes:
 
