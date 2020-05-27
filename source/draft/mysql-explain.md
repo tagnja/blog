@@ -33,4 +33,6 @@ filtered
 
 Extra
 
-- Using index: it means use covering index, or fetch data from index rather than physical rows.
+- Using index (only show): it means storage engine use covering index, or fetch all data from index file rather than physical rows.
+- Using index condition:
+- Using where: it means the MySQL server is applying a WHERE filter after the storage engine returns the rows.
