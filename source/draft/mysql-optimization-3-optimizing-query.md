@@ -148,13 +148,116 @@ The process MySQL to execute queries:
 4. The query execution engine executes the plan by making calls to the storage engine API.
 5. The server sends the result to the client.
 
+![image-query-process](query-process.png)
 
+**The MySQL Client/Server Protocol**
 
+The protocol is half-duplex, which means that at any given time the MySQL server can be either sending or receiving messages, but not both. This protocol makes MySQL communication simple and fast, but it have some limitation. For example, once one side sends a message, the other side must fetch the entire message before responding.
 
+The client sends a query to the server as a single packet of data. So max_allowed_packet configuration variable is important if you have large queries.
 
+In contrast, the response from the server usually consist of many packets of data. When the server responds, the client has to receive the entire result set. Most libraries that connect to MySQL let you either fetch the whole result and buffer it in memory, or fetch each row as you need it.
 
+Query States
 
+Each MySQL connection, or thread, has a state that shows what it is doing at any given time. There are several ways to view these states, but the easiest is to use the SHOW FULL PROCESSLIST command. The basic states in MySQL:
 
+- Sleep
+- Query
+- Locked
+- Analyzing and statistics
+- Copying to tmp table [on disk]
+- Sorting result
+- Sending data
+
+**The Query Cache**
+
+Before parsing a query, MySQL checks for it in the **query cache**, if the cache is enabled. This operation is a case-sensitive hash lookup. If the query differs from a similar query in the cache by even a single byte, it won't match.
+
+If MySQL does find a match in the query cache, it must check privileges before returning the cache query. If the privileges are OK, MySQL retrieves the stored result from the query cache and sends it to the client. The query is never parsed, optimized, or executed.
+
+**The Query Optimization Process**
+
+After doesn't find a match in the query cache, the next step in the query lifecycle turns a SQL query into an execution plan for the query execute engine. It has several substeps: parsing, preprocessing, and optimization. Errors (like syntax errors) can be raised at any point in the process.
+
+The parser and the preprocessor
+
+- query parsing: MySQL's parser breaks the query into tokens and builds a parse tree from them. The parser uses MySQL's **SQL grammar** to interpret and validate the query.
+- query preprocessing: the preprocessor checks the resulting parse tree for **additional semantics**. For example, it checks that tables and columns exist, and it resolves names and aliases to ensure that column references aren't ambiguous. Next, the preprocessor **checks privileges**.
+
+The query optimizer
+
+After preprocessing the parse tree is now valid and ready for the optimizer to turn it into a query execution plan. A query can often be executed many different ways and produce the same result. The optimizer's job is to find the best option.
+
+MySQL uses a cost-based optimizer, which means it tries to predict the cost of various execution plans and choose the least expensive. The unit of cost way originally a single random 4KB data page read, but also includes factors such as the estimated cost of executing a WHERE clause comparison. You can see how expensive the optimizer estimated a query to be by running the query, then inspecting the `Last_query_cost` session variable:
+
+```sql
+SELECT SQL_NO_CACHE COUNT(*) FROM your_table;
+SHOW STATUS LIKE 'Last_query_cost';
+```
+
+Result of `SHOW STATUS LIKE 'Last_query_cost'` means that the optimizer estimated it would need to do about how much random data page reads to execute the query.
+
+The optimizer might not always choose the best plan, for many reasons:
+
+- The statistics could be wrong.
+- The cost metric is not exactly equivalent to the true cost of running the query.
+- MySQL's idea of optimal might not match yours. MySQL doesn't really try to make queries fast; it tries to minimize their.
+- MySQL doesn't consider other queries that are running concurrently.
+- MySQL doesn't always do cost-based optimization.
+- The optimizer doesn't take into account the cost of operations not under its control, such as executing stored functions.
+
+MySQL's join execution strategy
+
+MySQL consider every query a join--not just every query that matches rows from two tables, but every query. It's very important to understand how MySQL executes joins.
+
+MySQL's join execution strategy is simple: it treats every join as a nested-loop join. This means MySQL runs a loop to find a row from a table, then run a nested loop to find a matching row in the next table. It continues until it has found a matching row in each table in the join. For example:
+
+```sql
+SELECT tab1.col1, tab2.col2 
+FROM tab1 INNER JOIN tab2 USING(col3)
+WHERE tab1.col1 in (5, 6);
+```
+
+following pseudocode shows how MySQL might execute the query:
+
+```
+outer_iter = iterator over tbl1 where col1 IN(5,6)
+outer_row = outer_iter.next
+while outer_row
+	inner_iter = iterator over tbl2 where col3 = outer_row.col3
+	inner_row = inner_iter.next
+	while inner_row
+		output [ outer_row.col1, inner_row.col2 ]
+		inner_row = inner_iter.next
+	end
+	outer_row = outer_iter.next
+end
+```
+
+First Finding table iterator that fulfills the WHERE condition, then finding equal values on join columns.
+
+The execution plan
+
+MySQL doesn't generate byte-code to execute a query, instead, the query execution plan is actually a tree of instructions that the query execution engine follows to produce the query results.
+
+Any multitable query can conceptually be represent as a tree. MySQL always begins with one table and finds matching rows in the next table. Thus, MySQL's query execution plans always take the form of left-deep tree. As shown in the figure below.
+
+![Multiple Table Join](multiple-table-join.png)
+
+The join optimizer
+
+The most important part of the MySQL query optimizer is the join optimizer, which decides the best order of execution for multitable queries. 
+
+MySQL's join optimizer can reorder queries to make them less expensive to execute. You can use STRAIGHT_JOIN and write queries in the order you think is best, but such times are rare. In most cases, the join optimizer will outperform a human.
+
+Sort optimizations
+
+...
+
+**The Query Execution Engine**
+
+**Returning Results to the Client**
 
 ## Limitations of the MySQL Query Optimizer
 
