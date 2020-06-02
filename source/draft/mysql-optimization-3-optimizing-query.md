@@ -94,14 +94,82 @@ If you find that a huge number of rows were examined to produce relatively few r
 
 As you optimize problematic queries, your goal should be to find alternative ways to get the result you want. You can sometimes transform queries into equivalent forms that return the same results, and get better performance.
 
-Complex Queries Versus Many Queries
+**Complex Queries Versus Many Queries**
 
+It's a good idea to use as few queries as possible, but sometimes you can make a query more efficient by decomposing it and executing a few simple queries instead of one complex one.
 
+**Chopping Up a Query**
+
+Another way to slice up a query is to divide and conquer, keeping it essentially the same but running it in smaller "chunks" that affect fewer rows each time.
+
+Purging old data is a great example. For example:
+
+```sql
+DELETE FROM messages WHERE created < DATE_SUB(NOW(), INTERVAL 3 MONTH);
+```
+
+It might also be a good idea to add some sleep time between the DELETE statements to spread the load over time and reduce the amount of time locks are held.
+
+**Join Decomposition**
+
+Many high-performance applications use join decomposition. You can decompose a join by running multiple single-table queries instead of a multitable join. For example:
+
+```sql
+SELECT * FROM tag
+    JOIN tag_post ON tag_post.tag_id=tag.id
+    JOIN post ON tag_post.post_d=post.id
+WHERE tag.tag='mysql';
+```
+
+To
+
+```sql
+SELECT * FROM tag WHERE tag='mysql';
+SELECT * FROM tag_post WHERE tag_id=1234;
+SELECT * FROM post WHERE post.id in (123,456,567,8876);
+```
+
+Advantages of multiple single-table queries
+
+- Caching can be more efficient.
+- Executing the queries individually can sometimes reduce lock contention.
+- The queries themselves can be more efficient.
+- You can reduce redundant row accesses.
 
 ## Query Execution Basics
 
+If you need to get high performance from your MySQL server, one of the best ways to learning how MySQL optimizes and executes queries. 
+
+The process MySQL to execute queries:
+
+1. The client sends the SQL statement to the server.
+2. The server checks the query cache. If there's a hit, it returns the stored result from the cache, otherwise to next step.
+3. The server parses, preprocesses, and optimizes the SQL into a query execution plan.
+4. The query execution engine executes the plan by making calls to the storage engine API.
+5. The server sends the result to the client.
+
+
+
+
+
+
+
+
+
+## Limitations of the MySQL Query Optimizer
+
+...
+
+## Query Optimizer Hints
+
+...
+
+## Optimizing Specific Types of Queries
+
+...
+
 ## Conclusion
 
-
+...
 
 ## References
