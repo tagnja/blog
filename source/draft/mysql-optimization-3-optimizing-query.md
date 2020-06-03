@@ -424,7 +424,19 @@ Fast, accurate, and simple: pick any two.
 
 **Optimizing JOIN Queries**
 
-...
+There are some principles for optimizing JOIN queries:
+
+- Make sure there are indexes on the columns in the ON or USING clauses. Consider the join order when adding indexes. In general, you need to add indexes only on the second table in the join order (for example, table A join B, you need add index on B rather than A), unless they're needed for some other reason.
+- Try to ensure that any GROUP BY or ORDER BY expression refers only to columns from a single table, so MySQL can try to use an index for that operation.
+- Be careful when upgrading MySQL, because the join syntax, operator precedence, and other behaviors have changed at various time.
+
+**Optimizing Subqueries**
+
+The core of the post is focused on MySQL 5.1 and MySQL 5.5.
+
+
+
+
 
 ## Conclusion
 
