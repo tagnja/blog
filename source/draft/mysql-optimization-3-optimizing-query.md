@@ -253,26 +253,185 @@ MySQL's join optimizer can reorder queries to make them less expensive to execut
 
 Sort optimizations
 
-...
+Sorting results can be a costly operation, so you can often improve performance by avoiding sorts or by performing them on fewer rows.
+
+When MySQL can't use an index to produce a sorted result, it must sort the rows itself. It can do this in memory or on disk, but it always calls this process a filesort, even if it doesn't actually use a file. 
+
+If the values to be sorted will fit into the sort buffer, MySQL can perform the sort entirely in memory with a quiksort. If MySQL can't do the sort in memory, it performs it on disk by sorting the values in chunks with quicksort, and then merges the sorted chunks into results.
+
+When sorting a join, if the ORDER BY clause refers only to columns from the first table in the join order, MySQL can filesort this table and then proceed with the join. This case will show "Using filesort" in the Extra column of EXPLAIN. If ORDER BY clause contains columns from more than one table, MySQL must store the query's results into a temporary table and then filesort then temporary table after the join finishes. This case will show "Using temporary; Using filesort" in the Extra column of EXPLAIN.
 
 **The Query Execution Engine**
 
+The parsing and optimizing stage outputs a query execution plan, which MySQL's query execution engine uses to process the query. The plan is a data structure; it is not executable byte-code, which is how many other database execute queries.
+
+In contrast to the optimization stage, the execution stage is usually not all that complex: MySQL simply follows the instructions given in the query execution plan. Many of the operations in the plan invoke methods implemented by the storage engine interface, also known as the handler API.
+
+To execute the query, the server just repeats the instructions until there are no more rows to examine.
+
 **Returning Results to the Client**
+
+The final step in executing a query is to reply to the client. Even queries that don't return a result set still reply to the client connection with information about the query, such as how many rows it affected.
+
+The server generates and sends results incrementally. As soon as MySQL processes the last table and generates one row successfully, it can and should send that row to the client. This has two benefits: it lets the server avoid holding the row in memory, and it means the client starts getting the results as soon as possible. Each row in the result set is sent in a separate packet in the MySQL client/server protocol, although protocol packets can be buffered and sent together at the TCP protocol layer.
 
 ## Limitations of the MySQL Query Optimizer
 
-...
+**Correlated Subqueries**
+
+MySQL sometimes optimizes subqueries very badly. The worst offenders are IN() subqueries in the WHERE clause.
+
+The standard advice for this query is to write it as a LEFT OUTER JOIN instead of using a subquery. 
+
+**UNION Limitations**
+
+You should put condition clauses inside each part of the UNION.
+
+For example, if you UNION together two tables and LIMIT the result to the first 20 rows:
+
+Query 1:
+
+This query will store all rows of tables into a temporary table then fetch first 20 rows form that temporary table.
+
+```sql
+(SELECT first_name, last_name
+FROM sakila.actor
+ORDER BY last_name)
+UNION ALL
+(SELECT first_name, last_name
+FROM sakila.customer
+ORDER BY last_name)
+LIMIT 20;
+```
+
+Query 2:
+
+This query will store first 20 rows each table into a temporary table and then fetch first 20 rows from that temporary table.
+
+```sql
+(SELECT first_name, last_name
+FROM sakila.actor
+ORDER BY last_name
+LIMIT 20)
+UNION ALL
+(SELECT first_name, last_name
+FROM sakila.customer
+ORDER BY last_name
+LIMIT 20)
+LIMIT 20;
+```
+
+You should use query 2 (contains inside LIMIT) instead of query 1 (only outer LIMIT).
+
+**SELECT and UPDATE on the Same Table**
+
+MySQL doesn't let you SELECT from a table while simultaneously running an UPDATE on it. To work around this limitation, you can use a derived table, because MySQL materializes it as a temporary table.
+
+```sql
+UPDATE tb1 AS outer_tb1
+SET cnt = (
+	SELECT count(*) tb1 AS inner_tb1
+    WHERE inner_tb1.type = outer_tb1.type
+);
+```
+
+To 
+
+```sql
+UPDATE tb1 
+    INNER JOIN(
+        SELECT type, count(*) as cnt
+        FROM tb1
+        GOURP BY type
+    ) AS der USING(type)
+SET tb1.cnt = der.cnt;
+```
+
+
 
 ## Query Optimizer Hints
 
-...
+MySQL has a few optimizer hints you can use to control the query plan if you are not content with the one MySQL's optimizer chooses. You place the appropriate hint in the query whose plan you want to modify, and it is effective for only that query. Some of them are version-dependent. You can check the MySQL manual for the exact syntax of each hint.
+
+**STRAIGHT_JOIN**. Putting this hint in after the SELECT keyword that forces all tables in the query to be joined in the order in which they are listed in the statement. Putting in between two joined tables that force a join order on the two tables between which the hint appears. It is useful when MySQL doesn't choose a good join order, or when the optimizer takes a long time to decide on a join order.
+
+```sql
+select a.id, c.id
+from a
+straight_join b on b.a_id = a.id
+join c on c.id = b.c_id
+```
+
+or
+
+```sql
+select straight_join a.id, c.id
+from a
+b on b.a_id = a.id
+join c on c.id = b.c_id
+```
+
+**USE INDEX**, IGNORE INDEX, and FORCE INDEX. These hints tell the optimizer which indexes to use or ignore for finding rows in a table.
 
 ## Optimizing Specific Types of Queries
+
+There are some advice on how to optimize certain kinds of queries. Most of the advice is version-dependent, and it might not hold for future versions of MySQL.
+
+**Optimizing COUNT() Queries**
+
+Before optimization, it's important that you understand what COUNT() really does.
+
+What COUNT() does
+
+COUNT() counts how many times that expression has a value. When you want to know the number of rows in the result, you should always use COUNT(*).
+
+Simple Optimizations
+
+Example 1:
+
+```sql
+SELECT COUNT(*) FROM world.City WHERE ID > 5;
+```
+
+replace to 
+
+```sql
+SELECT (SELECT COUNT(*) FROM world.City) - COUNT(*) 
+FROM world.City WHERE ID <= 5;
+```
+
+Example 2:
+
+```sql
+SELECT SUM(IF(color = 'blue', 1, 0)) AS blue,SUM(IF(color = 'red', 1, 0)) AS red FROM items;
+```
+
+replace to 
+
+```sql
+SELECT COUNT(color = 'blue' OR NULL) AS blue, COUNT(color = 'red' OR NULL) AS red FROM items;
+```
+
+Using an approximation
+
+Sometimes you don't need an accurate count, so you can just use an approximation. The optimizer's estimated rows in EXPLAIN often serves well for this. Just execute an EXPLAIN query instead of the real query.
+
+```sql
+EXPLAIN select COUNT(*) from your_table;
+```
+
+Fast, accurate, and simple: pick any two.
+
+**Optimizing JOIN Queries**
 
 ...
 
 ## Conclusion
 
 ...
+
+In theory, MySQL will execute some queries almost identically. In reality, measuring is the only way to tell which approach is really faster. 
+
+There are some advice on how to optimize certain kinds of queries. Most of the advice is version-dependent, and it might not hold for future versions of MySQL.
 
 ## References
