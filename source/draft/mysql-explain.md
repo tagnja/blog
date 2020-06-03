@@ -2,17 +2,36 @@ Title: MySQL explain
 
 ## Meaning Key of Columns in explain result
 
-id
+### id
 
-select_type
+### select_type
 
-- SIMPLE
+- SIMPLE: Simple [`SELECT`](https://dev.mysql.com/doc/refman/8.0/en/select.html) (not using [`UNION`](https://dev.mysql.com/doc/refman/8.0/en/union.html) or subqueries)
+- PRIMARY
+- UNION
+- DEPENDENT UNION
+- UNION RESULT
+- SUBQUERY
+- DEPENDENT SUBQUERY
+- DERIVED
+- DEPENDENT DERIVED
+- MATERIALIZED: Materialized subquery. **Subquery** materialization uses an in-memory temporary table when possible, falling back to on-disk storage if the table becomes too large. See Section 8.4. 4, “Internal Temporary Table Use in **MySQL**”. If materialization is not used, the optimizer sometimes rewrites a noncorrelated **subquery** as a correlated **subquery**.
+- UNCACHETABLE SUBQUERY
+  UNCACHETABLE UNION
 
-table: table names
+`DEPENDENT` typically signifies the use of a correlated subquery. See [Section 13.2.11.7, “Correlated Subqueries”](https://dev.mysql.com/doc/refman/8.0/en/correlated-subqueries.html).
 
-partitions
 
-type: Describes how tables are joined. (Access methods to find and return rows)
+
+### table
+
+table names
+
+### partitions
+
+### type
+
+Describes how tables are joined. (Access methods to find and return rows)
 
 - **system**
 - **const**: The table has at most one matching row, which is read at the start of the query. e.g `SELECT * FROM *tbl_name* WHERE *primary_key*=1;`
@@ -29,21 +48,25 @@ type: Describes how tables are joined. (Access methods to find and return rows)
 
 Cost Time order by how much data does MySQL require reading to execute the query: `ALL` > `index` > `range` > `unique_subquery` > `ref` > `const`
 
-possible_keys: your index names
+### possible_keys
 
-key: your index names
+your index names
 
-key_len
+### key
 
-ref
+your index names
+
+### key_len
+
+### ref
 
 - const
 
-rows
+### rows
 
-filtered
+### filtered
 
-Extra
+### Extra
 
 - Using index (only show): it means storage engine use covering index, or fetch all data from index file rather than physical rows.
 - Using index condition:
