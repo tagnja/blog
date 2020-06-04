@@ -381,9 +381,7 @@ There are some advice on how to optimize certain kinds of queries. Most of the a
 
 Before optimization, it's important that you understand what COUNT() really does.
 
-What COUNT() does
-
-COUNT() counts how many times that expression has a value. When you want to know the number of rows in the result, you should always use COUNT(*).
+The COUNT() counts how many times that expression has a value. When you want to know the number of rows in the result, you should always use COUNT(*).
 
 Simple Optimizations
 
@@ -432,9 +430,70 @@ There are some principles for optimizing JOIN queries:
 
 **Optimizing Subqueries**
 
-The core of the post is focused on MySQL 5.1 and MySQL 5.5.
+The core of the post is focused on MySQL 5.1 and MySQL 5.5. In these versions of MySQL, and in most situations, you should usually prefer a join where possible, rather than subqueries. However, prefer a join is not future-proof advice, so you need be cautious with it.
 
+**Optimizing GROUP BY and DISTINCT**
 
+MySQL optimizing these two kinds of queries similarly in many cases, and in fact converts between them as needed internally during then optimization process.
+
+MySQL has two kinds of GROUP BY strategies when it can't use an index: it can use a temporary table or file sort to perform the grouping. Either one can be more efficient for any given query. You can force the optimizer to choose one method or the other with the SQL_BIG_RESULT and SQL_SMALL_RESULT optimizer hints.
+
+If you need to group a join by a value that comes from a lookup table, it is usually more efficient to group by the lookup table's **identifier** than by value.
+
+```sql
+SELECT actor.first_name, actor.last_name, COUNT(*)
+FROM sakila.film_actor
+INNER JOIN sakila.actor USING(actor_id)
+GROUP BY actor.first_name, actor.last_name;
+```
+
+Replace to 
+
+```sql
+SELECT actor.first_name, actor.last_name, COUNT(*)
+FROM sakila.film_actor
+INNER JOIN sakila.actor USING(actor_id)
+GROUP BY film_actor.actor_id;
+```
+
+It's generally a bad idea to select **nongrouped columns** in a grouped query, because the results will be nondeterministic and could easily change if you change an index or the optimizer decides to use a different strategy. It's better to be explicit. We suggest you set the server's SQL_MODE configuration variable to include ONLY_FULL_GROUP_BY so it produces an error instead of letting you write a bad query. Query select values only are grouped columns or aggregate function on grouped columns. For example:
+
+```sql
+SELECT name, COUNT(*) FROM your_table GROUP BY name;
+```
+
+MySQL automatically orders grouped queries by the columns in the GROUP BY clause, unless you specify an ORDER BY clause explicitly. If you don't care about the **order** and you see this causing a filesort, you can use ORDER BY NULL to skip the automatic sort.
+
+Optimizing GROUP BY WITH ROLLUP
+
+A variation on grouped queries is to ask MySQL to do superaggregation within the results. You can do this with a WITH ROLLUP clause, but it might not be as well optimized as you need. Check the execution method with EXPLAIN , paying attention to whether the grouping is done via filesort or temporary table; try removing the WITH ROLLUP and seeing if you get the same group method. 
+
+Sometimes it’s more efficient to do superaggregation in your application, even if it means fetching many more rows from the server.
+
+**Optimizing LIMIT and OFFSET**
+
+Queries with LIMITs and OFFSETs are common in systems that do pagination, nearly always in conjunction with an ORDER BY clause. It's helpful to have an index that supports the ordering; otherwise, the server has to do a lot of filesorts.
+
+A frequent problem is having high value for offset. For example, if you query looks like `LIMIT 10000, 20`, it is generating 10020 rows and throwing away the first 10000 of them, which is very expensive. To optimize them, you can either limit how many pages are permitted in a pagination view, or try to make the high offsets more efficient.
+
+One ways to optimizing the high value offset is offset on a covering index, rather than the full rows. You can then join the result to the full row and retrieve the additional columns you need. For example:
+
+```sql
+SELECT film_id, description FROM sakila.film ORDER BY title LIMIT 50, 5;
+```
+
+Replace to 
+
+```sql
+SELECT film.film_id, film.description
+FROM sakila.film
+INNER JOIN (
+    SELECT film_id FROM sakila.film
+    ORDER BY title LIMIT 50, 5
+) AS lim USING(film_id);
+```
+
+`SELECT id FROM your_table ORDER BT title` can use the covering `index(title, id)`. However, `SELECT * ... ORDER BY title` have no index to use because in general there is no covering all column index in a table, and it has to using filesort.
 
 
 
@@ -445,5 +504,34 @@ The core of the post is focused on MySQL 5.1 and MySQL 5.5.
 In theory, MySQL will execute some queries almost identically. In reality, measuring is the only way to tell which approach is really faster. 
 
 There are some advice on how to optimize certain kinds of queries. Most of the advice is version-dependent, and it might not hold for future versions of MySQL.
+
+**Efficiency of Queries**
+
+covering index columns query > fetch rows of table file refer by index > using in-memory internal temporary table > table scan > filesort
+
+## Others
+
+**Internal Temporary Table**
+
+In some cases, the server creates internal temporary tables while processing statement. To determine whether a statement requires a temporary table, use [`EXPLAIN`](https://docs.oracle.com/cd/E17952_01/mysql-8.0-en/explain.html) and check the `Extra` column to see whether it says `Using temporary`
+
+- Evaluation of UNION statements, when UNION DISTINCT, or have a global ORDER BY clause.
+- Evaluation of derived tables.
+- Evaluation of common table expressions (WITH)
+- Evaluation of statements that contain an ORDER BY clause and a different GROUP BY clause, or for which the ORDER BY or GROUP BY contains columns from tables other than the first table in the join queue.
+- Evaluation of subquery has no indexes.
+- Evaluation of DISTINCT combined with ORDER BY may require a temporary table.
+- For queries that use the SQL_SMALL_RESULT modifier, MySQL uses an in-memory temporary table, unless the query also contains elements that require on-disk storage.
+- To evaluate INSERT ... SELECT statements that select from and insert into the same table.
+- Evaluation of multiple-table UPDATE statements.
+- Evaluation of window functions uses temporary tables as necessary.
+
+Some query conditions prevent the use of an in-memory temporary table, in which case the server uses an on-disk table instead:
+
+- Presence of a BLOB or TEXT column in the table.
+- Presence of any string column with a maximum length larger than 512 bytes or characters in SELECT.
+- The SHOW COLUMNS and DESCRIBE statements use BLOB as the type for some columns.
+
+
 
 ## References
