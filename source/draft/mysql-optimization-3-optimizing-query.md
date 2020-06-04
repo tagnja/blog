@@ -121,7 +121,7 @@ SELECT * FROM tag
 WHERE tag.tag='mysql';
 ```
 
-To
+replace to
 
 ```sql
 SELECT * FROM tag WHERE tag='mysql';
