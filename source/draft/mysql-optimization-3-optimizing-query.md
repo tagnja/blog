@@ -546,19 +546,26 @@ It's important to always **use UNION ALL**, unless you need the server to elimin
 
 ## Conclusion
 
-...
+For query optimization, we should understanding query execution basic such as what is a general query execution process in MySQL.
 
-In theory, MySQL will execute some queries almost identically. In reality, measuring is the only way to tell which approach is really faster. 
+Before we to optimize a query, we must find the reason of slow to a query. We can use EXPLAIN to see how the query to execute. However a slow query may cause by many reasons which are schema of table, indexes of table, and the query statement. We need to combine these aspects to optimize.
 
-There are some advice on how to optimize certain kinds of queries. Most of the advice is version-dependent, and it might not hold for future versions of MySQL.
+We know query optimization that is part of optimization. In theory, MySQL will execute some queries almost identically. In reality, measuring is the only way to tell which approach is really faster. For query optimization, There are some advice on how to optimize certain kinds of queries. Most of the advice is version-dependent, and it might not hold for future versions of MySQL. 
 
 
+
+## Appendixes
+
+**Common Types of Query**
+
+- Single Table Query
+- JOIN
+- UNION, UNION ALL
+- Subquery
 
 **Efficiency of Queries**
 
-Efficiency of kinds of query from high to low:
-
-1.
+Efficiency of kinds of single table query from high to low:
 
 - **Extra: Using index**. Using covering index. (lookup in an index, fetch data from an index file).
 - Extra: (isn't Using index). That means don't fetch data from index file.
@@ -569,14 +576,6 @@ Efficiency of kinds of query from high to low:
   - type: ALL. To scan an table file.
     - **type: ALL, Extra: Using where**. To scan an table. For example, `SELECT * FROM <table> WHERE <column not in index> > ""`.
     - **type: ALL, Extra: Using where, Using filesort**. To scan an table, and do a filesort. For example, `SELECT * FROM <table> WHERE <column not in index> > "" order by <column not in index>`.
-
-Single Table Query, JOIN, UNION, UNION ALL, subquery
-
-- using in-memory internal temporary table
-
-
-
-## Others
 
 **Internal Temporary Table**
 
@@ -599,7 +598,7 @@ Some query conditions prevent the use of an in-memory temporary table, in which 
 - Presence of any string column with a maximum length larger than 512 bytes or characters in SELECT.
 - The SHOW COLUMNS and DESCRIBE statements use BLOB as the type for some columns.
 
-SELECT Statement
+**Format of SELECT Statement**
 
 ```sql
 SELECT
@@ -639,3 +638,7 @@ into_option: {
 
 
 ## References
+
+[1] High Performance MySQL by Baron Schwartz, Vadim Tkachenko, Peter Zaitsev, Derek J. Balling
+
+[2] MySQL 8.0 Reference Manual
