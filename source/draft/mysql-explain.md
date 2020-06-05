@@ -6,18 +6,20 @@ Title: MySQL explain
 
 ### select_type
 
+The type of SELECT.
+
 - SIMPLE: Simple [`SELECT`](https://dev.mysql.com/doc/refman/8.0/en/select.html) (not using [`UNION`](https://dev.mysql.com/doc/refman/8.0/en/union.html) or subqueries)
-- PRIMARY
-- UNION
-- DEPENDENT UNION
-- UNION RESULT
-- SUBQUERY
-- DEPENDENT SUBQUERY
-- DERIVED
-- DEPENDENT DERIVED
+- PRIMARY: Outermost SELECT.
+- UNION: Second or later SELECT statement in a UNION.
+- DEPENDENT UNION: Second or later SELECT statement in a UNION, dependent on outer query.
+- UNION RESULT: Result of a UNION.
+- SUBQUERY: First SELECT in subquery.
+- DEPENDENT SUBQUERY: First SELECT in subquery, dependent on outer query
+- DERIVED: Derived table.
+- DEPENDENT DERIVED: Derived table dependent on another table
 - MATERIALIZED: Materialized subquery. **Subquery** materialization uses an in-memory temporary table when possible, falling back to on-disk storage if the table becomes too large. See Section 8.4. 4, “Internal Temporary Table Use in **MySQL**”. If materialization is not used, the optimizer sometimes rewrites a noncorrelated **subquery** as a correlated **subquery**.
-- UNCACHETABLE SUBQUERY
-  UNCACHETABLE UNION
+- UNCACHETABLE SUBQUERY: A subquery for which the result cannot be cached and must be re-evaluated for each row of the outer query.
+  UNCACHETABLE UNION: The second or later select in a UNION that belongs to an uncacheable subquery.
 
 `DEPENDENT` typically signifies the use of a correlated subquery. See [Section 13.2.11.7, “Correlated Subqueries”](https://dev.mysql.com/doc/refman/8.0/en/correlated-subqueries.html).
 
@@ -31,7 +33,7 @@ table names
 
 ### type
 
-Describes how tables are joined. (Access methods to find and return rows)
+The join type. For description of how tables are joined. (Access methods to find and return rows)
 
 - **system**
 - **const**: The table has at most one matching row, which is read at the start of the query. e.g `SELECT * FROM *tbl_name* WHERE *primary_key*=1;`
@@ -69,8 +71,9 @@ your index names
 ### Extra
 
 - Using index (only show): it means storage engine use covering index, or fetch all data from index file rather than physical rows.
-- Using index condition:
+- Using index condition: Tables are read by accessing index tuples and testing them first to determine whether to read full table rows.
 - Using where: it means the MySQL server is applying a WHERE filter after the storage engine returns the rows.
+- Using temporary: To resolve the query, MySQL needs to create a temporary table to hold the result. This typically happens if the query contains `GROUP BY` and `ORDER BY` clauses that list columns differently.
 
 ## References
 
