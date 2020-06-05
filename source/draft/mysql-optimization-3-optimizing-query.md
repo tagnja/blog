@@ -476,13 +476,24 @@ Queries with LIMITs and OFFSETs are common in systems that do pagination, nearly
 
 A frequent problem is having high value for offset. For example, if you query looks like `LIMIT 10000, 20`, it is generating 10020 rows and throwing away the first 10000 of them, which is very expensive. To optimize them, you can either limit how many pages are permitted in a pagination view, or try to make the high offsets more efficient.
 
+The key of optimizing do pagination is using an index to sort rather than using a filesort. You can use join or using some methods to replace the OFFSET. 
+
+- using index for sort
+  - Using join. `SELECT * FROM ... JOIN (SELECT id ... ORDER BY .. LIMIT off, count)` 
+  - Remove offset. `SELECT * ... ORDER BY ... LIMIT count`
+  - Remove offset and limit. `SELECT * ... WHERE <column> BETWEEN <start> AND <end> ORDER BY ...`
+- Using filesort
+  - `SELECT * ... ORDER BY ... LIMIT offset, row_count`
+
+1. Optimizing sort by using joins
+
 One ways to optimizing the high value offset is offset on a covering index, rather than the full rows. You can then join the result to the full row and retrieve the additional columns you need. For example:
 
 ```sql
 SELECT film_id, description FROM sakila.film ORDER BY title LIMIT 50, 5;
 ```
 
-Replace to 
+replace to 
 
 ```sql
 SELECT film.film_id, film.description
@@ -495,7 +506,43 @@ INNER JOIN (
 
 `SELECT id FROM your_table ORDER BT title` can use the covering `index(title, id)`. However, `SELECT * ... ORDER BY title` have no index to use because in general there is no covering all column index in a table, and it has to using filesort.
 
+2. Optimizing offset by using positional range queries
 
+Limit to a positional query, which the server can executes as an index range scan. For example:
+
+```sql
+SELECT film_id, description FROM sakila.film
+WHERE position BETWEEN 50 AND 54 ORDER BY position;
+```
+
+3. Using a start position instead of an OFFSET
+
+If you use a sort of bookmark to remember the position of the last row you fetch, you can generate the next set of rows by starting from that position instead of using an OFFSET.
+
+first page query
+
+```sql
+SELECT * FROM sakila.rental
+ORDER BY rental_id ASC LIMIT 20;
+```
+
+next page query
+
+```sql
+SELECT * FROM sakila.rental
+WHERE rental_id > 20
+ORDER BY rental_id ASC LIMIT 20;
+```
+
+**Optimizing UNION**
+
+MySQL always executes UNION queries by creating a temporary table and filling it with the UNION results. MySQL can't apply as many optimizations to UNION queries as you might be used to.  You might have to help the optimizer by manually pushing down WHERE, LIMIT, ORDER BY, and other conditions because you can't use index in temporary tables. For example, **copying them, as appropriate, from the outer query into each SELECT in the UNION.**
+
+It's important to always **use UNION ALL**, unless you need the server to eliminate duplicate rows. If you omit the ALL keyword, MySQL adds the distinct option to the temporary table, which uses the full row to determine uniqueness. This is quite expensive.
+
+**Static Query Analysis**
+
+[Percona Toolkit](https://www.percona.com/software/database-tools/percona-toolkit) contains [pt-query-advisor](https://www.percona.com/doc/percona-toolkit/2.1/pt-query-advisor.html#:~:text=pt%2Dquery%2Dadvisor%20analyzes%20queries,%E2%80%93query%20or%20%E2%80%93review%20options.), a tool that parses a log of queries, analyzes the query patterns, and gives annoyingly detailed advice about potentially bad practices in them. It will catch many common problems such as those we’ve mentioned in the previous sections of this post.
 
 ## Conclusion
 
@@ -505,9 +552,29 @@ In theory, MySQL will execute some queries almost identically. In reality, measu
 
 There are some advice on how to optimize certain kinds of queries. Most of the advice is version-dependent, and it might not hold for future versions of MySQL.
 
+
+
 **Efficiency of Queries**
 
-covering index columns query > fetch rows of table file refer by index > using in-memory internal temporary table > table scan > filesort
+Efficiency of kinds of query from high to low:
+
+1.
+
+- **Extra: Using index**. Using covering index. (lookup in an index, fetch data from an index file).
+- Extra: (isn't Using index). That means don't fetch data from index file.
+  - **type: ref** (or **type: range, Extra: Using index condition**). Using index to find all columns of rows (lookup in an index, fetch data from a table file). 
+  - **type: index_merge**. Using multiple index to find all columns of rows (lookup in multiple indexes, fetch data from a table file). For example, `select * from <table_name> where <column in index1> = <value1> or <column in index2> = <value2>`.
+  - **type: index**. To scan an index (Scan an index, fetch data from a table file).
+  - **type: range, Extra: Using where**. Using index find all columns of rows, and the MySQL server is applying a WHERE filter after the storage engine returns the rows. (lookup in an index, fetch data from a table file, and filter data by MySQL server). For example, `SELECT * FROM <table> WHERE id > 5 AND id <> 1`.
+  - type: ALL. To scan an table file.
+    - **type: ALL, Extra: Using where**. To scan an table. For example, `SELECT * FROM <table> WHERE <column not in index> > ""`.
+    - **type: ALL, Extra: Using where, Using filesort**. To scan an table, and do a filesort. For example, `SELECT * FROM <table> WHERE <column not in index> > "" order by <column not in index>`.
+
+Single Table Query, JOIN, UNION, UNION ALL, subquery
+
+- using in-memory internal temporary table
+
+
 
 ## Others
 
@@ -531,6 +598,43 @@ Some query conditions prevent the use of an in-memory temporary table, in which 
 - Presence of a BLOB or TEXT column in the table.
 - Presence of any string column with a maximum length larger than 512 bytes or characters in SELECT.
 - The SHOW COLUMNS and DESCRIBE statements use BLOB as the type for some columns.
+
+SELECT Statement
+
+```sql
+SELECT
+    [ALL | DISTINCT | DISTINCTROW ]
+    [HIGH_PRIORITY]
+    [STRAIGHT_JOIN]
+    [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
+    [SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
+    select_expr [, select_expr] ...
+    [into_option]
+    [FROM table_references
+      [PARTITION partition_list]]
+    [WHERE where_condition]
+    [GROUP BY {col_name | expr | position}, ... [WITH ROLLUP]]
+    [HAVING where_condition]
+    [WINDOW window_name AS (window_spec)
+        [, window_name AS (window_spec)] ...]
+    [ORDER BY {col_name | expr | position}
+      [ASC | DESC], ... [WITH ROLLUP]]
+    [LIMIT {[offset,] row_count | row_count OFFSET offset}]
+    [into_option]
+    [FOR {UPDATE | SHARE}
+        [OF tbl_name [, tbl_name] ...]
+        [NOWAIT | SKIP LOCKED] 
+      | LOCK IN SHARE MODE]
+    [into_option]
+
+into_option: {
+    INTO OUTFILE 'file_name'
+        [CHARACTER SET charset_name]
+        export_options
+  | INTO DUMPFILE 'file_name'
+  | INTO var_name [, var_name] ...
+}
+```
 
 
 
