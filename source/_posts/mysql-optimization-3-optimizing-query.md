@@ -1,5 +1,5 @@
 ---
-title: MySQL优化（三）：optimizing query
+title: MySQL优化（三）：Optimizing Query
 date: 2020-06-05 14:19:00
 categories: 
 - 性能优化
