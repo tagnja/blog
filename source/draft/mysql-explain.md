@@ -21,7 +21,7 @@ EXPLAIN is an approximation. Sometimes it's a good approximation, but at other t
 - It doesn't tell you about optimization MySQL does during query execution.
 - Some of the statistics it shows are estimates and can be very inaccurate.
 - It doesn't show you everything there is to know about a query's execution plan.
-- It doesn't distinguish between some things with the same name. For example, it uses "filesort" for in-meory sorts and for temporary files, and it displays "Using temporary" for temporary tables on disk and in memory.
+- It doesn't distinguish between some things with the same name. For example, it uses "filesort" for in-memory sorts and for temporary files, and it displays "Using temporary" for temporary tables on disk and in memory.
 
 **Rewriting Non-SELECT Queries**
 
@@ -105,7 +105,7 @@ UNION results are always placed into an anonymous temporary table, and MySQL the
 
 **The select_type Column**
 
-This column shows whether the row is a simple or complex SELECT (and if it's the latter, which of the three complex types it it). The value `SIMPLE` means the query contains no subqueries or UNIONs. If the the query has any such complex subparts, the outermost part is labeled `PRIMARY`, and other parts are labeled as follows:
+This column shows whether the row is a simple or complex SELECT (and if it's the latter, which of the three complex types it is). The value `SIMPLE` means the query contains no subqueries or UNIONs. If the query has any such complex subparts, the outermost part is labeled `PRIMARY`, and other parts are labeled as follows:
 
 - `SUBQUERY`. A SELECT that is contained in a subquery in the SELECT clause (not in the FROM clause) is labeled SUBQUERY.
 - `DERIVED`. A SELECT that is contained in a subquery in the FROM clause. The server refers to this as a "derived table" internally, because the temporary table is derived from the subquery.
@@ -156,13 +156,13 @@ FROM sakila.film
 +----+-------------+------------+...
 ```
 
-<img src="mysql-explain-table-column-ordering.png" alt="table order">
+<img src="https://taogenjia.com/img/mysql-explain/mysql-explain-table-column-ordering.png" alt="table order" class="img-center">
 
 Derived tables and unions
 
 The table column becomes much more complicated when there is a subquery in the FROM clause or a UNION. In these cases, there really isn't a "table" to refer to, because the anonymous temporary table MySQL creates exists only while the query is executing.
 
-When there's a subquery in the FROM clause, the table column is of the form `<derivedN>`, where N is the subquery's id. This always a "forward reference". In other words, N refers to a later row in the EXPALIN output.
+When there's a subquery in the FROM clause, the table column is of the form `<derivedN>`, where N is the subquery's id. This always a "forward reference". In other words, N refers to a later row in the EXPLAIN output.
 
 When there's a UNON, the UNION RESULT table column contains a list of ids that participate in the UNION. This is always a "backward reference", because the UNION RESULT comes after all of the rows that participate in the UNION.
 
@@ -209,7 +209,7 @@ Reading EXPLAIN's output often requires you to jump forward and backward in the 
 The MySQL manual says this column shows the "join type", but it's more accurate to say the access type. In other words, how MySQL has decided to find rows in the table. Here are the most important access methods, from worst to best:
 
 - ALL. This means a table scan. MySQL must scan through the table from beginning to end to find the row. (There are exceptions, such as queries with LIMIT or queries that display "Using distinct/not exist" in the Extra column.)
-- index. This means an index scan. The main advantage is that this avoids sorting. The biggest disadvantage is the cost of reading an entire table in index order. This usually means accessing the rows in random order, which is very expensive. If you also see "Using index" in the Extra column, it mean MySQL is using a covering index. This is much less expensive than scanning the table in index order.
+- index. This means an index scan. The main advantage is that this avoids sorting. The biggest disadvantage is the cost of reading an entire table in index order. This usually means accessing the rows in random order, which is very expensive. If you also see "Using index" in the Extra column, it means MySQL is using a covering index. This is much less expensive than scanning the table in index order.
 - range. A range scan is a limited index scan. It begins at some point in the index and returns rows that match a range of values. This is better than a full index scan because it doesn't go through the entire index. Obvious range scans are queries with a BETWEEN or > in the WHERE clause.
 - ref. This is an index access (or index lookup) that returns rows that match a single value. The `ref_or_null` access type is a variation on `ref`.  It means MySQL must do a second lookup to find NULL entries after doing the initial lookup.
 - eq_ref. This is an index lookup that MySQL knows will return at most a single value. You will see this access method when MySQL decides to use a primary key or unique index to satisfy the query by comparing it to some reference value.
@@ -269,11 +269,11 @@ EXPLAIN SELECT actor_id, film_id FROM sakila.film_actor WHERE actor_id=4;
 ...+------+---------------+---------+---------+...
 ```
 
-You can using EXPLAIN to get how much byte in one row of the index, then to calculate the key_len of the EXPLAIN of the query uses how much rows index.
+You can use EXPLAIN to get how many bytes in one row of the index, then to calculate the query uses how much rows index by the key_len of the EXPLAIN.
 
 MySQL doesn't always show you how much of an index is really being used. For example, if you perform a LIKE query with a prefix pattern match, it will show that the full width of the column is being used.
 
-The key_len column shows the maximum possible length of the indexed fields, not the actually number of bytes the data in the table used.
+The key_len column shows the maximum possible length of the indexed fields, not the actual number of bytes the data in the table used.
 
 **The ref Column**
 
@@ -305,15 +305,15 @@ This column contains extra information that doesn't fit into other columns. The 
 Some EXPLAIN improvements in MySQL 5.6
 
 - To explain queries such as UPDATE, INSERT, and so on.
-- A variety of improvements to the query optimizer and execution engine that allow  anonymous temporary tables to be materialized as late as possible, rather than always creating and filling them before optimizing and executing the portions of the query that refer to them. This will allow MySQL to explain queries with subqueries instantly, without having to actually execute the subqueries first.
+- A variety of improvements to the query optimizer and execution engine that allow anonymous temporary tables to be materialized as late as possible, rather than always creating and filling them before optimizing and executing the portions of the query that refer to them. This will allow MySQL to explain queries with subqueries instantly, without having to actually execute the subqueries first.
 
 
 
 ## Conclusion
 
-The most important columns of EXPLAIN are: type and Extra. They determines does the query uses a index or covering index.
+The most important columns of EXPLAIN are type and Extra. They determine does the query uses an index or covering index.
 
-the most important access methods (type of EXPLAIN), from worst to best: 
+the most important access methods (the type column of EXPLAIN), from worst to best: 
 - ALL
 - index
 - range
