@@ -218,9 +218,98 @@ The MySQL manual says this column shows the "join type", but it's more accurate 
 
 **The possible_keys Column**
 
-...
+This column shows which indexes could be used for the query, based on the columns the query accesses and the comparison operators used. This list is created early in the optimization phase, so some of the indexes listed might be useless for the query after subsequent optimization phases.
+
+**The key Column**
+
+This column shows which index MySQL decided to use to optimize the access to the table. If the index doesn't appear in `possible_keys`, MySQL chose it for another reason--for example, it might choose a covering index even when there is no WHERE clause.
+
+In other words, `possible_keys` reveals which indexes can help make row lookups efficient, but `key` shows which index the optimizer decided to use to minimize query cost.
+
+Here's an example:
+
+```sql
+EXPLAIN SELECT actor_id, film_id FROM sakila.film_actor;
+```
+
+```
+*************************** 1. row ***************************
+id: 1
+select_type: SIMPLE
+table: film_actor
+type: index
+possible_keys: NULL
+key: idx_fk_film_id
+key_len: 2
+ref: NULL
+rows: 5143
+Extra: Using index
+```
+
+**The key_len Column**
+
+This column shows the number of bytes MySQL will use in the index. If MySQL is using only some of the index's columns, you can use this value to calculate which columns it uses. Remember that MySQL 5.5 and older versions can use only the left most prefix of the index. For example, file_actor's primary key covers two SMALLINT columns, and a SMALLINT is two bytes, so each tuple in the index is four bytes. Here's a query example:
+
+```sql
+EXPLAIN SELECT actor_id, film_id FROM sakila.film_actor WHERE actor_id=4;
+```
+
+```
+...+------+---------------+---------+---------+...
+...| type | possible_keys | key    | key_len  |...
+...+------+---------------+---------+---------+...
+...| ref  | PRIMARY       | PRIMARY | 2       |...
+...+------+---------------+---------+---------+...
+```
+
+You can using EXPLAIN to get how much byte in one row of the index, then to calculate the key_len of the EXPLAIN of the query uses how much rows index.
+
+MySQL doesn't always show you how much of an index is really being used. For example, if you perform a LIKE query with a prefix pattern match, it will show that the full width of the column is being used.
+
+The key_len column shows the maximum possible length of the indexed fields, not the actually number of bytes the data in the table used.
+
+**The ref Column**
+
+This column shows which columns or constant from preceding tables are being used to look up values in the index named in the key column.
+
+**The rows Column**
+
+This column shows the number of rows MySQL estimates it will need to read to find the desired rows. 
+
+Remember, this is the number of rows MySQL thinks it will examine, not the number of rows in the result set. Also realize that there are many optimizations, such as join buffers and caches, that aren't factored into the number of rows shown.
+
+**The filtered Column**
+
+This column shows a pessimistic estimate of the percentage of rows that will satisfy some condition on the table, such as a WHERE clause or a join condition. If you multiply the rows column by this percentage, you will see the number of rows MySQL estimates it will join with the previous tables in the query plan.
+
+**The Extra Colum**
+
+This column contains extra information that doesn't fit into other columns. The most important values you might frequently are as follows:
+
+- Using index.
+- Using where.
+- Using temporary.
+- Using filesort.
+- Range checked for each record. 
+
+# // TODO
 
 
+
+**Improvements in MySQL 5.6**
+
+Some EXPLAIN improvements in MySQL 5.6
+
+- To explain queries such as UPDATE, INSERT, and so on.
+- A variety of improvements to the query optimizer and execution engine that allow  anonymous temporary tables to be materialized as late as possible, rather than always creating and filling them before optimizing and executing the portions of the query that refer to them. This will allow MySQL to explain queries with subqueries instantly, without having to actually execute the subqueries first.
+
+
+
+## Conclusion
+
+The most important columns of EXPLAIN are: type and Extra. They determines does the query uses a index or covering index.
+
+# // TODO
 
 
 
@@ -307,4 +396,6 @@ your index names
 
 ## References
 
-[1] [EXPLAIN Output Format - MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain-join-types)
+[1] High Performance MySQL by Baron Schwartz, Vadim Tkachenko, Peter Zaitsev, Derek J. Balling
+
+[2] [EXPLAIN Output Format - MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#explain-join-types)
