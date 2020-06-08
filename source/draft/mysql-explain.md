@@ -25,7 +25,7 @@ EXPLAIN is an approximation. Sometimes it's a good approximation, but at other t
 
 **Rewriting Non-SELECT Queries**
 
-MySQL explain only SELECT queries, not stored routine calls or INSERT, UPDATE, DELETE, or any other statements. However, you can rewrite some non-SELECT queries to be EXPLAIN-able. To do this, you just need to convert the statement into an equivalent SELECT that accesses all the same columns. Any columns mentioned must be in a SELECT list, a join clause, or a WHERE clause.
+MySQL explain only SELECT queries, not stored routine calls or INSERT, UPDATE, DELETE, or any other statements. However, you can rewrite some non-SELECT queries to be EXPLAIN-able. To do this, you just need to convert the statement into an equivalent SELECT that accesses all the same columns. Any columns mentioned must be in a SELECT list, a join clause, or a WHERE clause. Note that since MySQL 5.6, it can explain INSERT, UPDATE, and DELETE statements.
 
 For example:
 
@@ -208,13 +208,20 @@ Reading EXPLAIN's output often requires you to jump forward and backward in the 
 
 The MySQL manual says this column shows the "join type", but it's more accurate to say the access type. In other words, how MySQL has decided to find rows in the table. Here are the most important access methods, from worst to best:
 
-- ALL. This is means a table scan. MySQL must scan through the table from beginning to end to find the row. (There are exceptions, such as queries with LIMIT or queries that display "Using distinct/not exist" in the Extra column.)
-- index. This is means a index scan. The main advantage is that this avoids sorting. The biggest disadvantage is the cost of reading an entire table in index order. This usually means accessing the rows in random order, which is very expensive. If you also see "Using index" in the Extra column, it mean MySQL is using a covering index. This is much less expensive than scanning the table in index order.
+- ALL. This means a table scan. MySQL must scan through the table from beginning to end to find the row. (There are exceptions, such as queries with LIMIT or queries that display "Using distinct/not exist" in the Extra column.)
+- index. This means an index scan. The main advantage is that this avoids sorting. The biggest disadvantage is the cost of reading an entire table in index order. This usually means accessing the rows in random order, which is very expensive. If you also see "Using index" in the Extra column, it mean MySQL is using a covering index. This is much less expensive than scanning the table in index order.
 - range. A range scan is a limited index scan. It begins at some point in the index and returns rows that match a range of values. This is better than a full index scan because it doesn't go through the entire index. Obvious range scans are queries with a BETWEEN or > in the WHERE clause.
 - ref. This is an index access (or index lookup) that returns rows that match a single value. The `ref_or_null` access type is a variation on `ref`.  It means MySQL must do a second lookup to find NULL entries after doing the initial lookup.
 - eq_ref. This is an index lookup that MySQL knows will return at most a single value. You will see this access method when MySQL decides to use a primary key or unique index to satisfy the query by comparing it to some reference value.
-- const, system. MySQL uses these access types when it can optimize away some part of the query and turn it into a constant. For example, if you select a row's primary key by placing it primary key into then where clause.
+- const, system. MySQL uses these access types when it can optimize away some part of the query and turn it into a constant. The table has at most one matching row, which is read at the start of the query. For example, if you select a row's primary key by placing it primary key into then where clause. e.g `SELECT * FROM <table_name> WHERE <primary_key_column>=1;`
 - NULL. This access method means MySQL can resolve the query during the optimization phase and will not even access the table or index during the execution stage. For example, selecting the minimum value from an indexed column can be done by looking at the index alone and requires no table access during execution.
+
+Other types
+
+- fulltext. The join is performed using a `FULLTEXT` index. 
+- index_merge. This join type indicates that the Index Merge optimization is used. In this case, the `key` column in the output row contains a list of indexes used. Indicates a query to make limited use of multiple indexes from a single table. For example, the film_actor table has an index on film_id and an index on actor_id, the query is `SELECT film_id, actor_id FROM sakila.film_actor WHERE actor_id = 1 OR film_id = 1`
+- unique_subquery. This type replaces [`eq_ref`](https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#jointype_eq_ref) for some `IN` subqueries of the following form. `value IN (SELECT primary_key FROM single_table WHERE some_expr)`
+- index_subquery. This join type is similar to [`unique_subquery`](https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#jointype_unique_subquery). It replaces `IN` subqueries, but it works for nonunique indexes in subqueries. `value IN (SELECT key_column FROM single_table WHERE some_expr)`
 
 **The possible_keys Column**
 
@@ -286,15 +293,12 @@ This column shows a pessimistic estimate of the percentage of rows that will sat
 
 This column contains extra information that doesn't fit into other columns. The most important values you might frequently are as follows:
 
-- Using index.
-- Using where.
-- Using temporary.
-- Using filesort.
-- Range checked for each record. 
-
-# // TODO
-
-
+- Using index. This indicates that MySQL will use a covering index to avoid accessing the table.
+- Using where. This means the MySQL server will post-filter rows after the storage engine retrieves them. 
+- Using temporary. This means MySQL will use a temporary table while sorting the query's result.
+- Using filesort. This means MySQL will use an external sort to order the results, instead of reading the rows from the table in index order. MySQL has two filesort algorithms. Either type can be done in memory or on disk. EXPLAIN doesn't tell you which type of filesort MySQL will use, and it doesn't tell you whether the sort will be done in memory or on disk.
+- Range checked for each record (index map:N). This value means there's no good index, and the indexes will be reevaluated for each row in a join. N is a bitmap of the indexes shown in possible_keys and is redundant. 
+- Using index condition: Tables are read by accessing index tuples and testing them first to determine whether to read full table rows.
 
 **Improvements in MySQL 5.6**
 
@@ -309,90 +313,14 @@ Some EXPLAIN improvements in MySQL 5.6
 
 The most important columns of EXPLAIN are: type and Extra. They determines does the query uses a index or covering index.
 
-# // TODO
-
-
-
-
-
----
-
-
-
-## Meaning Key of Columns in explain result
-
-### id
-
-### select_type
-
-The type of SELECT.
-
-- SIMPLE: Simple [`SELECT`](https://dev.mysql.com/doc/refman/8.0/en/select.html) (not using [`UNION`](https://dev.mysql.com/doc/refman/8.0/en/union.html) or subqueries)
-- PRIMARY: Outermost SELECT.
-- UNION: Second or later SELECT statement in a UNION.
-- DEPENDENT UNION: Second or later SELECT statement in a UNION, dependent on outer query.
-- UNION RESULT: Result of a UNION.
-- SUBQUERY: First SELECT in subquery.
-- DEPENDENT SUBQUERY: First SELECT in subquery, dependent on outer query
-- DERIVED: Derived table.
-- DEPENDENT DERIVED: Derived table dependent on another table
-- MATERIALIZED: Materialized subquery. **Subquery** materialization uses an in-memory temporary table when possible, falling back to on-disk storage if the table becomes too large. See Section 8.4. 4, “Internal Temporary Table Use in **MySQL**”. If materialization is not used, the optimizer sometimes rewrites a noncorrelated **subquery** as a correlated **subquery**.
-- UNCACHETABLE SUBQUERY: A subquery for which the result cannot be cached and must be re-evaluated for each row of the outer query.
-  UNCACHETABLE UNION: The second or later select in a UNION that belongs to an uncacheable subquery.
-
-`DEPENDENT` typically signifies the use of a correlated subquery. See [Section 13.2.11.7, “Correlated Subqueries”](https://dev.mysql.com/doc/refman/8.0/en/correlated-subqueries.html).
-
-
-
-### table
-
-table names
-
-### partitions
-
-### type
-
-The join type. For description of how tables are joined. (Access methods to find and return rows)
-
-- **system**
-- **const**: The table has at most one matching row, which is read at the start of the query. e.g `SELECT * FROM *tbl_name* WHERE *primary_key*=1;`
-- **eq_ref**: One row is read from this table for each combination of rows from the previous tables. It is used when all parts of an index are used by the join and the index is a `PRIMARY KEY` or `UNIQUE NOT NULL` index.
-- **ref**: All rows with matching index values are read from this table for each combination of rows from the previous tables.
-- **fulltext**: The join is performed using a `FULLTEXT` index. 
-- **ref_or_null**: This join type is like `ref`, but with the addition that MySQL does an extra search for rows that contain `NULL` values.
-- **index_merge**: This join type indicates that the Index Merge optimization is used. In this case, the `key` column in the output row contains a list of indexes used. Indicates a query to make limited use of multiple indexes from a single table. For example, the film_actor table has an index on film_id and an index on actor_id, the query is `SELECT film_id, actor_id FROM sakila.film_actor WHERE actor_id = 1 OR film_id = 1`
-- **unique_subquery**: This type replaces [`eq_ref`](https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#jointype_eq_ref) for some `IN` subqueries of the following form. `value IN (SELECT primary_key FROM single_table WHERE some_expr)`
-- **index_subquery**: This join type is similar to [`unique_subquery`](https://dev.mysql.com/doc/refman/8.0/en/explain-output.html#jointype_unique_subquery). It replaces `IN` subqueries, but it works for nonunique indexes in subqueries. `value IN (SELECT key_column FROM single_table WHERE some_expr)`
-- **range**: Only rows that are in a given range are retrieved, using an index to select the rows.
-- **index**: 1) MySQL plans to scan an index. e.g select all rows of a column that contains in index. `SELECT column_from_key from test`. 2) A full table scan is performed using reads from the index to look up data rows in index order.
-- **ALL**: a full table scan is done for each combination of rows from the previous tables. When type is `ALL` in EXPLAIN, the `key` will be null in EXPLAIN.
-
-Cost Time order by how much data does MySQL require reading to execute the query: `ALL` > `index` > `range` > `unique_subquery` > `ref` > `const`
-
-### possible_keys
-
-your index names
-
-### key
-
-your index names
-
-### key_len
-
-### ref
-
-- const
-
-### rows
-
-### filtered
-
-### Extra
-
-- Using index (only show): it means storage engine use covering index, or fetch all data from index file rather than physical rows.
-- Using index condition: Tables are read by accessing index tuples and testing them first to determine whether to read full table rows.
-- Using where: it means the MySQL server is applying a WHERE filter after the storage engine returns the rows.
-- Using temporary: To resolve the query, MySQL needs to create a temporary table to hold the result. This typically happens if the query contains `GROUP BY` and `ORDER BY` clauses that list columns differently.
+the most important access methods (type of EXPLAIN), from worst to best: 
+- ALL
+- index
+- range
+- ref
+- eq_ref
+- const, system
+- NULL
 
 ## References
 
