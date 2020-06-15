@@ -8,7 +8,7 @@ Title: Java Static and Dynamic Proxy
   - Static Proxy
   - JDK Dynamic Proxy
   - Properties of Proxy Classes
-  - cglib Dynamic Proxy
+  - CGlib Dynamic Proxy
 - Conclusion
 - References
 
@@ -23,7 +23,7 @@ The Proxy is a design pattern in software design. It provides a surrogate or pla
 
 ## How to User Proxy
 
-There are commonly three ways to implement the proxy pattern in Java: static proxy, JDK dynamic proxy, and CGLIB dynamic proxy.
+There are commonly three ways to implement the proxy pattern in Java: static proxy, JDK dynamic proxy, and CGlib dynamic proxy.
 
 ### Static Proxy
 
@@ -43,11 +43,11 @@ public class RealSubject implements Subject{
 public interface Proxy extends Subject{}
 
 public class ConcreteProxy implements Proxy{
-    RealSubject realSubject = new RealSubject();
+    private RealSubject realSubject = new RealSubject();
     public void request(){
-        System.out.println("before ...");
+        System.out.println("before...");
         realSubject.request();
-        System.out.println("after ...");
+        System.out.println("after...");
     }
 }
 
@@ -73,40 +73,129 @@ You can call the `Proxy`'s a static method `Object newProxyInstance(ClassLoader 
 
 The following code example is a basic JDK Dynamic proxy implementation:
 
+```java
+public interface Subject{
+    void request();
+}
 
+public class RealSubject implements Subject{
+    public void request(){
+        System.out.println("request to RealSubject...");
+    }
+}
+
+public class MyInvocationHandler implements InvocationHandler {
+    private RealSubject realSubject = new RealSubject();
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println("before...");
+        Object result = method.invoke(realSubject, args);
+        System.out.println("after...");
+        return result;
+    }
+}
+
+public class Client {
+    public static void main(String[] args) {
+        Subject subject = (Subject) Proxy.newProxyInstance(
+                ClassLoader.getSystemClassLoader(),
+                new Class[]{Subject.class}, new MyInvocationHandler());
+        subject.request();
+    }
+}
+```
 
 **Properties of Proxy Classes**
 
-...
+- All proxy classes extend the class `java.lang.reflect.Proxy`. 
+- A proxy class has only one instance field--the invocation handler, which is defined in the `Proxy` superclass.
+- Any additional data required to carry out the proxy objects' tasks must be stored in the invocation handler. The invocation handler wrapped the actual objects.
+- The name of proxy classes are not defined. The `Proxy` class in Java virtual machine generates class names that begin with string $Proxy.
+- There is only one proxy class for a particular class loader and ordered set of interfaces. If you call the `newProxyInstance` method twice with the same class loader and interface array, you get two objects of the same class. You can get class by `Proxy.getProxyClass()`. You can test whether a particular `Class` object represents a proxy class by calling the `isProxyClass` method of the `Proxy` class.
 
-### cglib Dynamic Proxy
+
+
+### CGlib Dynamic Proxy
+
+CGlib (**C**ode **G**eneration **Lib**rary) is an open source library that capable creating and loading class files in memory during Java runtime. To do that it uses Java bytecode generation library ‘asm’, which is a very low-level bytecode creation tool. CGlib can proxy to objects without Interface.
 
 ```xml
 <dependency>
     <groupId>cglib</groupId>
     <artifactId>cglib</artifactId>
-    <version>3.2.4</version>
+    <version>3.3.0</version>
 </dependency>
 ```
+
+**How to Use CGlib **
+
+To create a proxy object using CGlib is almost as simple as using the JDK reflection proxy API.
+
+```java
+public interface Subject{
+    void request();
+}
+
+public class RealSubject implements Subject{
+    public void request(){
+        System.out.println("request to RealSubject...");
+    }
+}
+
+public class MyMethodInterceptor implements MethodInterceptor {
+    private final Subject realSubject;
+
+    public MyMethodInterceptor(Subject subject){
+        this.realSubject = subject;
+    }
+
+    @Override
+    public Object intercept(Object o, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        System.out.println("before...");
+        method.invoke(realSubject, args);
+        System.out.println("after...");
+        return null;
+    }
+}
+
+public class Client {
+    public static void main(String[] args) {
+        Subject subject = new RealSubject();
+        MethodInterceptor methodInterceptor = new MyMethodInterceptor(subject);
+        Subject proxy = (Subject) Enhancer.create(Subject.class, methodInterceptor);
+        proxy.request();
+    }
+}
+```
+
+The difference between JDK dynamic proxy and CGlib is that name of the classes are a bit different and CGlib do not have an interface.
+
+It is also important that the proxy class extends the original class and thus when the proxy object is created it invokes the constructor of the original class.
 
 
 
 ## Conclusion
 
-JDK dynamic proxy implemented by using Java reflection to call methods.
+Differences between JDK proxy and CGLib:
 
-CGLIB dynamic proxy implemented by using the index of the array to call methods.
+- JDK Dynamic proxy can only proxy by interface (so your target class needs to implement an interface, which is then also implemented by the proxy class). CGlib (and javassist) can create a proxy by subclassing. In this scenario the proxy becomes a subclass of the target class. No need for interfaces.
+- JDK Dynamic proxy generates dynamically at runtime using JDK Reflection API. CGLib is built on top of [ASM](https://en.wikipedia.org/wiki/ObjectWeb_ASM), this is mainly used the generate proxy extending bean and adds bean behavior in the proxy methods.
+
+
 
 ## References
 
-[1] Core Java
+[1] Core Java Volume I Fundamentals by S, Horstmann
 
-[2] Design Patterns
+[2] Design Patterns: Elements of Reusable Object-Oriented Software by Erich Gamma, Richard Helm,  Ralph Johnson, John Vlissides
 
 [3] [Understanding “proxy” arguments of the invoke method of java.lang.reflect.InvocationHandler - Stack Overflow](https://stackoverflow.com/questions/22930195/understanding-proxy-arguments-of-the-invoke-method-of-java-lang-reflect-invoca)
 
-[4] [cglib](https://github.com/cglib/cglib)
+[4] [cglib - GitHub](https://github.com/cglib/cglib)
 
 [5] [Introduction to cglib](https://www.baeldung.com/cglib)
 
 [6] [Creating a Proxy Object Using cglib](https://dzone.com/articles/creating-a-proxy-object-using-cglib)
+
+[7] [What is the difference between JDK dynamic proxy and CGLib? - Stack Overflow](https://stackoverflow.com/questions/10664182/what-is-the-difference-between-jdk-dynamic-proxy-and-cglib)
