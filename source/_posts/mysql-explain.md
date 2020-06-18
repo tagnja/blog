@@ -1,5 +1,5 @@
 ---
-title: Understanding the MySQL EXPLAIN
+title: Understanding MySQL EXPLAIN
 date: 2020-06-08 17:26:15
 categories: 
 - 性能优化
