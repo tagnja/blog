@@ -100,7 +100,7 @@ IoC container is the implementation of IoC functionality in the Spring framework
 
 **How IoC container works?**
 
-The interface org.springframework.context.ApplicationContext represents the Spring IoC container and is responsible for instantiating, configuring, and assembling the aforementioned beans. The container gets its instructions on what objects to instantiate, configure, and assemble by reading configuration metadata. The configuration metadata is represented in XML, Java annotations, or Java code. It allows you to express the objects that compose your application and the rich interdependencies between such objects.
+The interface `org.springframework.context.ApplicationContext`represents the Spring IoC container and is responsible for instantiating, configuring, and assembling the aforementioned beans. The container gets its instructions on what objects to instantiate, configure, and assemble by reading configuration metadata. The configuration metadata is represented in XML, Java annotations, or Java code. It allows you to express the objects that compose your application and the rich interdependencies between such objects.
 
 Several implementations of the ApplicationContext interface are supplied out-of-the-box with Spring. In standalone applications it is common to create an instance of ClassPathXmlApplicationContext or FileSystemXmlApplicationContext. 
 
@@ -111,7 +111,7 @@ The following diagram is a high-level view of how Spring works. Your application
 As the preceding diagram shows, the Spring IoC container consumes a form of configuration metadata; this configuration metadata represents how you as an application developer tell the Spring container to
 instantiate, configure, and assemble the objects in your application.
 
-Process of Using IoC Continer
+Process of Using the IoC Continer
 
 - Configuration metadata based on XML, annotation, or Java code.
 - Instantiating a container.
@@ -119,9 +119,35 @@ Process of Using IoC Continer
 
 ### Bean Overview
 
+A Spring IoC container manages one or more beans. These beans are created with the configuration metadata that you supply to the container, for example, in the form of XML `<bean/>` definitions.
 
+Within the container itself, these bean definitions are represented as `BeanDefinition` objects, which contain the following metadata:
+
+- A package-qualified class name.
+- Bean behavioral configuration: scope, lifecycle callbacks, and so on.
+- Other configuration settings to set in the newly created object, for example, the number of connections to use in a bean that manages a connection pool.
+
+Properties of the `BeanDefinition` class
+
+- class. Instantiating beans.
+- name. Naming beans.
+- scope. Bean scopes.
+- constructor arguments. Dependency injection.
+- properties. Dependency injection.
+- autowiring mode. Autowiring collaborators.
+- lazy-initialization mode. Lazy-initialized beans.
+- initialization method. Initialization callbacks.
+- destruction method. Destruction callbacks.
+
+The `ApplicationContext` implementations also permit the registration of existing objects that are created outside the container, by users. For example,  the `registrationSingleton()` method of the `DefaultListableBeanFactory` class.
+
+However typical applications work solely with beans defined through metadata bean definitions.
 
 ## AOP
+
+## Aspect Oriented Programming with Spring
+
+Aspect-Oriented Programming (AOP) complements Object-Oriented Programming (OOP) by providing another way of thinking about program structure. The key unit of modularity in OOP is the class, whereas in AOP the unit of modularity is the aspect.
 
 ...
 
