@@ -2,11 +2,15 @@ Title: Understanding The Spring Framework Core
 
 **Content**
 
-- What is the Spring Framework
+- Introduction to the Spring Framework
+- The IoC container
+- Aspect Oriented Programming with Spring
+- Spring AOP APIs
+- Validation, Data Binding, and Type Conversion
 
+## Introduction to the Spring Framework
 
-
-## What is the Spring Framework
+### What is the Spring Framework
 
 > The Spring Framework provides a comprehensive programming and configuration model for modern Java-based enterprise applications - on any kind of deployment platform.
 
@@ -25,7 +29,7 @@ Features
 - Integration: remoting, JMS, JCA, JMX, email, tasks, scheduling, cache.
 - Languages: Kotlin, Groovy, dynamic languages.
 
-## Modules
+### Modules
 
 Core Container
 
@@ -143,13 +147,169 @@ The `ApplicationContext` implementations also permit the registration of existin
 
 However typical applications work solely with beans defined through metadata bean definitions.
 
-## AOP
-
 ## Aspect Oriented Programming with Spring
 
-Aspect-Oriented Programming (AOP) complements Object-Oriented Programming (OOP) by providing another way of thinking about program structure. The key unit of modularity in OOP is the class, whereas in AOP the unit of modularity is the aspect.
+### Introduction
+
+Aspect-Oriented Programming (AOP) complements Object-Oriented Programming (OOP) by providing another way of thinking about program structure. The key unit of modularity in OOP is the class, whereas in AOP the unit of modularity is the aspect. Aspects enable the modularization of concerns such as transaction management that cut across multiple types and objects.
+
+One of the key components of Spring is the AOP framework. While the Spring IoC container does not depend on AOP, the AOP complements Spring IoC to provide a very capable middleware solution.
+
+**AOP concepts**
+
+- Aspect: a modularization of a concern that cuts across multiple classes.
+- Join point: a point during the execution of a program, such as the execute of a method or the handling of an exception.
+- Advice: action taken by an aspect at a particular join point. Different types of advice include "around", "before", "after", and so on .
+- Pointcut: a predicate that matches join points. The concept of join points as matched by pointcut expression is central to AOP, and Spring uses the AspectJ pointcut expression language by default.
+- Introduction: declaring additional methods or fields on behalf of a type.
+- Target object: object being advised by one or more aspects.
+- AOP proxy: an object created by the AOP framework in order to implement the aspect contracts. In the Spring Framework, an AOP proxy will be a JDK dynamic proxy or a CGLIB proxy.
+- Weaving: linking aspects with other application types or objects to create an advised object.
+
+Type of advice:
+
+- Before advice.
+- After returning advice.
+- After throwing advice.
+- After (finally) advice. Normal or exceptional return.
+- Around advice.
+
+**Spring AOP capabilities and goals**
+
+- Spring AOP is implemented in pure Java. There is no need for a special compilation process.
+- Spring AOP currently supports only method execution join points. Field interception is not implemented. If you need to advise field access and update join points, consider a language such as AspectJ.
+- Spring AOP's approach to AOP differs from that of most other AOP frameworks. The aim is not to provide the most complete AOP implementation; it is rather to provide a close integration between AOP implementation and Spring IoC to help solve common problems in enterprise applications. The Spring Framework's AOP functionality is normally used in conjunction with the Spring IoC container. Aspect are configured using normal bean definition syntax: this is a crucial difference from other AOP implementations.
+- Spring AOP will never strive to compete with AspectJ to provide a comprehensive AOP solution. We believe that both proxy-based frameworks like Spring AOP and full-blown frameworks such as AspectJ are valuable, and that they are complementary, rather than in competition. Spring seamlessly integrates Spring AOP and IoC with AspectJ, to enable all uses of AOP to be catered for within a consistent Spring- based application architecture. 
+
+**AOP Proxies**
+
+Spring AOP defaults to using standard JDK dynamic proxies for AOP proxies. This enable any interface to be proxied.
+
+Spring AOP can also use CGLIB proxies. This is necessary to proxy classes rather than interfaces. CGLIB is used by default if a business object does not implement an interface. It's possible to force the use of CGLIB.
+
+### @AspectJ support
+
+@AspectJ refers to a style of declaring aspects as regular Java classes annotated with annotations. Spring interprets the same annotations as AspectJ 5, using a library supplied by AspectJ for pointcut parsing and matching. The AOP runtime is still pure Spring AOP though, and there is no dependency on the AspectJ compiler or weaver.
+
+Annotation-based AOP support
+
+1. Enabling @AspectJ support
+
+```java
+@Configuration
+@EnableAspectJAutoProxy
+public class AppConfig {
+}
+```
+
+2. Declaring an aspect
+
+```java
+@Aspect
+public class NotVeryUsefulAspect {
+}
+```
+
+3. Declaring a pointcut
+
+```java
+@Pointcut("execution(* transfer(..))")// the pointcut expression
+private void anyOldTransfer() {}// the pointcut signature
+```
+
+4. Declaring advice
+
+```java
+@Aspect
+public class BeforeExample {
+	@Before("com.xyz.myapp.SystemArchitecture.dataAccessOperation()")
+	public void doAccessCheck() {
+		// ...
+	}
+}
+```
+
+
+
+Schema-based AOP support
+
+1. Enabling @AspectJ support
+
+```xml
+<aop:aspectj-autoproxy/>
+```
+
+2. Declaring an aspect
+
+```xml
+<aop:config>
+	<aop:aspect id="myAspect" ref="aBean">
+		...
+	</aop:aspect>
+</aop:config>
+
+<bean id="aBean" class="...">
+...
+</bean>
+```
+
+
+3. Declaring a pointcut
+
+```xml
+<aop:config>
+	<aop:pointcut id="businessService"
+		expression="execution(* com.xyz.myapp.service.*.*(..))"/>
+</aop:config>
+```
+
+4. Declaring advice
+
+```xml
+<aop:aspect id="beforeExample" ref="aBean">
+	<aop:before
+		pointcut-ref="dataAccessOperation"
+		method="doAccessCheck"/>
+	...
+</aop:aspect>
+```
+
+Example of schema-based AOP support
+
+```xml
+<aop:config>
+	<aop:aspect id="concurrentOperationRetry" ref="concurrentOperationExecutor">
+		<aop:pointcut id="idempotentOperation"
+			expression="execution(* com.xyz.myapp.service.*.*(..))"/>
+        <aop:around
+			pointcut-ref="idempotentOperation"
+			method="doConcurrentOperation"/>
+    </aop:aspect>
+</aop:config>
+
+<bean id="concurrentOperationExecutor"
+	class="com.xyz.myapp.service.impl.ConcurrentOperationExecutor">
+	<property name="maxRetries" value="3"/>
+	<property name="order" value="100"/>
+</bean>
+```
+
+### Choosing which AOP declaration style to use
+
+- Spring AOP or full AspectJ?
+- @AspectJ or XML for Spring AOP?
+
+### Proxying mechanisms
 
 ...
+
+### Using AspectJ with Spring applications
+
+...
+
+## Spring AOP APIs
+
+
 
 ## Validation, Data Binding, and Type Conversion
 
