@@ -66,7 +66,7 @@ All techniques for automatic memory management boil down to keeping track of whi
 
 There are two category common garbage collection techniques: reference counting and tracing garbage collection.
 
-**Reference counting**
+### Reference counting
 
 Reference counting is a garbage collection algorithm where the runtime keeps track of how many live objects point to a particular object at a given time.
 
@@ -83,7 +83,7 @@ Disadvantages of reference counting algorithm
 
 There are no commercial Java implementations today where reference counting is a main garbage collection technique in the JVM, but it might well be used by subsystems and for simple protocols in the application layer.
 
-**Tracing techniques**
+### Tracing techniques
 
 A tracing garbage collection start by marking all objects currently seen by the running program as live. The recursively mark all objects reachable from those objects live as well. There are many variations of tracing techniques, for example, "mark and sweep" and "stop and copy".
 
@@ -166,7 +166,7 @@ The following figure shows the process of stop and copy:
 
 
 
-**Generational garbage collection**
+### Generational garbage collection
 
 In object-oriented languages, most objects are temporary or short-lived. However, performance improvement for handling short-lived objects on the heap can be had if the heap is split into two or more parts called generations. 
 
@@ -175,6 +175,20 @@ In generational garbage collection, new objects are allocated in "young" generat
 Collecting a smaller young space is orders of magnitude faster than collecting the larger old space. Even though young collections need to happen far more frequently, this is more efficient because many objects die young and never need to be promoted. ideally, total throughput is increased and some potential fragmentation is removed.
 
 JRockit refer to the young generations as nurseries.
+
+**Muti generation nurseries**
+
+While generational GCs typically default to using just one nursery, sometimes it can be a good idea to keep several small nursery partitions in the heap and gradually age young objects, moving them from the "younger" nurseries to the "older" ones before finally promoting them to the "old" part of heap. This stands in contrast with the normal case that usually involves just one nursery and one old space.
+
+Multi generation nurseries may be more useful in situations where heavy object allocation takes place.
+
+If young generation objects live just a bit longer, typically if they survive a first nursery collection, the standard behavior of a single generation nursery collector, would cause these objects to be promoted to the old space. There, they will contribute more to fragmentation when they are garbage collected. So it might make sense to have several young generations on the heap, with different age spans for young objects in different nurseries, to try to keep the heap holes away from the old space where they do the most damage.
+
+Of course the benefits of a multi-generational nursery must be balanced against the overhead of copying objects multiple times.
+
+**Write barriers**
+
+In generational GC, objects may reference other objects located in different generations  of the heap. For example, objects in the old space may point to objects in the young spaces and vice versa. If we had to handle updates to all references from the old space to the young space on GC by traversing the entire old space, no performance would be gained from the generational approach. As the whole point of generational garbage collection is only to have to go over a small heap segment, further assistance from the code generator is required.
 
 
 
