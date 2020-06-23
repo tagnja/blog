@@ -108,15 +108,15 @@ The following figures show the process of mark and sweep:
 
 1. Before mark
 
-<img class="img-center" src="mark-and-sweep-1.png" />
+<img class="img-center" src="https://taogenjia.com/img/jrockit-memory-management/mark-and-sweep-1.png" />
 
 2. After mark. 
 
-<img class="img-center" src="mark-and-sweep-2.png" />
+<img class="img-center" src="https://taogenjia.com/img/jrockit-memory-management/mark-and-sweep-2.png" />
 
 3. After sweep
 
-<img class="img-center" src="mark-and-sweep-3.png" />
+<img class="img-center" src="https://taogenjia.com/img/jrockit-memory-management/mark-and-sweep-3.png" />
 
 In naive mark and sweep implementations, a **mark bit** is typically associated with each reachable object. The mark bit keeps track of if the object has been marked or not.
 
@@ -162,7 +162,7 @@ Disadvantages of stop and copy algorithm:
 
 The following figure shows the process of stop and copy:
 
-<img class="img-center" src="stop-and-copy.png" />
+<img class="img-center" src="https://taogenjia.com/img/jrockit-memory-management/stop-and-copy.png" />
 
 
 
@@ -190,13 +190,25 @@ Of course the benefits of a multi-generational nursery must be balanced against 
 
 In generational GC, objects may reference other objects located in different generations  of the heap. For example, objects in the old space may point to objects in the young spaces and vice versa. If we had to handle updates to all references from the old space to the young space on GC by traversing the entire old space, no performance would be gained from the generational approach. As the whole point of generational garbage collection is only to have to go over a small heap segment, further assistance from the code generator is required.
 
+In generational GC, most JVMs use a mechanism called write barriers to keep track of which parts of the heap need to be traversed. Every time an object A starts to reference another object B, by means of B being placed in one of A's fields or arrays, write barriers are needed. 
 
+The traditional approach to implementing write barriers is to divide the heap into a number of small consecutive sections (typically about 512 bytes each) that are called **cards**. The address space of the heap is thus mapped to a more coarse grained **card table**. whenever the Java program writes to a field in an object, the card on the heap where the object resides is "dirtied" by having the write barrier code set a **dirty bit**.
+
+Using the write barriers, the traversal time problem for references from the old generation to the nursery is shortened. When doing a nursery collection, the GC only has to check the portions of the old space represented by dirty cards.
 
 **Throughput versus low latency**
 
+Garbage collection requires stopping the world, halting all program execution, at some stage. Performing GC and executing Java code concurrently requires a lot more bookkeeping and thus, the total time spent in GC will be longer. If we only care about throughput, **stopping the world** isn't an issue--just halt everything and use all CUPs to garbage collect. However, to most applications, latency is the main problem, and latency is caused by not **spending every available cycle executing Java code**.
+
+Thus, the tradeoff in memory management is between maximizing throughput and maintaining low latencies. But, we can't expect to have both.
+
 **Garbage collection in JRockit**
 
-## Speeding it up and making it scale
+The backbone of the GC algorithm used in JRockit is based on the tri-coloring mark and sweep algorithm. For nursery collections, heavily modified variants of stop and copy are used.
+
+Garbage collection in JRockit can work with or without generations, depending on what we are optimizing for.
+
+
 
 ## References
 
