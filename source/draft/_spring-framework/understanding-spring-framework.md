@@ -90,9 +90,9 @@ Test
 
 IoC is also known as dependency injection (DI). It is a process whereby objects define their dependencies, that is, the other objects they work with, only through constructor arguments, arguments to a factory method, or properties that are set on the object instance after it is constructed or returned from a factory method. The container then injects those dependencies when it creates the bean. This process is fundamentally the inverse, hence the name Inversion of Control (IoC), of the bean itself controlling the instantiation or location of its dependencies by using direct construction of classes, or a mechanism such as the Service Locator pattern.
 
-The org.springframework.beans and org.springframework.context packages are the basis for Spring Framework’s IoC container. The BeanFactory interface provides an advanced configuration mechanism capable of managing any type of object. ApplicationContext is a subinterface of BeanFactory. It adds easier integration with other Spring features.
+The `org.springframework.beans` and `org.springframework.context` packages are the basis for Spring Framework’s IoC container. The `BeanFactory` interface provides an advanced configuration mechanism capable of managing any type of object. `ApplicationContext` is a subinterface of `BeanFactory`. It adds easier integration with other Spring features.
 
-In short, the BeanFactory provides the configuration framework and basic functionality, and the ApplicationContext adds more enterprise-specific functionality.
+In short, the `BeanFactory` provides the configuration framework and basic functionality, and the `ApplicationContext` adds more enterprise-specific functionality.
 
 **What is Bean?**
 
@@ -143,7 +143,7 @@ Properties of the `BeanDefinition` class
 - initialization method. Initialization callbacks.
 - destruction method. Destruction callbacks.
 
-The `ApplicationContext` implementations also permit the registration of existing objects that are created outside the container, by users. For example,  the `registrationSingleton()` method of the `DefaultListableBeanFactory` class.
+The `ApplicationContext` implementations also permit the registration of existing objects that are created outside the container, by users. This is done by accessing the ApplicationContext’s BeanFactory via the method getBeanFactory() which returns the BeanFactory implementation DefaultListableBeanFactory. DefaultListableBeanFactory supports this registration through the methods registerSingleton(..) and registerBeanDefinition(..). However, typical applications work solely with beans defined through metadata bean definitions.
 
 However typical applications work solely with beans defined through metadata bean definitions.
 
@@ -157,14 +157,14 @@ One of the key components of Spring is the AOP framework. While the Spring IoC c
 
 **AOP concepts**
 
-- Aspect: a modularization of a concern that cuts across multiple classes.
-- Join point: a point during the execution of a program, such as the execute of a method or the handling of an exception.
-- Advice: action taken by an aspect at a particular join point. Different types of advice include "around", "before", "after", and so on .
-- Pointcut: a predicate that matches join points. The concept of join points as matched by pointcut expression is central to AOP, and Spring uses the AspectJ pointcut expression language by default.
-- Introduction: declaring additional methods or fields on behalf of a type.
-- Target object: object being advised by one or more aspects.
-- AOP proxy: an object created by the AOP framework in order to implement the aspect contracts. In the Spring Framework, an AOP proxy will be a JDK dynamic proxy or a CGLIB proxy.
-- Weaving: linking aspects with other application types or objects to create an advised object.
+- **Aspect**: a modularization of a concern that cuts across multiple classes.
+- **Join point**: a point during the execution of a program, such as the execute of a method or the handling of an exception.
+- **Advice**: action taken by an aspect at a particular join point. Different types of advice include "around", "before", "after", and so on .
+- **Pointcut**: a predicate that matches join points. The concept of join points as matched by pointcut expression is central to AOP, and Spring uses the AspectJ pointcut expression language by default.
+- **Introduction**: declaring additional methods or fields on behalf of a type.
+- **Target object**: object being advised by one or more aspects.
+- **AOP proxy**: an object created by the AOP framework in order to implement the aspect contracts. In the Spring Framework, an AOP proxy will be a JDK dynamic proxy or a CGLIB proxy.
+- **Weaving**: linking aspects with other application types or objects to create an advised object.
 
 Type of advice:
 
@@ -301,19 +301,122 @@ Example of schema-based AOP support
 
 ### Proxying mechanisms
 
-...
+Spring AOP is proxy-based. Spring AOP use either JDK dynamic proxies or CGLIB to create the proxy for a given target object.
+
+If the target object to be proxied implements at least on interface then a JDK dynamic proxy will be used. If the target object does not implement any interfaces then a CGLIB proxy will be created.
+
+If you want to force the use of CGLIB proxying you can do so. However, there are some issues to consider:
+
+- `final` methods cannot be advised, as they cannot be overridden.
+- As of Spring 3.2, it is no longer necessary to add CGLIB to your project classpath, as CGLIB classes are repackaged under org.springframework and included directly in the spring-core JAR.
+- As of Spring 4.0, the constructor of your proxied object will NOT be called twice anymore since the CGLIB proxy instance will be created via Objenesis.
+
+To force the use of CGLIB proxies:
+
+```xml
+<aop:config proxy-target-class="true">
+	<!-- other beans defined here... -->
+</aop:config>
+```
+
+or
+
+```xml
+<aop:aspectj-autoproxy proxy-target-class="true"/>
+```
+
+
 
 ### Using AspectJ with Spring applications
 
-...
+Using AspectJ compiler/weaver instead of Spring AOP.
+
+Spring ships with a small AspectJ aspect library, which is available standalone in your distribution as `spring-aspects.jar`; you'll need to add this to your classpath in order to use the aspects in it.
+
+## // TODO
+
+
 
 ## Spring AOP APIs
+
+Spring support for AOP using @AspectJ and schema-based aspect definitions. In this section we talking about the lower-level Spring AOP APIs.
+
+### Pointcut API in Spring
+
+**Concepts**
+
+Spring's pointcut model enables pointcut reuse independent of advice types. It's possible to target different advice using the same pointcut.
+
+The `org.springframework.aop.Pointcut` interface is the central interface, used to target advices to particular classes and methods. The interface is shown below:
+
+```java
+public interface Pointcut {
+	ClassFilter getClassFilter();
+	MethodMatcher getMethodMatcher();
+}
+```
+
+Splitting the `Pointcut` interface into two parts allows reuse of class and method matching parts, and fine-grained composition operations.
+
+```java
+public interface ClassFilter {
+	boolean matches(Class clazz);
+}
+```
+
+```java
+public interface MethodMatcher {
+	boolean matches(Method m, Class targetClass);
+	boolean isRuntime();
+	boolean matches(Method m, Class targetClass, Object[] args);
+}
+```
+
+**AspectJ expression pointcuts**
+
+The class `org.springframework.aop.aspectj.AspectJExpressionPointcut` is a pointcut that uses an AspectJ supplied library to parse an AspectJ pointcut expression string.
+
+**Convenience pointcut implementations**
+
+Static pointcuts
+
+Static pointcuts are based on method and target class, and cannot take into account the method's arguments. Static pointcut are sufficient for most usages. It's possible for Spring to evaluate a static pointcut only once, when a method is first invoked: after that, there is no need to evaluate the pointcut again with each method invocation.
+
+Static pointcut implementations included with Spring
+
+...
+
+Attribute-driven pointcuts
+
+An important type of static pointcut is a metadata-driven pointcut. This uses the values of metadata attribute: typically, source-level metadata.
+
+Dynamic pointcuts
+
+Dynamic pointcuts are costlier to evaluate than static pointcuts. They take into account method arguments, as well as static information. This means that they must be evaluated with every method invocation; the result cannot be cached, as arguments will vary.
+
+### Advice API in Spring
+
+
+
+### Advisor API in Spring
 
 
 
 ## Validation, Data Binding, and Type Conversion
 
-...
+Introduction
+
+Validation using Spring's Validator interface
+
+Resolving codes to error messages
+
+Bean manipulation and the BeanWrapper
+
+Spring Type Conversion
+
+Spring Field Formatting
+
+Spring Validation
 
 ## References
 
