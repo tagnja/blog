@@ -28,6 +28,17 @@ Until June 2020, the latest version of spring framework is 5.2.7GA.
 
 **I decide to select the Spring 3.0 to read.**
 
+## Questions
+
+- IoC
+  - 为什么 Java Web 应用（Servlet or Spring Web）在 web.xml 中配置了一个 Servlet 就可以自动初始化 bean？
+  - 自动初始化 bean 在源码中是怎么实现的。
+  - Spring IoC 是如何初始化 bean 的？
+  - 在一个非 web 项目（Java 项目）中，如何实现自动化初始化 bean？
+  - 三种不同方法配置 bean 的 IoC 的实现有什么不同？
+
+## Explore Spring IoC
+
 
 
 ## References
