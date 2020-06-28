@@ -237,18 +237,119 @@ In a full GC, both old generation, permanent generation and young generation are
 
 **Heap Size Starting Point**
 
+To begin the heap size tuning process, a starting point is needed. The approach may start with a larger Java heap size than is necessary to run the Java application. The purpose of this step is to gather some initial data and further refine the heap size to more reasonable values. 
 
+For choose JVM runtime, start with the throughput garbage collector. The throughput garbage collector is specified with the `-XX:+UseParallelOldGC` command lien option.
 
+If you have a good sense of amount of the Java heap space the Java application will required, you can use that Java heap size as a starting point. If you do not know what Java heap size the Java application will require, you can start with the Java heap size the HotSpot VM automatically chooses.
 
+If you observe OutOfMemoryErrors in the garbage collection logs while attempting to put the application into its steady state, take notice of whether the old generation space ro the permanent generation space is running out of memory. The following example illustrates an OutOfMemoryError occurring as a result of a too small old generation space:
 
+```
+2010-11-25T18:51:03.895-0600: [Full GC
+	[PSYoungGen: 279700K->267300K(358400K)]
+	[ParOldGen: 685165K->685165K(685170K)]
+	964865K->964865K(1043570K)
+	[PSPermGen: 32390K->32390K(65536K)], 0.2499342 secs]
+	[Times: user=0.08 sys=0.00, real=0.05 secs]
+Exception in thread "main" java.lang.OutOfMemoryError: Java heap space
+```
 
+The following example shows an OutOfMemoryError occurring as a result of a too small permanent generation space: 
+
+```
+2010-11-25T18:26:37.755-0600: [Full GC
+	[PSYoungGen: 0K->0K(141632K)]
+	[ParOldGen: 132538K->132538K(350208K)]
+	32538K->32538K(491840K)
+	[PSPermGen: 65536K->65536K(65536K)], 0.2430136 secs]
+	[Times: user=0.37 sys=0.00, real=0.24 secs]
+java.lang.OutOfMemoryError: PermGen space
+```
+
+If you observe an OutOfmemoryError in the garbage collection logs, try increasing the Java heap size to 80% to 90% of the physical memory you have available for the JVM.
+
+Keep in mind the limitations of Java heap size based on the hardware platform and whether you are using a 32-bit or 64-bit JVM. 
+
+After increasing the Java heap size check the garbage collection logs for OutOfMemoryError. Repeat these steps, increasing the Java heap size at each iteration, until you observe no OutOfMemoryErrors in the garbage collection logs.
+
+Once the application is running in its stead state without experiencing OutOfMemoryErrors, the next step is to calculate the application's live data size.
+
+**Calculate Live Data Size**
+
+The live data size is the Java heap size consumed by the set of long-lived objects required to run the application in its steady state. In other words, the live data size is the Java heap occupancy of the old generation space and permanent space after a full garbage collection while the application is running in its steady state.
+
+The live data size for a java application can be collected from the garage collection logs. The live data size provides the following tuning information
+
+- An approximation of the amount of old generation Java heap occupancy consumed while running the application in steady state.
+- An approximation of the amount of permanent generation heap occupancy consumed while running the application in steady state.
+
+To get a good measure of an application's live data size, it is best to look at the Java heap occupancy after several full garbage collections. Make sure these full garbage collections are occurring while the application is running in its steady state.
+
+If the application is not experiencing full garbage collections, or they are not occurring very frequently, you can induce full garbage collections using the JVM monitoring tools VisualVM or JConsole. To force full garbage collections, monitor the application with VisualVM or JConsole and click the Perform GC button. A command line alternative to force a full garbage collection is use the HotSpot JDK distribution `jmap` command. 
+
+```
+$ jmap -histo:live <process_id>
+```
+
+The JVM process id can be acquired using the JDK's `jps` command line.
+
+**Initial Heap Space Size Configuration**
+
+This section describes how to use live data size calculations to determine an initial Java heap size. It is wise to compute an average of the Java heap occupancy and garbage collection duration of several full garbage collections for your live data size calculation.
+
+The general sizing rules shows below figure.
+
+| Space                | Command Line Option                                          | Occupancy Factor                                             |
+| -------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Java heap            | -Xms and -Xmx                                                | 3x to 4x old generation space occupancy after full GC        |
+| Permanent Generation | -XX:PermSize<br>-XX:MaxPermSize                              | 1.2x to 1.5x permanent generation space occupancy after full GC |
+| Young Generation     | -Xmn                                                         | 1x to 1.5x old generation space occupancy after full garbage collection |
+| Old Generation       | Implied from overall Java heap size minus the young generation size | 2x to 3x old generation space occupancy after full garbage collection. |
+
+**Additional Considerations**
+
+It is important to know that the Java heap size calculated in the previous section does not represent the full memory footprint of a Java application. A better way to determine a Java application's total memory use is by monitoring the application with an operating system tool such as `prstat` on Oracle Solaris, `top` on Linux, and Task Manager on Windows. The Java heap size may not be the largest contributor to an application's memory footprint. For example, applications may require additional memory for thread stacks. The larger the number of threads, the more memory consumed in threads stacks. The deeper the method calls executed by the application, the larger the thread stacks. The memory footprint estimate for an application must include any additional memory use.
+
+The Java heap sizes calculated in this step are a starting point. These sizes may be further modified in the remaining steps of the tuning process, depending on the application's requirements.
 
 ## Tune Latency/Responsiveness
 
-...
+This step begins by looking at the latency impact of the garbage collector starting with the initial Java heap size established in the last step "Determine memory footprint".
 
-- Tune Application Throughput
-- Conclusion
+The following activities are involved in evaluating the garbage collector's impact on latency: 
+
+- Measuring minor garbage collection duration.
+- Measuring minor garbage collection frequency.
+- Measuring worst case full garbage collection duration.
+- Measuring worst case full garbage collection frequency.
+
+Measuring garbage collection duration and frequency is crucial to refining the Java heap size configuration. Minor garbage collection duration and frequency measurements drive the refinement of the young generation size. Measuring the worst case full garbage collection duration and frequency drive old generating sizing decisions and the decision of whether to switch from using the throughput garbage collector `-XX:+UseParallelOldGC` to using the concurrent garbage collector `-XX:+UseConcMarkSweepGC`.
+
+**Inputs**
+
+There are several inputs to this step of the tuning process. They are derived from the systemic requirements for the application.
+
+- The acceptable average pause time target for the application.
+- The frequency of minor garbage collection included latencies that are considered acceptable.
+- The maximum pause time incurred by the application that can be tolerated by the application's stakeholders.
+- The frequency of the maximum pause time that is considered acceptable by the application's stakeholders.
+
+## Tune Application Throughput
+
+This is the final step of the turning process. The main input into this step is the application's throughput performance requirements. An application's throughput is something measured at the application level, not at the JVM level. Thus, the application must report some kind of throughput metric, or some kind of throughput metric must be derived from the operations it is performing. When the observed application throughput meets or exceeds the throughput requirements, you are finished with the tuning process. If you need additional application throughput to meet the throughput requirements, then you have some additional JVM tuning work to do. 
+
+Another important input into this step is the amount of memory that can be made available to the deployed Java application. As the GC maximize Memory Principle says, the more memory that can be made available for the Java heap, the better the performance.
+
+It is possible that the application's throughput requirements cannot be met. In that case, the application's throughput requirements must be revisited.
+
+## Conclusion
+
+There are some important summaries is shown below.
+
+- You should follow the process of JVM tuning.
+- Your requirements determine what to tuning. There are many trade-offs, you must determine what are most important requirements.
+- The main requirements for JVM tuning are memory footprint, latency, and throughput.
 
 ## References
 
