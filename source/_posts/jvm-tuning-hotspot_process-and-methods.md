@@ -337,9 +337,9 @@ Another important input into this step is the amount of memory that can be made 
 
 It is possible that the application's throughput requirements cannot be met. In that case, the application's throughput requirements must be revisited.
 
-## Conclusion
+## Summary
 
-There are some important summaries is shown below.
+There are some important summaries are shown below:
 
 - You should follow the process of JVM tuning.
 - Your requirements determine what to tuning. There are many trade-offs, you must determine what are most important requirements.
