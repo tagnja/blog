@@ -50,9 +50,18 @@ I-BeanFactory
 |------------I-ConfigurableListableBeanFactory
 |----I-AutowireCappableBeanFactory
 |---------A-AbstractAutowireCapableBeanFactory
-|--------------DefaultListableBeanFactory
+|--------------C-DefaultListableBeanFactory
 |-------------------XmlBeanFactory
 |----StaticListableBeanFactory
+```
+
+```
+I-ApplicationContext
+	I-WebApplicationContext
+	I-ConfigurableApplicationContext
+		I-ConfigurableWebApplicationContext		
+            A-AbstractRefreshableWebApplicationContext
+                C-XmlWebApplicationContext
 ```
 
 
@@ -92,7 +101,7 @@ A-javax.servlet.http.HttpServlet
 1.HttpServletBean.java
 
 ```java
-public class HttpServletBean extends HttpServlet
+public abstract class HttpServletBean extends HttpServlet
 {
     @Override 
     public final void init(){
@@ -108,7 +117,7 @@ public class HttpServletBean extends HttpServlet
      * This default implementation is empty
      */
     protected void initServletBean(){
-        // empty method body
+        // empty method body. See subclass implementation.
     }
 }
 ```
@@ -116,7 +125,7 @@ public class HttpServletBean extends HttpServlet
 2.FrameworkServlet.java
 
 ```java
-public class FrameworkServlet extends HttpServletBean {
+public abstract class FrameworkServlet extends HttpServletBean {
     
     /**
      * Overridden method of HttpServletBean, invoked after any bean properties have bean set. Creates this servlet's WebApplicationContext
@@ -126,6 +135,7 @@ public class FrameworkServlet extends HttpServletBean {
         // logging
         //... 
         
+        // ***************************************
         this.webApplicationContext = initWebApplicationContext();
         initFrameworkServlet();
         
@@ -140,6 +150,12 @@ public class FrameworkServlet extends HttpServletBean {
     protected WebApplicationContext initWebApplicationContext() {
         // 1. construct WebApplicationContext from values of servletContext
         //...
+        
+        if (wac == null) {
+			// No context instance is defined for this servlet -> create a local one
+            // ***************************************
+			wac = createWebApplicationContext(rootContext);
+		}
         // 2. initial onRefresh
         if (!this.refreshEventReceived) {
 			// Either the context is not a ConfigurableApplicationContext with refresh support 
@@ -150,6 +166,46 @@ public class FrameworkServlet extends HttpServletBean {
 			}
 		}
     }
+    
+    protected WebApplicationContext createWebApplicationContext(@Nullable WebApplicationContext parent) {
+        // ***************************************
+		return createWebApplicationContext((ApplicationContext) parent);
+	}
+
+    protected WebApplicationContext createWebApplicationContext(@Nullable ApplicationContext parent) {
+        // ---------------------------------------
+        // org.springframework.web.context.support.XmlWebApplicationContext
+        // ---------------------------------------
+		Class<?> contextClass = getContextClass();
+		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
+			throw new ApplicationContextException(
+					"Fatal initialization error in servlet with name '" + getServletName() +
+					"': custom WebApplicationContext class [" + contextClass.getName() +
+					"] is not of type ConfigurableWebApplicationContext");
+		}
+        // ---------------------------------------
+		ConfigurableWebApplicationContext wac =
+				(ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
+
+		wac.setEnvironment(getEnvironment());
+		wac.setParent(parent);
+		String configLocation = getContextConfigLocation();
+		if (configLocation != null) {
+			wac.setConfigLocation(configLocation);
+		}
+        // ***************************************
+		configureAndRefreshWebApplicationContext(wac);
+
+		return wac;
+	}
+
+    protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac) {
+        //....
+        
+        
+		// ***************************************
+        wac.refresh();
+	}
     
     protected void onRefresh(ApplicationContext context) {
         // empty method body
@@ -167,6 +223,102 @@ public class FrameworkServlet extends HttpServletBean {
 `WebApplicationContext` in Spring is web aware `ApplicationContext` i.e it has Servlet Context information. In single web application there can be multiple `WebApplicationContext`. That means each `DispatcherServlet` associated with single `WebApplicationContext`.
 
 `WebApplcationContext` extends `ApplicationContext`.
+
+AbstractApplicationContext.java
+
+```java
+public abstract class AbstractApplicationContext extends DefaultResourceLoader implements ConfigurableApplicationContext {
+
+	public void refresh() throws BeansException, IllegalStateException {
+        synchronized(this.startupShutdownMonitor) {
+            this.prepareRefresh();
+            // ---------------------------------------
+            // DefaultListableBeanFactory@xxxxxxxx
+            // ---------------------------------------
+            ConfigurableListableBeanFactory beanFactory = this.obtainFreshBeanFactory();
+            this.prepareBeanFactory(beanFactory);
+
+            try {
+                this.postProcessBeanFactory(beanFactory);
+                this.invokeBeanFactoryPostProcessors(beanFactory);
+                this.registerBeanPostProcessors(beanFactory);
+                this.initMessageSource();
+                this.initApplicationEventMulticaster();
+                this.onRefresh();
+                this.registerListeners();
+                // ***************************************
+                this.finishBeanFactoryInitialization(beanFactory);
+                this.finishRefresh();
+            } catch (BeansException var9) {
+                if (this.logger.isWarnEnabled()) {
+                    this.logger.warn("Exception encountered during context initialization - cancelling refresh attempt: " + var9);
+                }
+
+                this.destroyBeans();
+                this.cancelRefresh(var9);
+                throw var9;
+            } finally {
+                this.resetCommonCaches();
+            }
+
+        }
+    }
+
+    protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+        this.refreshBeanFactory();
+        return this.getBeanFactory();
+    }
+    
+    protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
+        //...
+        
+        // ***************************************
+        beanFactory.preInstantiateSingletons();
+    }
+}
+```
+
+DefaultListableBeanFactory.java
+
+```java
+public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory implements ConfigurableListableBeanFactory, BeanDefinitionRegistry, Serializable {
+    
+	public void preInstantiateSingletons() throws BeansException {
+		//...
+        List<String> beanNames = new ArrayList(this.beanDefinitionNames);
+        Iterator var2 = beanNames.iterator();
+		//...
+        while(...){
+            //...
+            
+            // ***************************************
+            if (this.isFactoryBean(beanName)) {
+                bean = this.getBean("&" + beanName);
+                break;
+            }
+            this.getBean(beanName);
+		}
+	}
+}
+```
+
+AbstractBeanFactory.java
+
+```java
+public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport implements ConfigurableBeanFactory {
+
+    public Object getBean(String name) throws BeansException {
+        return this.doGetBean(name, (Class)null, (Object[])null, false);
+    }
+    
+    protected <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly) throws BeansException {
+    	//...
+        return bean;
+    }
+}
+```
+
+
 
 3.DispatcherServlet.java
 
@@ -210,9 +362,9 @@ You'll note that `DispatcherServlet` tries to find existing beans with some fixe
 Conceptions
 
 - Resolver
-- MultipartResolver
-- LocaleResolver
-- ThemeResolver
+  - MultipartResolver
+  - LocaleResolver
+  - ThemeResolver
 - HandlerMapping
 - HandlerAdapter
 - HandlerExceptionResolver
