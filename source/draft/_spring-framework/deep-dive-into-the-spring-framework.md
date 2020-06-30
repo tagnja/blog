@@ -39,7 +39,7 @@ Until June 2020, the latest version of spring framework is 5.2.7GA.
 
 ## Explore Spring IoC
 
-### Bean Factory
+**Bean Factories**
 
 ```
 I-BeanFactory
@@ -55,13 +55,24 @@ I-BeanFactory
 |----StaticListableBeanFactory
 ```
 
+**BeanRegister & BeanFactory**
+
+```
+I-SingletonBeanRegistry
+|----C-DefaultSingletonBeanRegistry
+|--------A-FactoryBeanRegistrySupport
+|------------A-AbstractBeanFactory
+```
+
+**ApplicationContext**
+
 ```
 I-ApplicationContext
-	I-WebApplicationContext
-	I-ConfigurableApplicationContext
-		I-ConfigurableWebApplicationContext		
-            A-AbstractRefreshableWebApplicationContext
-                C-XmlWebApplicationContext
+|----I-WebApplicationContext
+|----I-ConfigurableApplicationContext
+|--------I-ConfigurableWebApplicationContext		
+|------------A-AbstractRefreshableWebApplicationContext
+|----------------C-XmlWebApplicationContext
 ```
 
 
