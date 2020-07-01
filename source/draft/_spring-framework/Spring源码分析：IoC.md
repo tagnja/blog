@@ -170,7 +170,7 @@ Initialize and publish the WebApplicationContext for this servlet.
 
 Using reflection to create a WebApplicationContext instance, and configure it (see #3.1.1.1).
 
-`FrameworkServlet.createWebApplicationContext(), line 659`
+`FrameworkServlet.java`
 
 ```java
 protected WebApplicationContext createWebApplicationContext(@Nullable ApplicationContext parent) {
@@ -186,7 +186,7 @@ protected WebApplicationContext createWebApplicationContext(@Nullable Applicatio
 
 Set WebApplication instance properties and go to refresh (See #4).
 
-`FrameworkServlet.configureAndRefreshWebApplicationContext()`
+`FrameworkServlet.java`
 
 ```java
 protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac) {
@@ -208,6 +208,8 @@ This step after the step `#4.3`.
 ### 4 refresh() in AbstractApplicationContext
 
 As this is a startup method, it should destroy already created singletons if it fails, to avoid dangling resources. In other words, after invocation of that method, either all or no singletons at all should be instantiated.
+
+`AbstractApplicationContext.java`
 
 ```java
 public void refresh() throws BeansException, IllegalStateException {
@@ -234,7 +236,7 @@ public void refresh() throws BeansException, IllegalStateException {
 
 Create a BeanFactory instance in `AbstractRefreshableApplicationContext`.
 
-`AbstractRefreshableApplicationContext.refreshBeanFactory()`
+`AbstractRefreshableApplicationContext.java`
 
 ```java
 protected final void refreshBeanFactory() throws BeansException {
@@ -244,9 +246,10 @@ protected final void refreshBeanFactory() throws BeansException {
     // 2. Set BeanFactory instance's properties
     beanFactory.setSerializationId(this.getId());
     this.customizeBeanFactory(beanFactory);
+    // 3. load bean definitions
     this.loadBeanDefinitions(beanFactory);
     synchronized(this.beanFactoryMonitor) {
-        // 3. assign this new BeanFactory instance to the AbstractRefreshableApplicationContext's filed beanFactory
+        // 4. assign this new BeanFactory instance to the AbstractRefreshableApplicationContext's filed beanFactory
         this.beanFactory = beanFactory;
     }
     //...
@@ -259,19 +262,162 @@ protected DefaultListableBeanFactory createBeanFactory() {
 
 ### 4.2 finishBeanFactoryInitialization()
 
+Initializate beanFactory, and go to instantiate bean instances (see #5).
+
+`AbstractApplicationContext.java`
+
+```java
+protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
+	// 1. initialize bean factory
+    //...
+    // 2. instantiate bean instances, go to #5
+    beanFactory.preInstantiateSingletons();
+}
+```
+
+### 5 preInstantiateSingletons() in DefaultListableBeanFactory
+
+Using Iterator of beanNames to get bean instances.
+
+### 5.1 to create all bean instances
+
+`AbstractApplicationContext.java`
+
+```java
+public void preInstantiateSingletons() throws BeansException {
+    // 1. get beanNames' iterator
+    List<String> beanNames = new ArrayList(this.beanDefinitionNames);
+    Iterator var2 = beanNames.iterator();
+	
+    // 2. for loop to create bean instances, go to #6
+    while (true){
+        //...
+        beanName = (String)var2.next();
+        if (this.isFactoryBean(beanName)) {
+            bean = this.getBean("&" + beanName);
+            break;
+        }
+        this.getBean(beanName);
+        //...
+    }
+}
+```
+
+### 6 getBean(name) in AbstractBeanFactory
+
+To get bean instances.
+
+`AbstractBeanFactory.java`
+
+```java
+public Object getBean(String name) throws BeansException {
+    return this.doGetBean(name, (Class)null, (Object[])null, false);
+}
+
+```
+
+### 6.1 doGetBean()
+
+To get bean instance by bean name.
+
+`AbstractBeanFactory.java`
+
+```java
+protected <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly) throws BeansException {
+    String beanName = this.transformedBeanName(name);
+    Object sharedInstance = this.getSingleton(beanName);
+    Object bean;
+
+    // 1. check is the bean instance in creation
+    if (sharedInstance != null && args == null) {
+        //...
+    } else {
+        // 2. get and check beanDefinition by beanName
+        RootBeanDefinition mbd = this.getMergedLocalBeanDefinition(beanName);
+        this.checkMergedBeanDefinition(mbd, beanName, args);
+        // 3. to get different type bean instance: singleton, prototype, and so on.
+        if (mbd.isSingleton()) {
+            // to create singleton bean instance go to #7
+            sharedInstance = this.getSingleton(beanName, () -> {
+                try {
+                    return this.createBean(beanName, mbd, args);
+                } catch (BeansException var5) {
+                    this.destroySingleton(beanName);
+                    throw var5;
+                }
+            });
+            bean = this.getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+        } else if (mbd.isPrototype()) {
+            //...
+        } else{
+            //...
+        }
+    }
+}
+```
 
 
-5 preInstantiateSingletons()
 
-5.1 to create all bean instances
+### 7 getSingleton(beanName, singletonFactory) in DefaultSingletonBeanRegistry
 
-6 getBean(name)
+To get singleton bean instance.
 
-6.1 doGetBean()
+`DefaultSingletonBeanRegistry.java`
 
-7 getSingleton(beanName, singletonFactory)
+```java
+public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
+    // 1. check conditions and logging
+    //...
+    
+    // 2. to get a singleton bean instance, go to #8
+    singletonObject = singletonFactory.getObject();
+    newSingleton = true;
 
-8 createBean(beanName, beanDefinition, args)
+    // 3. add created singleton bean instance to the bean list
+    if (newSingleton) {
+        this.addSingleton(beanName, singletonObject);
+    }
+}
+
+protected void addSingleton(String beanName, Object singletonObject) {
+    synchronized(this.singletonObjects) {
+        // add bean instance to the bean list "singletonObjects"
+        this.singletonObjects.put(beanName, singletonObject);
+        this.singletonFactories.remove(beanName);
+        this.earlySingletonObjects.remove(beanName);
+        this.registeredSingletons.add(beanName);
+    }
+}
+```
+
+### 8 createBean(beanName, beanDefinition, args) in AbstractAutowireCapableBeanFactory
+
+To create a bean instance actually.
+
+`AbstractAutowireCapableBeanFactory.java`
+
+```java
+protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) throws BeanCreationException {
+    // ...
+    // 1. construct a beanDefinition for use.
+    // 2. try to create bean instance
+    Object beanInstance = this.resolveBeforeInstantiation(beanName, mbdToUse);
+    if (beanInstance != null) {
+        return beanInstance;
+    }
+    // 3. try to create bean instance again if fail to create in first time
+    beanInstance = this.doCreateBean(beanName, mbdToUse, args);
+    return beanInstance;
+}
+```
+
+//TODO
+
+```java
+protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) throws BeanCreationException {
+    
+}
+```
 
 
 
