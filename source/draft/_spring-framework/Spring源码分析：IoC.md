@@ -1,5 +1,7 @@
 Title: Spring 源码分析：IoC
 
+filename: spring-dive-into-source-code
+
 **Content**
 
 - Basics
@@ -49,7 +51,11 @@ Application Context
 
 **WebApplicationContext vs ApplicationContext**
 
-`WebApplicationContext` in Spring is web aware `ApplicationContext` i.e it has Servlet Context information. In single web application there can be multiple `WebApplicationContext`. That means each `DispatcherServlet` associated with single `WebApplicationContext`. `WebApplcationContext` extends `ApplicationContext`.
+`WebApplicationContext` interface provides configuration for a web application. This is read-only while the application is running, but may be reloaded if the implementation supports this.
+
+`WebApplcationContext` extends `ApplicationContext`. This interface adds a `getServletContext()` method to the generic ApplicationContext interface, and defines a well-known application attribute name that the root context must be bound to in the bootstrap process.
+
+`WebApplicationContext` in Spring is web aware `ApplicationContext` i.e it has Servlet Context information. In single web application there can be multiple `WebApplicationContext`. That means each `DispatcherServlet` associated with single `WebApplicationContext`. 
 
 ### Class Hierarchy
 
@@ -77,9 +83,21 @@ I-HierarchicalBeanFactory
 |----I-ApplicationContext
 |--------I-WebApplicationContext
 |--------I-ConfigurableApplicationContext
+|------------A-AbstractApplicationContext
 |------------I-ConfigurableWebApplicationContext		
 |----------------A-AbstractRefreshableWebApplicationContext
 |--------------------C-XmlWebApplicationContext
+```
+
+**AbstractApplicationContext Hierarchy**
+
+```
+A-AbstractApplicationContext
+|----A-AbstractRefreshableApplicationContext
+|--------A-AbstractRefreshableConfigApplicationContext
+|------------A-AbstractRefreshableWebApplicationContext
+|----------------C-AnnotationConfigWebApplicationContext
+|----------------C-XmlWebApplicationContext
 ```
 
 **BeanRegister & BeanFactory Hierarchy**
@@ -114,7 +132,7 @@ The following figure shows the process of IoC implementation.
 
 ### 1 Java web project starting
 
-### 1.1 instantiate and init servlets in web.xml
+### 1.1 instantiate and init servlets from web.xml
 
 When a Java web project running in an application server like Apache Tomcat, the servlet container of the server will load, instantiate, and init Java servlets that be `<load-on-startup>` from `web.xml` file. 
 
@@ -134,35 +152,114 @@ When a Java web project running in an application server like Apache Tomcat, the
 </servlet-mapping>
 ```
 
-### 2 The DispatcherServlet initialization Calling init()
+### 2 The DispatcherServlet initialization and Calling init() in HttpServletBean
 
 ### 2.1 set bean properties from init parameters
 
 Set initial parameters specified in the `web.xml` file for the servlet instance `DispatcherServlet`.
 
-### 3 initServletBean()
+### 3 initServletBean() in FrameworkServlet
 
 ### 3.1 initWebApplicationContext()
 
-...
+Initialize and publish the WebApplicationContext for this servlet.
 
+- Check is there any WebApplicationContext instance or root application context, if not create a new webApplicationContext instance (See #3.1.1).
 
+### 3.1.1 createWebApplicationContext() 
 
+Using reflection to create a WebApplicationContext instance, and configure it (see #3.1.1.1).
 
+`FrameworkServlet.createWebApplicationContext(), line 659`
 
-3.1.1 createWebApplicationContext()
+```java
+protected WebApplicationContext createWebApplicationContext(@Nullable ApplicationContext parent) {
+	//...
+	ConfigurableWebApplicationContext wac =
+    	(ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
+    //...go to #3.1.1.1
+    configureAndRefreshWebApplicationContext(wac);
+}
+```
 
-3.1.1.1 configureAndRefreshWebApplicationContext()s
+### 3.1.1.1 configureAndRefreshWebApplicationContext()
 
-3.2 initFrameworkServlet()
+Set WebApplication instance properties and go to refresh (See #4).
 
-4 refresh()
+`FrameworkServlet.configureAndRefreshWebApplicationContext()`
+
+```java
+protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac) {
+    //...
+    wac.setServletContext(getServletContext());
+    wac.setServletConfig(getServletConfig());
+    wac.setNamespace(getNamespace());
+    postProcessWebApplicationContext(wac);
+    applyInitializers(wac);
+    //...go to #4
+    wac.refresh();
+}
+```
+
+### 3.2 initFrameworkServlet()
+
+This step after the step `#4.3`.
+
+### 4 refresh() in AbstractApplicationContext
 
 As this is a startup method, it should destroy already created singletons if it fails, to avoid dangling resources. In other words, after invocation of that method, either all or no singletons at all should be instantiated.
 
-4.1 obtainFreshBeanFactory()
+```java
+public void refresh() throws BeansException, IllegalStateException {
+    //...
+    // 1. Create a BeanFactory instance. Refer to #4.1
+    ConfigurableListableBeanFactory beanFactory = this.obtainFreshBeanFactory();
+    // 2. Configure properties of AbstractApplicationContext, prepare for bean initialization and context refresh
+    this.postProcessBeanFactory(beanFactory);
+    this.invokeBeanFactoryPostProcessors(beanFactory);
+    this.registerBeanPostProcessors(beanFactory);
+    this.initMessageSource();
+    this.initApplicationEventMulticaster();
+    this.onRefresh();
+    this.registerListeners();
+    // 3. bean initialization. Refer to #4.2
+    this.finishBeanFactoryInitialization(beanFactory);
+    // 4. context refresh.
+    this.finishRefresh();
+    // ...
+}
+```
 
-4.2 finishBeanFactoryInitialization()
+### 4.1 obtainFreshBeanFactory()
+
+Create a BeanFactory instance in `AbstractRefreshableApplicationContext`.
+
+`AbstractRefreshableApplicationContext.refreshBeanFactory()`
+
+```java
+protected final void refreshBeanFactory() throws BeansException {
+    //...
+    // 1. Creating a BeanFactory instance.
+    DefaultListableBeanFactory beanFactory = this.createBeanFactory();
+    // 2. Set BeanFactory instance's properties
+    beanFactory.setSerializationId(this.getId());
+    this.customizeBeanFactory(beanFactory);
+    this.loadBeanDefinitions(beanFactory);
+    synchronized(this.beanFactoryMonitor) {
+        // 3. assign this new BeanFactory instance to the AbstractRefreshableApplicationContext's filed beanFactory
+        this.beanFactory = beanFactory;
+    }
+    //...
+}
+
+protected DefaultListableBeanFactory createBeanFactory() {
+    return new DefaultListableBeanFactory(this.getInternalParentBeanFactory());
+}
+```
+
+### 4.2 finishBeanFactoryInitialization()
+
+
 
 5 preInstantiateSingletons()
 
