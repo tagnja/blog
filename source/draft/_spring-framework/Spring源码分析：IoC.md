@@ -27,6 +27,10 @@ A Spring IoC container manages one or more beans. These beans are created with t
 
 Within the container itself, these bean definitions are represented as `BeanDefinition` objects.
 
+**BeanWrapper**
+
+BeanWrapper is the central interface of Spring's low-level JavaBeans infrastructure. Typically not used directly but ranther implicitly via a BeanFactory or a DataBinder. It provides operations to analyze and manipulate standard JavaBeans: get and set property values, get property descriptors, and query the readability/writability of properties.
+
 **IoC Containers**
 
 IoC container is the implementation of IoC functionality in the Spring framework. The interface `org.springframework.context.ApplicationContext`represents the Spring IoC container and is responsible for instantiating, configuring, and assembling the aforementioned beans. The container gets its instructions on what objects to instantiate, configure, and assemble by reading configuration metadata. The configuration metadata is represented in XML, Java annotations, or Java code. It allows you to express the objects that compose your application and the rich interdependencies between such objects.
@@ -124,11 +128,7 @@ A-javax.servlet.http.HttpServlet
 
 The following figure shows the process of IoC implementation.
 
-
-
-### <img> //TODO..............................#$%^&*()*&^%$
-
-
+<img class="img-center" src="https://taogenjia.com/img/spring-dive-into-source-code/spring_ioc_sequence_diagram.png" />
 
 ### 1 Java web project starting
 
@@ -201,10 +201,6 @@ protected void configureAndRefreshWebApplicationContext(ConfigurableWebApplicati
 }
 ```
 
-### 3.2 initFrameworkServlet()
-
-This step after the step `#4.3`.
-
 ### 4 refresh() in AbstractApplicationContext
 
 As this is a startup method, it should destroy already created singletons if it fails, to avoid dangling resources. In other words, after invocation of that method, either all or no singletons at all should be instantiated.
@@ -248,8 +244,8 @@ protected final void refreshBeanFactory() throws BeansException {
     this.customizeBeanFactory(beanFactory);
     // 3. load bean definitions
     this.loadBeanDefinitions(beanFactory);
+    // 4. assign this new BeanFactory instance to the AbstractRefreshableApplicationContext's field beanFactory
     synchronized(this.beanFactoryMonitor) {
-        // 4. assign this new BeanFactory instance to the AbstractRefreshableApplicationContext's filed beanFactory
         this.beanFactory = beanFactory;
     }
     //...
@@ -305,7 +301,7 @@ public void preInstantiateSingletons() throws BeansException {
 
 ### 6 getBean(name) in AbstractBeanFactory
 
-To get bean instances.
+To get the bean instances.
 
 `AbstractBeanFactory.java`
 
@@ -318,7 +314,7 @@ public Object getBean(String name) throws BeansException {
 
 ### 6.1 doGetBean()
 
-To get bean instance by bean name.
+To get the bean instance by bean name.
 
 `AbstractBeanFactory.java`
 
@@ -392,7 +388,7 @@ protected void addSingleton(String beanName, Object singletonObject) {
 
 ### 8 createBean(beanName, beanDefinition, args) in AbstractAutowireCapableBeanFactory
 
-To create a bean instance actually.
+To get a bean instance, create a beanWrapper, initialize the bean, add add the bean to the beanFactory.
 
 `AbstractAutowireCapableBeanFactory.java`
 
@@ -400,6 +396,7 @@ To create a bean instance actually.
 protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) throws BeanCreationException {
     // ...
     // 1. construct a beanDefinition for use.
+    // ...
     // 2. try to create bean instance
     Object beanInstance = this.resolveBeforeInstantiation(beanName, mbdToUse);
     if (beanInstance != null) {
@@ -409,13 +406,70 @@ protected Object createBean(String beanName, RootBeanDefinition mbd, @Nullable O
     beanInstance = this.doCreateBean(beanName, mbdToUse, args);
     return beanInstance;
 }
+
+protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) throws BeanCreationException {
+    // 1. to construct a beanWrapper and create the bean instance
+    BeanWrapper instanceWrapper = this.createBeanInstance(beanName, mbd, args);
+    // 2. post processing 
+    //...
+    // 3. Add bean to the beanFactory and some bean instances record list
+    this.addSingletonFactory(beanName, () -> {
+        return this.getEarlyBeanReference(beanName, mbd, bean);
+    });
+	// 4. autowired and handle property values
+    this.populateBean(beanName, mbd, instanceWrapper);
+	// 5. initialization bean
+    exposedObject = this.initializeBean(beanName, exposedObject, mbd);
+	// 6. return bean
+    return exposedObject;
+}
+
+protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
+    // ...
+    ctors = mbd.getPreferredConstructors();
+    return ctors != null ? this.autowireConstructor(beanName, mbd, ctors, (Object[])null) : this.instantiateBean(beanName, mbd);
+}
+
+protected BeanWrapper instantiateBean(String beanName, RootBeanDefinition mbd) {
+    // 1. to create the bean instance
+    Object beanInstance = this.getInstantiationStrategy().instantiate(mbd, beanName, this);
+
+    // 2. create the BeanWrapper by bean instance
+    BeanWrapper bw = new BeanWrapperImpl(beanInstance);
+    this.initBeanWrapper(bw);
+    return bw;
+}
 ```
 
-//TODO
+### 9 instantiate() in  SimpleInstantiationStrategy
+
+Get the Constructor of the bean class and to get the bean instance.
+
+`SimpleInstantiationStrategy.java`
 
 ```java
-protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) throws BeanCreationException {
-    
+public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
+    // 1. get the Constructor of the bean class
+    Constructor constructorToUse = (Constructor)bd.resolvedConstructorOrFactoryMethod;
+    Class<?> clazz = bd.getBeanClass();
+    constructorToUse = (Constructor)AccessController.doPrivileged(() -> {
+        return clazz.getDeclaredConstructor();
+    });
+    // 2. to craete bean instance
+    return BeanUtils.instantiateClass(constructorToUse, new Object[0]);
+}
+```
+
+### 10 instantiateClass() in BeanUtils
+
+Using reflection to create a instance.
+
+`BeanUtils.java`
+
+```java
+public static <T> T instantiateClass(Constructor<T> ctor, Object... args) throws BeanInstantiationException {
+    // Using reflection to create instance
+    return ctor.newInstance(argsWithDefaultValues);
 }
 ```
 
@@ -423,18 +477,24 @@ protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable
 
 ## Conclusion
 
-...
+Spring framework uses the servlet container loads the `DispatcherServlet` when server startup to trigger the automatic beans instantiation. 
+
+The ApplicationContext is responsible for the whole process of beans instantiation. there is a BeanFactory as a field in the ApplicationContext, it is responsible to create bean instances.
+
+The important steps of beans instantiation are: load bean definitions, create and initialize beanFactory, create and initialize bean instances, keep bean records in beanFactory. 
+
+
 
 ## References
 
-[1] [Spring Framework - Wikipedia](https://en.wikipedia.org/wiki/Spring_Framework)
+[1] Spring Framework Source Code
 
-[2] [Spring Framework Home - Spring](https://spring.io/projects/spring-framework)
+[2] [Spring Framework API - Current 5.2.7.RELEASE](https://docs.spring.io/spring-framework/docs/current/javadoc-api/)
 
-[3] [How does spring Dispatcher Servlet create default beans without any XML configuration?](https://stackoverflow.com/questions/11708383/how-does-spring-dispatcher-servlet-create-default-beans-without-any-xml-configur)
+[3] [How does spring Dispatcher Servlet create default beans without any XML configuration? - Stack Overflow](https://stackoverflow.com/questions/11708383/how-does-spring-dispatcher-servlet-create-default-beans-without-any-xml-configur)
 
 [4] [Difference between ApplicationContext and WebApplicationContext in Spring MVC](https://www.dineshonjava.com/difference-between-applicationcontext-webapplicationcontext-in-spring-mvc/#:~:text=WebApplicationContext%20in%20Spring%20is%20web,DispatcherServlet%20associated%20with%20single%20WebApplicationContext.)
 
-[1] [Spring life-cycle when we refresh the application context](https://stackoverflow.com/questions/20489272/spring-life-cycle-when-we-refresh-the-application-context)
+[5] [Spring life-cycle when we refresh the application context - Stack Overflow](https://stackoverflow.com/questions/20489272/spring-life-cycle-when-we-refresh-the-application-context)
 
-[2] [BeanFactory vs ApplicationContext](https://stackoverflow.com/questions/243385/beanfactory-vs-applicationcontext)
+[6] [BeanFactory vs ApplicationContext - Stack Overflow](https://stackoverflow.com/questions/243385/beanfactory-vs-applicationcontext)
