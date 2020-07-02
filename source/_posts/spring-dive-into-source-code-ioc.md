@@ -476,7 +476,7 @@ public static <T> T instantiateClass(Constructor<T> ctor, Object... args) throws
 
 Spring framework uses the servlet container loads the `DispatcherServlet` when server startup to trigger the automatic beans instantiation. 
 
-The `ApplicationContext` is responsible for the whole process of beans instantiation. there is a `BeanFactory` as a field in the `ApplicationContext`, it is responsible to create bean instances.
+The `ApplicationContext` is responsible for the whole process of beans instantiation. There is a `BeanFactory` as a field in the `ApplicationContext`, it is responsible to create bean instances.
 
 The important steps of beans instantiation are: load bean definitions, create and initialize beanFactory, create and initialize bean instances, keep bean records in beanFactory. 
 
