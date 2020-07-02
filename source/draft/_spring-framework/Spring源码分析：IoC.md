@@ -491,10 +491,12 @@ The important steps of beans instantiation are: load bean definitions, create an
 
 [2] [Spring Framework API - Current 5.2.7.RELEASE](https://docs.spring.io/spring-framework/docs/current/javadoc-api/)
 
-[3] [How does spring Dispatcher Servlet create default beans without any XML configuration? - Stack Overflow](https://stackoverflow.com/questions/11708383/how-does-spring-dispatcher-servlet-create-default-beans-without-any-xml-configur)
+[3] [Spring Framework Documentation - 5.2.7.RELEASE](https://docs.spring.io/spring/docs/5.2.7.RELEASE/spring-framework-reference/)
 
-[4] [Difference between ApplicationContext and WebApplicationContext in Spring MVC](https://www.dineshonjava.com/difference-between-applicationcontext-webapplicationcontext-in-spring-mvc/#:~:text=WebApplicationContext%20in%20Spring%20is%20web,DispatcherServlet%20associated%20with%20single%20WebApplicationContext.)
+[4] [How does spring Dispatcher Servlet create default beans without any XML configuration? - Stack Overflow](https://stackoverflow.com/questions/11708383/how-does-spring-dispatcher-servlet-create-default-beans-without-any-xml-configur)
 
-[5] [Spring life-cycle when we refresh the application context - Stack Overflow](https://stackoverflow.com/questions/20489272/spring-life-cycle-when-we-refresh-the-application-context)
+[5] [Difference between ApplicationContext and WebApplicationContext in Spring MVC](https://www.dineshonjava.com/difference-between-applicationcontext-webapplicationcontext-in-spring-mvc/#:~:text=WebApplicationContext%20in%20Spring%20is%20web,DispatcherServlet%20associated%20with%20single%20WebApplicationContext.)
 
-[6] [BeanFactory vs ApplicationContext - Stack Overflow](https://stackoverflow.com/questions/243385/beanfactory-vs-applicationcontext)
+[6] [Spring life-cycle when we refresh the application context - Stack Overflow](https://stackoverflow.com/questions/20489272/spring-life-cycle-when-we-refresh-the-application-context)
+
+[7] [BeanFactory vs ApplicationContext - Stack Overflow](https://stackoverflow.com/questions/243385/beanfactory-vs-applicationcontext)
