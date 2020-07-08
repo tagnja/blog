@@ -275,6 +275,8 @@ I-Channel
 |--------------------A-DatagramChannel
 |--------------------A-ServerSocketChannel
 |--------------------A-SocketChannel
+|--------------------A-Pipe.SinkChannel
+|--------------------A-Pipe.SourceChannel
 |----I-AsynchronousChannel
 |--------I-AsynchronousByteChannel
 |--------A-AsynchronousFileChannel
@@ -330,7 +332,49 @@ while (buffer.hasRemaining()){
 
 **Scatter/Gather I/O**
 
+Channels provide the ability to perform a single I/O operation across multiple buffers. This capability is known as scatter/gather I/O (and is also known as vectored I/O).
+
+In the context of a write operation, the contents of several buffers are gathered in sequence and then sent through the channel to a destination. In the context of a read operation, the contents of a channel are scattered to multiple buffers in sequence.
+
+Modern operating systems provide APIs that support vectored I/O to eliminate (or at least reduce) system calls or buffer copies, and hence improve performance.
+
+Java Provides the `java.nio.channels.ScatteringByteChannel` interface to support scattering and `GatheringByteChannel` interface to support gathering.
+
+ScattheringByteChannel offers the following methods:
+
+- long read(ByteBuffer[] buffers, int offset, int length)
+- long read(ByteBuffer[] buffers)
+
+GatheringByteChannel offers the following methods:
+
+- long write(ByteBuffer[] buffers, int offset, int length)
+- long write(ByteBuffer[] buffers)
+
 **File Channels**
+
+RandomAccessFile, FileInputStream, and FileOutputStream provide getChannel() method for returning a file channel instance, which describes an open connection to a file.
+
+The abstract `java.nio.channels.FileChannel` class describes a file channel. This class implements the InterruptibleChannel, ByteChannel, GatheringByteChannel, and ScatteringByteChannel interfaces.
+
+Unlike buffers, which are not thread-safe, file channels are thread-safe.
+
+A file channel maintains a current position into the file, which FileChannel lets you obtain and change. 
+
+Methods of FileChannel:
+
+- void force(boolean metadata)
+- long position()
+- FileChannel position(long newPosition)
+- int read(ByteBuffer buffer)
+- int read(ByteBuffer dst, long position)
+- long size()
+- FileChannel truncate(long size)
+- int write(ByteBuffer buffer)
+- int write(ByteBuffer src, long position)
+
+FileChannel objects support the concept of a current file position, which determines the location where the next data item will be read from or written to.
+
+
 
 **Socket Channels**
 
