@@ -5,6 +5,7 @@ Title: Understanding Java: NIO
 - Introduction
 - NIO
   - Buffers
+  - Channels
   - Selectors
   - Regular Expressions
   - Charsets
@@ -109,7 +110,7 @@ Buffers have four basic properties:
 0 <= mark <= position <= limit <= capacity
 ```
 
-Buffer classes hierarchy
+The Hierarchy of Buffer Classes 
 
 ```
 A-java.nio.Buffer
@@ -130,7 +131,7 @@ Methods of Buffer
   - abstract boolean hasArray()
   - abstract boolean isDirect()
   - abstract boolean isReadOnly()
-- Return Buffer's Property
+- Get Buffer's Property
   - int capacity()
   - int limit()
   - int position()
@@ -218,11 +219,133 @@ while (in.read(buf) != -1){
 
 **Byte Ordering**
 
-...
+Nonbyte primitive types except for Boolean are composed of several bytes. Each value of one of these multibyte types is stored in a sequence of contiguous memory locations. However, the order of these bytes can differ from operating system to operating system.
+
+For example, consider 32-bit long integer 0x10203040. This value's four bytes could be stored in memory (from low address to high address) as 10, 20, 30, 40; this arrangement is known as big endian order (the most-significant byte, the "big" end, is stored at the lowest address). Alternatively, these bytes could be stored as 40, 30, 20, 10; this arrangement is known as little endian order (the least-significant byte, the "little" end, is stored at the lowest address).
+
+Java provides the `java.nio.ByteOrder` class to help you deal with byte-order issues when writing/reading multibyte value to/from a multibyte buffer. ByteOrder declares a ByteOrder `nativeOrder()` method that returns the operating system's byte order as a ByteOrder instance. This instance is one of ByteOrder's BIG_ENDIAN and LITTLE_ENDIAN constants.
+
+- static ByteOrder BIG_ENDIAN
+- static ByteOrder LITTLE_ENDIAN
+- ByteOrder nativeOrder()
+
+**ByteBuffer its default byte order is always big endian**, even when the underlying operating system's byte order is little endian. Because Java's default byte order is also big endian, which lets classfiles and serialized objects store data consistently across Java virtual machines.
+
+Big endian default can impact performance on little endian operating systems, ByteBuffer also declares a **`ByteBuffer order(ByteOrder bo)` method to change the byte buffer's byte order**.
+
+Although it may seem unusual to change the byte order of a byte buffer, this method is useful because ByteBuffer also declares several convenience methods for writing and reading multibyte values, such as `ByteBuffer putInt(int value)` and `int getInt()`. These convenience methods write these values according to the byte buffer's current byte order.
 
 **Direct Byte Buffers**
 
-...
+Operating systems can directly access the address space of a process. For example, an operating system could directly access a JVM process's address space to perform a data transfer operation based on a byte array. However, a JVM might not store the array of bytes contiguously or its garbage collector might move the byte array to another location. Because of these limitations, direct byte buffer were created.
+
+A direct byte buffer is a byte buffer that interacts with channels and native code to perform I/O. The direct byte buffer attempts to store byte elements in a memory area that a channel uses to perform direct (raw) access via native code that tells the operating system to drain or fill the memory area directly.
+
+Direct byte buffers are the most efficient means performing I/O on the JVM. Although you can also pass non-direct byte buffers to channels, a performance problem might arise because non-direct byte buffers are not always to serve as the target of native I/O operations.
+
+Although direct byte buffers are optimal for I/O, a direct byte buffer can be expensive to create because memory extraneous to the JVM's heap will need to be allocated by the operating system, and setting up/tearing down this memory might take longer than when the buffer way located within the heap.
+
+After your code is working and should you want to experiment with performance optimization, you can easily obtain a direct byte buffer by invoking ByteBuffer's `allocateDirect()` method.
+
+
+
+## Channels
+
+Channels partner with buffers to achieve high-performance I/O.
+
+A Channel is an object that represents an open connection to a hardware device, a file, a network socket, an application component, or another entity that's capable of performing writes, reads, and other I/O operations. Channels efficiently transfer data between byte buffers and operating system-based I/O service sources or destinations.
+
+**Channel classes**
+
+The Hierarchy of Channel Classes 
+
+```
+I-Channel
+|----I-ReadableByteChannel
+|--------I-ScatteringByteChannel
+|----I-WritableByteChannel
+|--------I-GatheringByteChannel
+|--------I-ByteChannel
+|------------I-SeekableByteChannel
+|----I-InterruptibleChannel
+|--------A-AbstractInterruptibleChannel
+|------------A-FileChannel
+|------------A-SelectableChannel
+|----------------A-AbstractSelectableChannel
+|--------------------A-DatagramChannel
+|--------------------A-ServerSocketChannel
+|--------------------A-SocketChannel
+|----I-AsynchronousChannel
+|--------I-AsynchronousByteChannel
+|--------A-AsynchronousFileChannel
+|--------A-AsynchronousServerSocketChannel
+|--------A-AsynchronousSocketChannel
+|----I-NetworkChannel
+|--------I-MulticastChannel
+```
+
+All channels are instances of classes that ultimately implement the `java.nio.channels.Channel` interface. The `Chennel` declares the following methods:
+
+- void close()
+- boolean isOpen()
+
+To support I/O, channel is extended by the `WritableByteChannel` and `ReadableByteChannel` interface.
+
+- WritableByteChannel declares an `abstract int write(ByteBuffer buffer)` method that writes a sequence of bytes from buffer to the current channel.
+- ReadableByteChannel declares an `abstract int read(ByteBuffer buffer)` method that reads bytes from current channel into buffer.
+
+A channel whose class implements only WritableByteChannel or ReadableByteChannel is unidirectional.
+
+InterruptibleChannel interface describes a channel that can be asynchronous closed and interrupted.
+
+NIO's designers chose to shut down a channel when a blocked thread is interrupted because they couldn't find a way to reliably handle interrupted I/O operations in the same manner across operating systems. The only way to guarantee deterministic behavior was to shut down the channel.
+
+Obtain a channel
+
+There are two ways to obtain a channel:
+
+- The `java.nio.channels` package provides a `Channels` utility class that offers two methods for obtaining channels from streams.
+  - `WritableByteChannel newChannel(OutputStream outputStream)`
+  - `ReadableByteChannel newChannel(InputStream inputStream)`
+- Various classic I/O classes have been retrofitted to support channel creation.
+  - `java.io.RandomAccessFile`'s `FileChannel getChannel()` method.
+  - `java.net.Socket`'s `SocketChannel getChannel()` method. 
+
+For example, obtain channels from standard I/O streams:
+
+```java
+ReadableByteChannel src = Channels.newChannel(System.in);
+WritableByteChannel dest = Channels.newChannel(System.out);
+ByteBuffer buffer = ByteBuffer.allocateDirect(2048);
+while (src.read(buffer) != -1){
+    buffer.flip();
+    dest.write(buffer);
+    buffer.compact();
+}
+buffer.flip();
+while (buffer.hasRemaining()){
+    dest.write(buffer);
+}
+```
+
+**Scatter/Gather I/O**
+
+**File Channels**
+
+**Socket Channels**
+
+**Pipes**
+
+
+
+------------------
+
+- Selectors
+- Asynchronous I/O
+
+
+
+
 
 ## References
 
