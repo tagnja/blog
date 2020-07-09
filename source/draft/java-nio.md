@@ -95,6 +95,8 @@ JDK 1.4 added the `DatagramChannel`, `ServerSocketChannel`, and `SocketChannel` 
 
 NIO is based on buffers, whose contents are sent to or received from I/O services via channels. This section introduces to NIO's buffer classes.
 
+### Buffer Classes
+
 A buffer is an object that stores a fixed amount of data to be sent to or received from an I/O service. It sits between an application and a channel that writes the buffered data to the service or reads the data from the service and deposits it into the buffer.
 
 Buffers are not safe for use by multiple concurrent threads. If a buffer is to be used by more than one thread then access to the buffer should be controlled by appropriate synchronization.
@@ -146,6 +148,8 @@ Methods of Buffer
   - **Buffer clear()**. Clears this buffer. It makes a buffer ready for a new sequence of channel-read or relative *put* operations. The position is set to zero, the limit is set to the capacity, and the mark is discard. Invoke this method before using a sequence of channel-read or put operation to fill this buffer. For example, `buf.clear(); in.read(buf);`
   - **Buffer flip()**. Flips this buffer. It makes a buffer ready for a new sequence of channel-write or relative *get* operations. The limit is set to the current position, the position is set to zero. If the mark is defined then it is discarded. After a sequence of channel-read or put operations, invoke this method to prepare for a sequence of channel-write or relative get operations. For example, `buf.put(magic); in.read(buf); buf.flip(); out.write(buf);`. This method is often used in conjunction with the compact method when transferring data from one place to another.
   - **Buffer rewind()**. Rewinds this buffer. It makes a buffer ready for re-reading the data that it already contains. The position is set to zero and the mark is discarded. Invoke this method before a sequence of channel-write or get operations, assuming that the limit has already bean set appropriately. For example, `out.write(buf); buf.rewind(); buf.get(array);`
+
+### Buffers in Depth
 
 **Buffer Creation**
 
@@ -255,7 +259,7 @@ Channels partner with buffers to achieve high-performance I/O.
 
 A Channel is an object that represents an open connection to a hardware device, a file, a network socket, an application component, or another entity that's capable of performing writes, reads, and other I/O operations. Channels efficiently transfer data between byte buffers and operating system-based I/O service sources or destinations.
 
-**Channel classes**
+### Channel classes
 
 The Hierarchy of Channel Classes 
 
@@ -330,6 +334,8 @@ while (buffer.hasRemaining()){
 }
 ```
 
+### Channels in Depth
+
 **Scatter/Gather I/O**
 
 Channels provide the ability to perform a single I/O operation across multiple buffers. This capability is known as scatter/gather I/O (and is also known as vectored I/O).
@@ -374,17 +380,309 @@ Methods of FileChannel:
 
 FileChannel objects support the concept of a current file position, which determines the location where the next data item will be read from or written to.
 
+The following code is FileChannel usage example:
+
+```java
+RandomAccessFile raf = new RandomAccessFile("temp.txt", "rw");
+FileChannel fc = raf.getChannel();
+long pos = fc.position();
+System.out.println("Position: " + pos);
+System.out.println("Size: " + fc.size());
+String msg = "This is a test message.";
+ByteBuffer buffer = ByteBuffer.allocateDirect(msg.length() * 2);
+buffer.asCharBuffer().put(msg);
+fc.write(buffer);
+fc.force(true);
+System.out.println("Position: " + fc.position());
+System.out.println("Size: " + fc.size());
+buffer.clear();
+fc.position(pos);
+fc.read(buffer);
+buffer.flip();
+while (buffer.hasRemaining()){
+    System.out.print(buffer.getChar());
+}
+```
+
+Locking Files
+
+The ability to lock all or part of a file was an important but missing feature from Java until Java 1.4 arrived. This capability lets a JVM process prevent other processes form accessing all or part of a file until it's finished with the entire file or part of the file.
+
+Although an entire file can be locked, it's often desirable to lock a smaller region. For example, a database management system might lock individual table rows.
+
+Locks that are associated with files are known as file locks. Each file lock starts at a certain byte position in the file and has a specific length (in bytes) from this position.
+
+There are two kinds of file locks: exclusive and shared.
+
+There are some important for file locking:
+
+- When an operating system doesn't support shared locks, a shared lock request is quietly promoted to a request for an exclusive lock.
+- Locks are applied on a per-file basis. The are not applied on a per-thread or per-channel basis.
+
+FileChannel declares four methods for obtaining exclusive and shared locks:
+
+- FileLock lock()
+- FileLock lock(long position, long size, boolean shared)
+- FileLock tryLock()
+- FileLock tryLock(long position, long size, boolean shared)
+
+A FileLock instance is associated with a FileChannel instance but the file lock represented by the FileLock instance associates with the underlying file and not with the file channel. Without care, you can run into conflicts (and possibly even a deadlock) when you don't release a file lock after you're finished using it. The following code shows the FileLock usage:
+
+```java
+FileLock lock = FileChannel.lock();
+try {
+    // interact with the file channel
+} catch (IOException ioe){
+    // handle the exception
+} finally {
+    lock.release();
+}
+```
+
+
+
+Mapping Files into Memory
+
+FileChannel declares a map() method that lets you create a virtual memory mapping between a region of an open file and a `java.nio.MappedByteBuffer` instance that wraps itself around this region. This mapping mechanism offers an efficient way to access a file because no time-consuming system calls are needed to perform I/O. The map method is:
+
+```java
+MappedByteBuffer map(FileChannel.MapMode mode, long position, long size)
+```
+
+`FileChannel.MapMode` enumerated type:
+
+- READ_ONLY
+- READ_WRITE
+- PRIVATE
+
+Changes made to the resulting buffer will eventually be propagated to the file. They might not be made visible to other programs that have mapped the same file.
+
+The specified mapping mode is constrained by the invoking FileChannel object's access permissions. For example, if the file channel was opened as a read-only channel, and if you request READ_WRITE mode, map() will throw `NonWritableChannelException`.
+
+Invoke `MappedByteBuffer`'s `isReadOnly()` method to determine whether or not you can modify the mapped file.
+
+The position and size parameters define the start and extent of the mapped region.
+
+There is no unmap() method. Once a mapping is established, it remains until the MappedByteBuffer object is garbage collected (or the application exits).
+
+The following code shows A MappedByteBuffer example:
+
+```java
+RandomAccessFile raf = new RandomAccessFile("temp.txt", "rw");
+FileChannel fc = raf.getChannel();
+long size = fc.size();
+System.out.println("Size: " + size);
+MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_WRITE, 0,
+                              size);
+mbb.clear();
+while (mbb.remaining() > 0) {
+    System.out.print((char) mbb.get());
+}
+System.out.println();
+System.out.println();
+
+String msg = "hello";
+mbb.clear();
+mbb.asCharBuffer().put(msg);
+while (mbb.hasRemaining()) {
+    fc.write(mbb);
+}
+fc.close();
+```
+
+
+
+Transferring Bytes Among Channels
+
+To optimize the common practice of performing bulk transfers, two methods have bean added to FileChnnel that avoid the need for intermediate buffers:
+
+- long transferFrom(ReadableByteChannel src, long position, long count)
+- long transferTo(long position, long count, WritableByteChannel target)
+
+There is a example of transferring between channels:
+
+```java
+try (FileInputStream fis = new FileInputStream("temp.txt")){
+    FileChannel inChannel = fis.getChannel();
+    WritableByteChannel outChannel = Channels.newChannel(System.out);
+    inChannel.transferTo(0, inChannel.size(), outChannel);
+} catch (IOException ioe){
+    System.out.println("I/O error: " + ioe.getMessage());
+}
+```
+
 
 
 **Socket Channels**
 
+Socket declares a `SocketChannel getChannel()` method for returning a socket channel instance, which describes an open connection to a socket. Unlike sockets, socket channels are selectable and can function in nonblocking mode. These capabilities enhance the scalability and flexibility of large applications.
+
+Socket channels are describes by the `java.nio.channels` package's abstract ServerSocketChannel, SocketChannel, and DatagramChannel classes. Each class ultimately extends `SelectableChannle` and `InterruptibleChannel`, making socket channels selectable and interruptible.
+
+SelecableChannel offers the following methods to enable blocking or nonblocking:
+
+- SelectableChannel configureBlocking(boolean block)
+- boolean isBlocking()
+- Object blockingLock()
+
+To enable nonblocking sockets:
+
+```java
+ServerSocketChannel ssc = ServerSocketChannel.open();
+ssc.configureBlocking(false);
+```
+
+The blockingLock() method lets you prevent other threads from changing a socket channel's blocking/nonblocking status.
+
+```java
+ServerSocketChannel ssc = ServerSocketChannel.open();
+SocketChannel sc = null;
+Object lock = ssc.blockingLock();
+synchronized(lock){
+    boolean blocking = ssc.isBlocking();
+    ssc.configureBlocking(false);
+    sc = ssc.accept();
+    ssc.configureBlocking(blocking)
+}
+```
+
+Methods of ServerSocketChannel:
+
+- static ServerSocketChannel open(). Attempt to open a server-socket channel, which is initially unbound; it must be bound to a specific address via one of its peer socket's bind() methods before connections can be accepted.
+- ServerSocket socket()
+- SocketChannel accept(). Accept the connection made this channel's socket. If this channel is nonblocking, it immediately returns null when there are no pending connections or returns a socket channel that represents the connection. Otherwise, when the channel is blocking, it blocks.
+
+An example of ServerSocketChannel as shown below:
+
+```java
+ServerSocketChannel ssc = ServerSocketChannel.open();
+ssc.socket().bind(new InetSocketAddress(9999));
+ssc.configureBlocking(false);
+String msg = "Local address: " + ssc.socket().getLocalSocketAddress();
+ByteBuffer buffer = ByteBuffer.wrap(msg.getBytes());
+while (true){
+    System.out.print(".");
+    SocketChannel sc = ssc.accept();
+    if (sc != null){
+        System.out.println();
+        System.out.println("Received connection from " +
+        sc.socket().getRemoteSocketAddress());
+        buffer.rewind();
+        sc.write(buffer);
+        sc.close();
+	} else {
+		try{
+			Thread.sleep(100);
+		}catch (InterruptedException ie){
+			assert false; // shouldn't happen
+		}
+    }
+}
+```
+
+Methods of SocketChannel:
+
+- static SocketChannel open()
+- static SocketChannel open(InetSocketAddress remoteAddr)
+- Socket socket()
+- boolean connect(SocketAddress remoteAddr)
+- boolean isConnectionPending()
+- booean finishConnect()
+- boolean isConnected()
+
+```java
+SocketChannel sc = SocketChannel.open();
+sc.connect(new InetSocketAddress("localhost", 9999));
+while (!sc.finishConnect()){
+    System.out.println("waiting to finish connection");
+}
+ByteBuffer buffer = ByteBuffer.allocate(200);
+buffer.asCharBuffer().put("hello at " + new Date());
+// send
+sc.write(buffer);
+// receive
+while (sc.read(buffer) >= 0){
+    buffer.flip();
+    while (buffer.hasRemaining()){
+        System.out.print((char) buffer.get());
+    }
+    buffer.clear();
+}
+sc.close();
+```
+
+
+
 **Pipes**
 
+Pipe describes a pair of channels that implement a unidirectional pipe, which is a conduit for passing data in one direction between two entities, such as two file channels or two socket channels. Pipe is analogous to the `java.io.PipedInputStream` and `PiepedOutputStream`.
+
+Pipe declares nested SourceChannel and SinkChannel classes that serve as readable and writable byte channels, respectively. Pipe also declares the following methods:
+
+- static Pipe open()
+- SourceChannel source()
+- SinkChannel sink()
+
+Pipe can be used to pass data within the same JVM. Pipes are ideal in producer/consumer scenarios because of encapsulation: you can use the same code to write data to files, sockets, or pipes depending on the kind of channel presented to the pipe.
+
+The following code shows a producer/consumer example:
+
+```java
+final int BUFSIZE = 10;
+final int LIMIT = 3;
+final Pipe pipe = Pipe.open();
+Thread sender = new Thread(() -> {
+    WritableByteChannel src = pipe.sink();
+    ByteBuffer buffer = ByteBuffer.allocate(BUFSIZE);
+    for (int i = 0; i < LIMIT; i++) {
+        buffer.clear();
+        for (int j = 0; j < BUFSIZE; j++) {
+            double random = Math.random();
+            buffer.put((byte) (random * 256));
+            System.out.println("CLIENT Send: " + (byte) (random * 256));
+        }
+        buffer.flip();
+        try {
+            while (src.write(buffer) > 0) ;
+        } catch (IOException ioe) {
+            System.err.println(ioe.getMessage());
+        }
+    }
+    try {
+        src.close();
+    } catch (IOException ioe) {
+        ioe.printStackTrace();
+    }
+});
+Thread receiver = new Thread(() -> {
+    ReadableByteChannel dst = pipe.source();
+    ByteBuffer buffer = ByteBuffer.allocate(BUFSIZE);
+    try {
+        while (dst.read(buffer) >= 0) {
+            buffer.flip();
+            while (buffer.remaining() > 0) {
+                System.out.println("SERVER Receive: " + (buffer.get() & 255));
+            }
+            buffer.clear();
+        }
+    } catch (IOException ioe) {
+        System.err.println(ioe.getMessage());
+    }
+});
+sender.start();
+receiver.start();
+```
 
 
-------------------
 
-- Selectors
+## Selectors
+
+
+
+---
+
+
+
 - Asynchronous I/O
 
 
