@@ -677,6 +677,16 @@ receiver.start();
 
 ## Selectors
 
+Nonblocking mode doesn't let an application determine if it can perform an operation without actually performing the operation. 
+
+The operating system is instructed to observe a group of streams and return some indication of which streams are ready to perform a specific operation (such as read). This capability lets a thread multiplex a potentially huge number of active streams by using the readiness information provided by the operating system.
+
+Selectors let you achieve readiness selection in a Java context.
+
+A selector is an object created form a subclass of the abstract `java.nio.channels.Selector` class. The selector maintains a set of channels that it examines to determine which channels are ready for reading, writing, completing a connection sequence, accepting another connection, or some combination of these tasks. The actual work is delegated to the operating system via POSIX select() or similar system call.
+
+
+
 
 
 ---
@@ -685,7 +695,11 @@ receiver.start();
 
 - Asynchronous I/O
 
+## Summary
 
+Selectable
+
+Interruptable
 
 
 
