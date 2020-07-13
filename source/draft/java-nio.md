@@ -683,25 +683,361 @@ The operating system is instructed to observe a group of streams and return some
 
 Selectors let you achieve readiness selection in a Java context.
 
+**What is Selectors**
+
 A selector is an object created form a subclass of the abstract `java.nio.channels.Selector` class. The selector maintains a set of channels that it examines to determine which channels are ready for reading, writing, completing a connection sequence, accepting another connection, or some combination of these tasks. The actual work is delegated to the operating system via POSIX select() or similar system call.
 
+**How selectors work**
+
+Selectors are used with selectable channels, which are objects whose classes ultimately inherit from the abstract `java.nio.channels.SelectableChannel` class, which describes a channel that can be multiplexed by a selector.
+
+One or more previously created selectable channels are registered with a selector. Each registration returns an instance of a subclass of the abstract `SelectionKey` class, which is a token signifying the relationship between one channel and the selector. This key keeps track of two sets of operations: interest set and ready set.  The **interest set** identifies that will be tested for readiness the next time one of the selector's selection methods is invoked. The **ready set** identifies the key's channel has been found to be ready.
+
+**How to use selectors**
+
+`Selector`'s methods
+
+- `abstract void close()`
+- `abstract boolean isOpen()`
+- `abstract Set<SelectionKey> keys()`. Returns this selector's key set.
+- `static Selector open()`. Open a selector.
+- `abstract SelectorProvider provider()`
+- `abstract int select()`. Returns the number of channels that have become ready for I/O operations since the last time it was called.
+- `abstract int select(long timeout)`. Set timeout for selector's selection operation.
+- `abstract Set<SelectionKey> selectedKeys()`. Returns this selector's selected-key set.
+- `abstract int selectNow()`. It's a nonblocking version of select().
+- `abstract Selector wakeup()`. If another thread is currently blocked in an invocation of the select() or select(long) methods then that invocation will return immediately.
+
+`SelectableChannel`'s methods
+
+- `SelectionKey register(Selector sel, int ops)`
+- `SelectionKey register(Selector sel, int ops, Object att)`. The third parameter `att` (a non-null object) is known as an attachment and is a convenient way of recognizing a given channel or attaching additional information to the channel. It's stored in the SelectionKey instance returned from this method.
+
+`SelectionKey` 
+
+- int-based constants to `ops`
+    - `OP_ACCEPT`. Operation-set bit for socket-accept opertions.
+    - `OP_CONNECT`. Operation-set bit for socket-connect operations.
+    - `OP_READ`. Operation-set bit for read operations.
+    - `OP_WRITE`. Operation-set bit for write operations.
+- `abstract SelectableChannel channel()`
+
+An application typically operations
+
+1. Performs a selection operation.
+2. Obtains the selected keys followed by an iterator over the selected keys.
+3. Iterates over these keys and performs channel operations (read, write).
+
+A selection operation is performed by invoking one of Selector's selection methods. It doesn't return until at least one channel is selected, until this selector's wakeup() method is invoked, or until the current thread is interrupted, whichever comes first.
+
+A key presents a relationship between a selectable channel and a selector. This relationship can be terminated by invoking SelectionKey's `cancel()` method.
+
+When you're finished with a selector, call Selector's `close()` method. If a thread is currently blocked in one of this selector's selection methods, it's interrupted as if by invoking the selector's `wakeup()` method. Any uncancelled keys still associated with this selector are invalidated, their channels are deregistered, and any other resources associated with this selector are released.
+
+The following code shows a example of selector usage:
+
+```java
+// get channels
+ServerSocketChannel channel = ServerSocketChannel.open();
+channel.configureBlocking(false);
+// register channels to the selector
+Selector selector = Selector.open();
+SelectionKey key = channel.register(selector, SelectionKey.OP_ACCEPT | 
+                                    SelectionKey.OP_READ |
+                                    SelectionKey.OP_WRITE);
+// selection operation
+while(true){
+    int numReadyChannels = selector.select();
+    if (numReadyChannels == 0){
+        contine;
+    }
+    Set<SelectionKey> selectedKeys = selector.selectedKeys();
+    Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
+    
+    while(keyIterator.hasNext){
+        SelectionKey key = keyIterator.next();
+        if (key.isAcceptable()){
+            ServerSocketChannel server = (ServerSocketChannel) key.channel();
+            SocketChannel client = server.accept();
+            if (client == null){
+                continue;
+            }
+            client.configureBlocking(false);
+            client.register(selector, SelectionKey.OP_READ);
+        } else if (key.isReadable()){
+            SocketChannel client = (SocketChannel) key.channel();
+            // Perform work on the socket channel...
+        } else if (key.isWritable()){
+            SocketChannel client = (SocketChannel) key.channel();
+            // Perform work on the socket channel...
+        }
+    }
+}
+```
 
 
 
+## Asynchronous I/O
 
----
+NIO provides multiplexed I/O to facilitate the creation of highly scalable servers. Client code registers a socket channel with a selector to be notified when the channel is ready to start I/O.
+
+NIO.2 provides **asynchronous I/O**, which lets client code initiate an I/O operation and subsequently notifies the client when then operation is complete. Like multiplexed I/O, asynchronous I/O is also commonly used to facilitate the creation of highly scalable servers.
+
+The main concepts of asynchronous I/O are: asynchronous I/O overview, asynchronous file channels, asynchronous socket channels, and asynchronous channel groups.
+
+**Asynchronous I/O Overview**
+
+The `java.nio.channels.AsynchronousChannel` interface describes an asynchronous channel, which is a channel that supports asynchronous I/O operation (reads, writes, and so on). 
+
+An asynchronous I/O operation is initiated by calling a method that returns a future or requires a completion handler argument, Like 
+
+- `Future<V> operation(...)`. The Future methods may be called to check if the I/O operation has completed.
+- `void opertion(... A attachment, CompletionHandler<V, ? super A> handler)`. The attachment is used for a stateless CompletionHandler object consume the result of many I/O operations. The handler is invoked to consume the result of the I/O operation when it completes or fails. 
+
+CompletionHandler declares the following methods to consume the result of an operation when it completes successfully, and to learn why the operation failed and take appropriate action:
+
+- `void complted(V result, A attachment)`
+- `void failed(Throwable t, A attachment)`
+
+After an asynchronous I/O operation called, the method returns immediately. You then call Future methods or provide code in the CompletionHandler implementation to learn more about the I/O operation status and/or process the I/O operation's results.
+
+The `java.nio.channels.AsynchronousByteChannel` interface extends AsynchronousChannel. It offers the following four methods:
+
+- `Future<Integer> read(ByteBuffer dst)`
+- `<A> void read(ByteBuffer dst, A attachment, CompletionHandler<Integer,? super A> handler)`
+- `Future<Integer> write(ByteBuffer src)`
+- `<A> void write(ByteBuffer src, A attachment, CompletionHandler<Integer,? super A> handler)`
+
+**Asynchronous File Channels**
+
+The abstract `java.nio.channels.AsynchronousFileChannel` class describes an asynchronous channel for reading, writing, and manipulating a file.
+
+This channel is created when a file is opened by invoking one of AsynchronousFileChannel's open() methods.
+
+The file contains a variable-length sequence of bytes that can be read and written, and whose current size can be queried.
+
+Files are read and written by calling AsynchronousFileChannel's read() and write() methods. One pair returns a Future and the other pair receives a CompletionHandler as an argument.
+
+An asynchronous file channel doesn't have a current position within the file. Instead, the file position is passed as an argument to each read() and write() method that initiates asynchronous operations.
+
+AsynchronousFileChannel's methods
+
+- asynchronous I/O operations
+  - `Future<FileLock> lock()`
+  - `<A> void lock(A attachment, CompletionHandler<FileLock, ? super A> handler)`
+  - `abstract Future<Integer> read(ByteBuffer dst, long position)`
+  - `abstract <A> void read(ByteBuffer dst, long position, A attachment, CompletionHandler<Integer, ? super A> handler)`
+  - `abstract Future<Integer> write(ByteBuffer src, long position)`
+  - `abstract <A> void write(ByteBuffer src, long position, A attachment, CompletionHandler<Integer, ? super A> handler)`
+- `static AsynchronousFileChannel open(Path file, OpenOption... options)`
+- `static AsynchronousFileChannel open(Path file, Set options, ExecutorService executor, FileAttribute... attrs)`
+- `abstract void force(boolean metaData)`. Forces any updates to this channel's file to be written to the storage device that contains it.
+- `abstract AsynchronousFileChannel truncate(long size)`
+- `FileLock tryLock()`
+- `abstract FileLock tryLock(long position, long size, boolean shared)`
+
+The following code is a example of AsynchronousFileChannel:
+
+```java
+public static void main(String[] args){
+    Path path = Paths.get(args[0]);
+    AsynchronousFileChannel ch = AsynchronousFileChannel.open(path);
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    Future<Integer> result = ch.read(buf, 0);
+    while (!result.isDone()){
+        System.out.println("Sleeping...");
+        Thread.sleep(500);
+    }
+    System.out.println("Finished = " + result.isDone());
+    System.out.println("Bytes erad = " + result.get());
+    ch.close();
+}
+```
+
+```java
+public static void main(String[] args){
+    Path path = Paths.get(args[0]);
+    AsynchronousFileChannel ch = AsynchronousFileChannel.open(path);
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    Thread mainThd = Thread.currentThread();
+    ch.read(buf, 0, null, 
+           new CompletionHandler<Integer, Void>(){
+               @Override
+               public void completed(Integer result, Void v){
+                   System.out.println("Bytes read = " + result);
+                   mainThd.interrupt();
+               }
+               @Override
+               public void failed(Throwable t, Void v){
+                   System.out.println("Failure: " + t.toString());
+                   mainThd.interrupt();
+               }
+           });
+    System.out.println("Waiting for completion");
+    try {
+        mainThd.join();
+    } catch (InterruptedException ie){
+        System.out.println("Terminating")
+    }
+    ch.close();
+}
+```
 
 
 
-- Asynchronous I/O
+**Asynchronous  Socket Channels**
+
+The abstract `java.nio.channels.AsynchronousServerSocketChannel` class describes an asynchronous channel for stream-oriented listening sockets. Its counterpart channel for connecting sockets is described by the abstract `java.nio.channels.AsynchronousSocketChannel` class.
+
+```java
+public class Server
+{
+	private final static int PORT = 9090;
+	private final static String HOST = "localhost";
+    
+	public static void main(String[] args)
+	{
+		AsynchronousServerSocketChannel channelServer;
+		try {
+			channelServer = AsynchronousServerSocketChannel.open();
+			channelServer.bind(new InetSocketAddress(HOST, PORT));
+			System.out.printf("Server listening at %s%n",
+			channelServer.getLocalAddress());
+		} catch (IOException ioe) {
+			System.err.println("Unable to open or bind server socket channel");
+			return;
+		}
+		Attachment att = new Attachment();
+		att.channelServer = channelServer;
+		channelServer.accept(att, new ConnectionHandler());
+		try {
+			Thread.currentThread().join();
+		} catch (InterruptedException ie) {
+			System.out.println("Server terminating");
+		}
+	}
+}
+```
+
+```java
+public class Client
+{
+	private final static Charset CSUTF8 = Charset.forName("UTF-8");
+	private final static int PORT = 9090;
+	private final static String HOST = "localhost";
+    
+	public static void main(String[] args)
+	{
+		AsynchronousSocketChannel channel;
+		try {
+			channel = AsynchronousSocketChannel.open();
+		} catch (IOException ioe) {
+			System.err.println("Unable to open client socket channel");
+			return;
+		}
+
+		try {
+			channel.connect(new InetSocketAddress(HOST, PORT)).get();
+			System.out.printf("Client at %s connected%n",
+			channel.getLocalAddress());
+		} catch (ExecutionException | InterruptedException eie) {
+			System.err.println("Server not responding");
+			return;
+		} catch (IOException ioe) {
+			System.err.println("Unable to obtain client socket channel's local address");
+			return;
+		}
+		Attachment att = new Attachment();
+		att.channel = channel;
+		att.isReadMode = false;
+		att.buffer = ByteBuffer.allocate(2048);
+		att.mainThd = Thread.currentThread();
+		byte[] data = "Hello".getBytes(CSUTF8);
+		att.buffer.put(data);
+		att.buffer.flip();
+		channel.write(att.buffer, att, new ReadWriteHandler());
+		try{
+			att.mainThd.join();
+		} catch (InterruptedException ie)
+		{
+			System.out.println("Client terminating");
+		}
+	}
+}
+```
+
+**Asynchronous  Channel Groups**
+
+The abstract `java.nio.channels.AsynchronousChannelGroup` class describes a grouping of asynchronous channels for the purpose of resource sharing. A group has an associated thread pool to which tasks are submitted, to handle I/O events and to dispatch to completion handlers that consume the results of asynchronous operations performed on the group's channels.
+
+AsynchronousServerSocketChannel and AsyynchronousSocketChannel belong to gourps. When you create an asynchronous socket channel via the no-argument open() method, the channel is bound to the default group. 
+
+AsynchronousFileChannel don't belong to groups. However, they are associated with a thread pool which tasks are submitted, to handle I/O events and to dispatch to completion handlers that consume the results of I/O operations on the channel.
+
+You can configure the default gourp by initializing the following system properties at JVM startup:
+
+- java.nio.channels.DefaultThreadPool.threadFactory
+- java.nio.channels.DefaultThreadPool.initialSize
+
+You can define your own channel group. It gives you more control over the threads that are used to service the I/O operations. Furthermore, it provides the mechanisms to shut down threads and to await termination. You can use AsynchronousChannelGroup's methods to create your own channel group:
+
+- `static AsynchronousChannelGroup withCachedThreadPool(ExecutorService executor, int initialSize)`
+- `static AsynchronousChannelGroup withFixedThreadPool(int nThreads, ThreadFactory threadFactory)`
+- `static AsynchronousChannelGroup withThreadPool(ExecutorService executor)`
+
+Other methods of AsynchronousChannelGroup:
+
+- `abstract boolean awaitTermination(long timeout, TimeUnit unit)`
+- `abstract boolean isShutdown()`
+- `abstract boolean isTerminated()`.
+- `abstract void shutdown()`. Initiates an orderly shutdown of the group.
+- `abstract void shutdownNow()`. Shuts down the group and closes all open channels in the group.
+- `AsynchronousChannelProvider provider()`
+
+After creating a gourp, you can bind an asynchronous socket channel to the group by calling the following class methods:
+
+- AsynchronousServerSocketChannel's open(AsynchronousChannelGroup group)
+- AsynchronousSocketChannel's open(AsynchronousChannelGroup group)
+
+```java
+AsynchronousChannelGroup group = AsynchronousChannelGroup.
+	withFixedThreadPool(20,Executors.defaultThreadFactory());
+AsynchronousServerSocketChannel chServer =
+    AsynchronousServerSocketChannel.open(group);
+AsynchronousSocketChannel chClient = 
+    AsynchronousSocketChannel.open(group);
+
+// After the operation has begun, the channel group is used to control the shutdown.
+if (!group.isShutdown())
+{
+    // After the group is shut down, no more channels can be bound to it.
+    group.shutdown();
+}
+if (!group.isTerminated())
+{
+    // Forcibly shut down the group. The channel is closed and the
+    // accept operation aborts.
+    group.shutdownNow();
+}
+// The group should be able to terminate; wait for 10 seconds maximum.
+group.awaitTermination(10, TimeUnit.SECONDS);
+```
+
+
 
 ## Summary
 
-Selectable
+NIO is nonblocking and selectable, and it provides **non-blocking IO** and **multiplexed I/O** to facilitate the creation of highly scalable servers
 
-Interruptable
+NIO channels read() and write() operations are **nonblocking**. 
 
+Channels read and write operations are work with buffers. For example, write a buffer data to a channel (to a device), read data from a channel (from a device) into a buffer.
 
+NIO channels are **selectable** it can be managed with a selector.  A selector maintains a set of channels that it examines to determine which channels are ready for reading, writing, completing a connection sequence, accepting another connection, or some combination of these tasks. The actual work is delegated to the operating system via POSIX select() or similar system call.
+
+NIO provides non-blocking IO and multiplex I/O, but it still needs to check the channels' status with a loop. The **NIO.2's asynchronous IO** can get notifies when the operation is complete. Like multiplexed I/O, asynchronous I/O is also commonly used to facilitate the creation of highly scalable servers.
+
+All of IO, non-blocking IO, asynchronous IO are supported by the operating system.
 
 ## References
 
