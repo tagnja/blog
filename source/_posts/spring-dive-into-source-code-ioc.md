@@ -9,7 +9,7 @@ tags: Spring
 
 
 
-In this post, we are going to diving into the Spring framework in deep. We are going to analyze IoC implementation in the source code of the Spring framework. 
+In this post, we are going to diving into the Spring framework in deep. The main content of this post is to analyze IoC implementation in the source code of the Spring framework. 
 
 ## Basics
 
