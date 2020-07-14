@@ -76,7 +76,7 @@ date: 2019-10-28 21:54:29
 | 书名                                                         | 时间 | 评分 |
 | ------------------------------------------------------------ | ---- | ---- |
 | **Java Servlet Specification**<br/>Java Servlet 官方文档。全面了解 Java Servlet，内容简洁明了。 | 2020 | ★★★★ |
-| Spring framework Documentation<br/>Spring framework 的官方文档。 | 2020 | ★★★★ |
+| **Spring framework Documentation**<br/>Spring framework 的官方文档。 | 2020 | ★★★★ |
 | **Spring 实战**, Craig Walls<br />入门了解 Spring framework。 | 2016 | ★★★★ |
 | **精通Hibernate**, 孙卫琴<br />入门了解 Hibernate。          | 2016 | ★★★  |
 
