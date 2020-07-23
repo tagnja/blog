@@ -433,7 +433,7 @@ newPartition.forEachRemaining(System.out::println);
 
 ## Summary
 
-**Stream** is similar to "for loop", but it's more concise than "for loop" and it provides many convenient operations implementation. Additionally, it can sequential or parallel operating container elements.
+**Stream** is operations on collections, and is similar to multiple times "for loop", but it's more concise than multiple times "for loop" and it provides many convenient operations implementation. Additionally, it can sequential or parallel operating container elements.
 
 **Functional Interface** represents the class that can be use lambda expression.
 
