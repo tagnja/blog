@@ -336,7 +336,7 @@ Container 读取 request 的数据的默认编码为 ISO-8859-1。开发者可�
 
 ## Servlet Context
 
-SevletContext interface 定义了一组方法让 servlet 与 它的 servlet container 进行交流。例如，获取一个文件的 MIME type，dispatch request，，写日志，以及设置和存储所有 servlet 可以访问的属性等。
+SevletContext interface 定义了一组方法让 servlet 与 它的 servlet container 进行交流。例如，获取一个文件的 MIME type，dispatch request，写日志，以及设置和存储所有 servlet 可以访问的属性等。
 
 ### Scope of ServletContext Interface
 
