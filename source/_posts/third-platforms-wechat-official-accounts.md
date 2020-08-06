@@ -145,9 +145,7 @@ https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=xxx&s
 {"errcode":40164,"errmsg":"invalid ip 58.213.199.30 ipv6 ::ffff:58.213.199.30, not in whitelist hint: [Zhnd8cQNe-4P2DPA]"}
 ```
 
-
-
-## 微信公众平台的接口和功能
+### 微信公众平台的接口和功能
 
 微信公众平台提供的接口和功能如下：
 
@@ -168,7 +166,118 @@ https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=xxx&s
 - 微信“一物一码”
 - 微信发票
 
+我们可以简单地将微信公众平台的API接口分为三类：
+
+- 基础接口（菜单，用户，素材等），为消息服务和网页服务提供基础。
+- 消息服务接口。
+- 网页服务接口。
+
 以上功能的具体的使用步骤和接口调用说明，请参考 [微信公众号开发指南](https://developers.weixin.qq.com/doc/offiaccount/Getting_Started/Overview.html)。
+
+## 微信网页服务开发
+
+### 网页授权
+
+网页授权是指：在用户访问公众号网页时获取该微信用户的信息需要先跳转到用户授权页面进行授权。
+
+微信公众号应用需要通过微信用户的 openId 来标识用户，我们需要通过网页授权来获取用户信息，根据用户的 openId 知道是哪个用户访问了公众号网页，然后进行相应的业务处理。
+
+网页授权的过程为：公众号页面重定向跳转到微信用户授权页面，微信回调你的服务器，你获得 code 参数，利用 code 参数获取 JSAPI access_token（与基础 API 的 access_token 不同），利用 access_token 去调用微信 API 获取用户基本信息。
+
+网页授权的实现过程：
+
+- 在后端定义一个 Filter，拦截所有需要进行网页授权的请求（特定的 URI 前缀），检查请求的 session 中是否存在 openId。如果 openId 不存在，则需要进行网页授权，将未授权的请求重定向到微信授权页面；如果 openId 存在，则不进行任何处理。
+- 微信回调后，你获取到了 code 参数，然后利用 code 参数调用微信 API 获取 access_token 参数，然后利用 access_token 调用微信 API 获取用户基本信息。需要调用两次微信 API。
+- 将微信用户基本保存到 session 中。
+
+### JS-SDK使用说明
+
+JS-SDK 功能的页面参考样式：https://www.weixinsxy.com/jssdk/
+
+JS-SDK 接口主要的功能：监听分享事件，暂存音频和视频，调用微信APP的功能（如微信扫一扫、内置地图），微信支付等。
+
+访问测试公众号的网页的条件：
+
+- 需要在微信开发者工具或者微信APP中访问公众号网页。
+- 需要扫码关注了测试公众号的用户才能访问该公众号网页。
+- 微信公众平台中配置"JS接口安全域名"（公众号调用 JSSDK 的域名），需要备案的域名，而不能是 IP。
+- 微信公众平台中配置“接口权限列表--网页授权获取用户基本信息--授权回调页面域名”（用户授权后回调公众号的域名），需要备案的域名才行。
+- “JS接口安全域名”与“授权回调页面域名”，需要保持一致。
+- （Note: 微信公众平台中配置“Token验证” 的 URL是用于“token 验证”（消息通信是否正常）和“微信公众号的消息服务开发”（消息服务通信的 URL 与 token 验证 的 URL 一致，但消息服务是 HTTP POST 请求），token 验证 URL 与公众号网页服务开发没有关系。消息服务的通信 URL 可以是 IP，可以与网页服务的两个域名不一致）
+
+使用微信 JS-SDK 接口
+
+调用微信 JS-SDK 的 API 接口需要开发者应用提供相关配置和签名参数给 JS-SDK 的配置接口。主要是4个参数：appId，timestamp，nonceStr 和 signature。
+
+获取签名的实现过程：通过普通的 access_token 调用微信 API 获取 jsapi_ticket 参数，生成一个随机字符串（可使用UUID），根据签名算法，将需要4个参数转换为1个签名参数。
+
+JS-SDK 的使用如下：
+
+1）进行权限验证
+
+```javascript
+wx.config({
+	debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+	appId: '${wxJsapiConfig.appId}', // 必填，公众号的唯一标识
+	timestamp: '${wxJsapiConfig.timestamp}', // 必填，生成签名的时间戳
+	nonceStr: '${wxJsapiConfig.nonceStr}', // 必填，生成签名的随机串
+	signature: '${wxJsapiConfig.signature}',// 必填，签名
+	jsApiList: [
+		'updateAppMessageShareData',
+		'updateTimelineShareData'
+	] // 必填，需要使用的JS接口列表
+});
+
+```
+
+2）权限验证成功后，会执行JS-SDK 的 wx.ready() 方法：
+
+```javascript
+wx.ready(function(){
+	//自定义“分享给朋友”及“分享到QQ”按钮的分享内容
+    // Auto running
+    wx.updateAppMessageShareData({
+        title: 'wxPage-index', // 分享标题
+        desc: 'Test share to friend.', // 分享描述
+        link: '${wxJsapiConfig.url}', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: '', // 分享图标
+        success: function () {
+            // 设置成功
+            console.log("Set share to friend info successfully!");
+        }
+    })
+
+    // 拍照或从手机相册中选图接口
+    // onclick running
+    document.querySelector('#chooseImage').onclick = function () {
+        wx.chooseImage({
+            count: 9, // 默认9
+            sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+            sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+            success: function (res) {
+                localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+                console.log("chooseImage -- localIds first: " + localIds[0]);
+            }
+        });
+    };
+});
+```
+
+3）权限验证失败后，会执行 JS-SDK 的 wx.error() 方法。
+
+```javascript
+wx.error(function (res) {
+    alert(res.errMsg);
+});
+```
+
+
+
+更多内容请参考官方说明：
+
+- [JS-SDK 接口使用说明](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html)
+
+- [JS-SDK 接口列表](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#63)
 
 ## 微信公众号开发接入示例
 
@@ -420,6 +529,120 @@ java -jar <project_name>.jar
   ```
 
 - 点击修改配置页面的“提交”按钮，若 token 验证成功会自动跳转到基本配置页面；若验证失败会在当前页面弹出错误提示。
+
+## Summary
+
+**微信基础 API 接口**
+
+前提要求
+
+- 客户端请求的 IP 需要在公众平台的 IP 白名单中。但测试公众号不需要。
+
+不满足前提的错误结果
+
+- 调用微信 API 接口返回的错误提示：
+
+  ```
+  {"errcode":40164,"errmsg":"invalid ip <your_ip> ipv6 ::ffff:<your_ip>, not in whitelist hint: [jhCDbOwFE-C.kTAa] rid: 5f2baef3-06a383d9-48b6ee02"}
+  ```
+
+功能列表
+
+- 获取 access_token
+- 自定义菜单 （创建、删除、查询等）
+- 素材管理（临时素材、永久素材、图文素材的创建、删除和获取等）
+- 图文消息留言管理
+- 用户管理（用户标签、用户备注名、用户基本信息、用户地理位置等）
+- 帐号管理
+- 数据统计
+- 微信卡券
+- ...
+
+如何对接
+
+- 获取 access_token，调用微信 API。
+
+**微信消息服务**
+
+前提要求
+
+- token 验证通过。
+
+不满足前提的错误结果
+
+- 无法收到微信服务器的请求
+
+功能列表
+
+- 自定义菜单 -事件推送
+- 消息管理 （接收普通消息、接收事件推送、回复消息）
+- 消息管理（群发消息、模板消息、一次性订阅消息）
+
+如何对接
+
+- 接收来自微信服务器的 token 验证请求，进行 token 验证。
+- 接收来自微信服务器的消息，解析 XML 获取消息内容和用户信息，回复 XML 格式的消息。
+- 获取 access_token，调用微信 API，群发消息给多个用户。
+
+**微信网页服务**
+
+前提要求
+
+- 公众号的网页需要在微信开发者工具或者微信APP中访问。
+- 公众号网页的 URL 的域名，JS 安全域名和用户授权回调域名需要一致，且域名已经备案。
+
+不满足前提的错误结果
+
+- 网页出现下面的提示：
+
+  ```
+  Oops! Something went wrong:(
+  ```
+
+功能列表
+
+- 网页授权
+- 网页开发样式 WeUI
+- JS-SDK （基础接口，分享接口，图像接口，音频接口，智能接口，地理位置）
+- JS-SDK（微信支付）
+- 微信开放标签
+
+如何对接
+
+- 在网页获取微信用户信息。公众号页面重定向跳转到微信用户授权页面，微信回调你的服务器，获得 code 参数，利用 code 参数获取 JSAPI access_token（与基础 API 的 access_token 不同），利用 access_token 去调用微信 API 获取用户基本信息。
+- 在网页调用微信 JS-SDK 的 API。调用微信 API 获取 jsapi_ticket，根据 jsapi_ticket 构造得到签名，将签名和相关参数返回给前端，前端利用签名和相关参数调用 JS-SDK API。
+
+### 常见问题
+
+**Question: 公众号页面重定到微信用户授权页面（获取 code ）时出现错误**
+
+微信授权页面错误提示为：`Oops! Something went wrong:(`
+
+Solution:
+
+确保在微信开发者工具或者微信APP 中打开微信公众号的页面链接，而不是在浏览器打开。
+
+检查配置。微信公众平台的接口权限列表中的“网页授权获取用户信息”行，修改“授权回调页面域名”（不需要加 http:// or https://）
+
+**Question: JSAPI 参数错误，无效的签名。**
+
+错误提示为：`{errMsg: "config:fail,Error: 系统错误，错误码：63002,invalid signature [20200804 16:04:22][]"}`
+
+Solution：
+
+检查需要的4个参数（noncestr, jsapi_ticket, timestamp, url）是否不为空，是否正确。
+
+检查签名算法是否正确。
+
+检查访问的页面的 URL 要与传递的 URL 一致。注意传递的 url 是 `https://xxx`， 访问页面也要是 `https://xxx`，而不能是 `http://xxx`。
+
+**Question: JS-SDK debug 模式没有弹出提示**
+
+Solution:
+
+检查 JSSDK 的 js 引用是否正确。如，`<script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>`
+
+查看微信开发者工具的 console，JavaScript 代码是否有语法错误。
 
 ## Appendixes
 
