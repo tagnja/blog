@@ -1,9 +1,6 @@
 Title: 微信支付开发教程
 
-content
 
-- 微信支付的基础
-- JSAPI支付开发
 
 本文将介绍微信支付开发相关内容，微信支付有很多种途径，本文主要以 JSAPI 支付为例。接下来将介绍微信支付的基础和 JSAPI 支付开发过程。
 
@@ -45,9 +42,107 @@ content
 
 
 
-## JSAPI支付开发
+## 微信 JSAPI 支付开发
+
+**微信微信 JSAPI 支付开发前提**
+
+- 申请商户的微信支付账号。商户在微信公众平台或开放平台提交微信支付申请，申请成功后可获取其支付账号的相关参数用于微信支付开发。
+- 设置支付目录。1）商户最后请求拉起微信支付收银台的页面地址我们称之为“支付目录”，例如：`https://www.weixin.com/pay.php`。2）商户实际的支付目录（支付页面URL）必须和在微信支付商户平台设置的一致。3）如果支付授权目录设置为顶级域名（例如：`https://www.weixin.com/` ），那么只校验顶级域名，不校验后缀。
+- 设置授权域名。在统一下单接口中要求必传用户openid，即需要进行网页授权，获取用户信息。
+
+**微信支付系统主要提供的 API 和功能**
+
+- 支付下单、查询订单、支付结果通知（微信回调）
+- 申请退款、查询退款、退款通知（微信回调）
+
+详细的 API 列表可参考微信支付官方文档：[微信支付 API 列表](https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1)
 
 
+
+**微信 JSAPI 支付开发需要的参数**
+
+- 商户号（mch_id）
+- API 密钥（key）：交易过程用于生成签名的密钥，仅保留在商户系统和微信支付后台。
+- API 证书（application_cert.pem）：微信支付接口中，涉及资金回滚的接口会使用到 API 证书，包括退款、撤销接口。证书文件主要用于退款时发送 SSL 请求。
+- 当然还包括公众平台的参数（appId，appSecret）。
+
+其中公众平台的 appId 与微信支付系统的 mch_id 将公众号应用与微信支付帐号进行了绑定。
+
+**微信 JSAPI 支付功能的实现过程**
+
+- 用户发起支付请求。
+- 公众号后端，生成商户自己的订单数据（商户订单号），保存到数据库订单表。
+- 调用微信统一下单API，得到预付单信息（prepay_id）。下单成功后更新数据库订单表。
+- 生成公众号页面调用 JSAPI 支付接口需要的参数并签名（paySign），将参数返回给前端页面。
+- 公众号前端页面，调用 JSAPI 支付接口请求支付。
+- 微信支付系统验证参数的合法性，若参数合法则弹出微信的确认支付的页面。用户输入支付密码，密码验证通过后会跳转到微信的支付成功页面，并同时发起微信支付的回调。
+- 在支付成功页面点击返回商家，跳转到商户指定的页面。商户系统后端调用微信订单查询 API，查询支付结果，生成商户自己的支付结果页面。
+- 公众号后端，处理微信支付的回调。进行业务处理后，返回处理结果给微信支付系统。
+
+详细业务流程可参考微信支付官方文档：[JSAPI 支付业务流程时序图](https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=7_4)
+
+
+
+**公众号网页调用 JSSDK 支付接口（调起微信支付）**
+
+可以使用微信 JSSDK 的支付 API。也可以使用微信支付封装的JS方法。
+
+1）JSSDK 发起支付请求
+
+```javascript
+wx.ready(function(
+	// auto execution
+	wx.chooseWXPay({
+	  timestamp: 0, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+	  nonceStr: '', // 支付签名随机串，不长于 32 位
+	  package: '', // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
+	  signType: '', // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+	  paySign: '', // 支付签名
+	  success: function (res) {
+	    // 支付成功后的回调函数
+	  }
+	});
+));
+```
+
+2）微信支付平台封装的方法
+
+```html
+<script>
+function onBridgeReady(){
+   WeixinJSBridge.invoke(
+      'getBrandWCPayRequest', {
+         "appId":"wx2421b1c4370ec43b",     //公众号名称，由商户传入     
+         "timeStamp":"1395712654",         //时间戳，自1970年以来的秒数     
+         "nonceStr":"e61463f8efa94090b1f366cccfbbb444", //随机串     
+         "package":"prepay_id=u802345jgfjsdfgsdg888",     
+         "signType":"MD5",         //微信签名方式：     
+         "paySign":"70EA570631E4BB79628FBCA90534C63FF7FADD89" //微信签名 
+      },
+      function(res){
+      if(res.err_msg == "get_brand_wcpay_request:ok" ){
+      // 使用以上方式判断前端返回,微信团队郑重提示：
+            //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+      } 
+   }); 
+}
+
+if (typeof WeixinJSBridge == "undefined"){
+   if( document.addEventListener ){
+       document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+   }else if (document.attachEvent){
+       document.attachEvent('WeixinJSBridgeReady', onBridgeReady); 
+       document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+   }
+}else{
+   onBridgeReady();
+}
+</script>
+```
+
+**注意事项**
+
+微信支付需要在微信APP中调试，不能在微信开发者工具中调试。
 
 
 
