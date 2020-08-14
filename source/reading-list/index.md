@@ -21,7 +21,7 @@ date: 2019-10-28 21:54:29
 | ------------------------------------------------------------ | ---- | ----- |
 | **Computer Organization and Design: the Hardware/Software Interface**, 5th, by David Patterson<br />介绍计算机底层实现，前面三章收获很大，后面的章节太抽象了，对初学者不太友好。 | 2019 | ★★★★★ |
 | **Operating System Concepts**, 7th, by Abraham Silberschatz, Peter B. Galvin, Greg Gagne<br />操作系统入门书，整体上挺好的。第一次看得时候，觉得名词概念和实现算法有点多，有点吃力。不理解名词概念会在网上搜索文章和视频，理解之后再往下看。 | 2019 | ★★★★★ |
-| **Computer Networking: A Top Down Approach**, 7th, by Kurose, Ross<br />非常好的一本介绍j计算机网络的入门书籍，深入浅出。唯一的缺点就是后面几章有点随意，不太友好。 | 2019 | ★★★★★ |
+| **Computer Networking: A Top Down Approach**, 7th, by Kurose, Ross<br />非常好的一本介绍计算机网络的入门书籍，深入浅出。唯一的缺点就是后面几章有点随意，不太友好。 | 2019 | ★★★★★ |
 | **Database System Concepts** ,6th, by Sudarshan, Korth<br />数据库系统的入门书籍，详细全面的介绍了数据库系统，大而全，1000多页。以前只知道 SQL 怎么用，看完之后知道为什么要用。帮助我建立完整的数据库系统知识体系。主要是 SQL 的深入理解，数据库设计和数据库系统的内部组件的实现。 | 2019 | ★★★★  |
 | **剑指offer**, 2nd, by 何海涛<br/>主要了解了一些算法解题技巧和面试技巧。后面部分有些烂尾，叙述不清晰、很草率。不过，整体还是不错的，它对提升算法解题思路有一些帮助，值得读一读。 | 2019 | ★★★★  |
 | **The Linux command line: A complete introduction**, William Shotts<br />介绍 Linux 系统和命令行的书，深入浅出，即让你知道 command 的用法，也讲了一些 command 背后的故事，比较喜欢。命令行的细节太多了，看完就忘了。不过，有了一个完整的知识体系，不记得的内容，用的时候再查一下就好。 | 2017 | ★★★★  |
