@@ -2,8 +2,8 @@
 title: Understanding Java：Lambda and Stream
 date: 2020-04-16 09:24:06
 categories: 
-- 编程语言
 - Java
+- Java 基础
 tags: Java
 ---
 

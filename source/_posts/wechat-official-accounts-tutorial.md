@@ -2,7 +2,7 @@
 title: 微信公众号开发教程
 date: 2020-07-27 19:02:20
 categories: 
-- Web 开发
+- Java
 - Java Web
 tags: wechat
 ---

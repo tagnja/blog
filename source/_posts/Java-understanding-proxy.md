@@ -2,8 +2,8 @@
 title: Understanding Java：Proxy
 date: 2020-06-15 16:49:20
 categories: 
-- 编程语言
 - Java
+- Java 基础
 tags: Java
 ---
 

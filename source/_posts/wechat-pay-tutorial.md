@@ -2,7 +2,7 @@
 title: 微信公众号之微信支付开发教程
 date: 2020-08-07 11:15:54
 categories: 
-- Web 开发
+- Java
 - Java Web
 tags: wechat
 ---

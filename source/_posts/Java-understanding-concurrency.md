@@ -2,8 +2,8 @@
 title: Understanding Java：Concurrency
 date: 2020-05-13 08:40:01
 categories: 
-- 编程语言
 - Java
+- Java 基础
 tags: Java
 ---
 
