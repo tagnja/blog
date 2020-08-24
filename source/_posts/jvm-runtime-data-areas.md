@@ -14,7 +14,7 @@ The Java Virtual Machine defines various run-time data areas that are used durin
 
 ## The `pc` Register
 
-The Java Virtual Machine can support many threads of execution at once. Each JVM thread has it won `pc` (program counter) register. At any point, each JVM thread is executing the code of a single method, namely the current method for that thread. If that method is not `native`, the `pc` register contains the address of the JVM instruction currently being executed. If the method is `native`, the value of the `pc` register is undefined.
+The Java Virtual Machine can support many threads of execution at once. Each JVM thread has its own `pc` (program counter) register. At any point, each JVM thread is executing the code of a single method, namely the current method for that thread. If that method is not `native`, the `pc` register contains the address of the JVM instruction currently being executed. If the method is `native`, the value of the `pc` register is undefined.
 
 ## Java Virtual Machine Stacks
 
