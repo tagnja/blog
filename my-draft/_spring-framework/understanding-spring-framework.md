@@ -18,7 +18,7 @@ Title: Understanding The Spring Framework Core
 
 > The Spring Framework is a Java platform that provides comprehensive infrastructure support for developing Java applications. Spring handles the infrastructure so you can focus on your application.
 
-In my opinion, the Spring framework is a framework that does a lot of infrastructure things to help you focus on your application business logic development. In addition, the Spring framework is non-intrusive, meaning that your domain logic code generally has no dependencies on the framework itself.
+In my opinion, the Spring framework is a infrastructure framework or a Java application infrastructure platform that does a lot of infrastructure things to help you focus on your application business logic development. In addition, the Spring framework is non-intrusive, meaning that your domain logic code generally has no dependencies on the framework itself.
 
 Features
 
