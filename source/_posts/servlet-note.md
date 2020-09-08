@@ -190,7 +190,7 @@ Servlet interface 是 Java Servlet API 的核心抽象。所有的 servlets 直�
 
 ### Servlet Life Cycle
 
-Servlet 是通过定义明确的声明周期进行管理的，该生命周期定义了如何加载和实例化，如何初始化，如何处理来时客户端的请求，和如何退出服务。API 中的生命周期由 `javax.servlet.Servlet` 接口的 `init`，`service` 和 `destroy` 方法表示，所有的 servlet 必须直接或者通过 GenericServlet 或 HttpServlet 抽象类间接地实现这个接口。
+Servlet 是通过定义明确的生命周期进行管理的，该生命周期定义了如何加载和实例化，如何初始化，如何处理来时客户端的请求，和如何退出服务。API 中的生命周期由 `javax.servlet.Servlet` 接口的 `init`，`service` 和 `destroy` 方法表示，所有的 servlet 必须直接或者通过 GenericServlet 或 HttpServlet 抽象类间接地实现这个接口。
 
 #### Loading and Instantiation
 
