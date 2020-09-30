@@ -33,9 +33,9 @@ categories:
 ## Design Patterns
 
 - Clean code.
-- Design pattern. Singleton, proxy.
-- Classes design principles(SOLID). 
-- Classes relationships(generalization, aggregation, association).
+- Design patterns (Singleton, proxy).
+- Classes design principles (SOLID).
+- Classes relationships (generalization, aggregation, association).
 - Tests. Unit tests.
 - Logging.
 
@@ -43,7 +43,7 @@ categories:
 
 ## Java Web MVC
 
-- Controller parameters to Java model
+- Controller parameters to Java model.
 - Controller data validation. (To prevent dirty data persistence)
 - Controller exception handling.
 - Filtering HTTP requests.
