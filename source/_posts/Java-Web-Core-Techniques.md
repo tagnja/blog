@@ -61,20 +61,23 @@ categories:
 
 ## Web Frontend
 
-- List page
-  - Page table list.
-  - Tree menu and table list.
-  - Search.
-  - Delete and batch delete.
-- Add/Edit page
-  - Form validation.
-  - File upload form.
-  - Form submit.
-  - Ajax and async request.
-  - Events. click(), change().
-  - Multiple form input elements related update.
-  - Rich text editor.
-  - One to many add/edit.
+- General
+  - Custom JSP form tags
+- Management System
+  - List page
+    - Page table list.
+    - Tree menu and table list.
+    - Search.
+    - Delete and batch delete.
+  - Add/Edit page
+    - Form validation.
+    - File upload form.
+    - Form submit.
+    - Ajax and async request.
+    - Events. click(), change().
+    - Multiple form input elements related update.
+    - Rich text editor.
+    - One to many add/edit.
 
 
 
