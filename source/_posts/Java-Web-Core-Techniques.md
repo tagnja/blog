@@ -12,7 +12,7 @@ categories:
 - IOC
 - AOP
 - Encapsulation. (Return message, exception class)
-- Custom annotations.
+- Custom annotations. `@JsonIgnore`
 - Select appropriate collection data types.
 - Generic programming.
 - Functional programming and stream.
@@ -62,7 +62,8 @@ categories:
 ## Web Frontend
 
 - General
-  - Custom JSP form tags
+  - Custom JSP form tags. `<form:select>`
+  - Custom JavaScript functions. `proj.confirm()`, `proj.loading()`, `proj.getDictLabel()`, `proj.success(message)`, `proj.openDialog()`
 - Management System
   - List page
     - Page table list.
