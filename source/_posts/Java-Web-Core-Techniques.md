@@ -12,12 +12,17 @@ categories:
 - IOC
 - AOP
 - Encapsulation. (Return message, exception class)
-- Concurrency programming and thread safety.
+- Custom annotations.
+- Select appropriate collection data types.
 - Generic programming.
 - Functional programming and stream.
+- Concurrency programming and thread safety.
 - Network programming. Socket, NIO.
 - Internationalization.
 - JVM tuning.
+- Java Security. Encryption, SSL.
+
+
 
 ##  Java Data Access
 
@@ -75,4 +80,5 @@ categories:
 
 ## Database
 
+- RDBMS database deisgn.
 - RDBMS indexing.
