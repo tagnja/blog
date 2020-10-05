@@ -144,6 +144,9 @@ Finally, there is a lot that you can do with NPM scripts. Some use cases are:
 
 And a lot more. To learn about how to automate the above-mentioned tasks using NPM scripts, check out [this brilliant article](https://css-tricks.com/why-npm-scripts/) on the topic.
 
+More use cases: [awesome-npm-scripts](https://github.com/RyanZim/awesome-npm-scripts)
+
 ## References
 
 [1] [Introduction to NPM Scripts - FreeCodeCamp](https://www.freecodecamp.org/news/introduction-to-npm-scripts-1dbb2ae01633/)
+
