@@ -14,7 +14,7 @@
 - Build Tools
 
   - Task Runners
-    - [ ] npm scripts
+    - [x] npm scripts
   - Module Bundlers
     - [ ] Webpack
   
@@ -69,3 +69,7 @@
   - Mobile Applications
   - Desktop Applications
   - Web Assembly
+
+## References
+
+[1] https://roadmap.sh/frontend
