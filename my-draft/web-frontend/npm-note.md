@@ -419,6 +419,10 @@ TODO
 # display npm version
 npm -v
 
+# init
+npm init
+npm init --yes
+
 # display Non-global installed packages
 npm ls (or npm list)
 # to display only main packages not its sub-packages
