@@ -460,6 +460,8 @@ npm uninstall --save <@scope/package_name>
 npm uninstall -g <package_name>
 npm uninstall -g <@scope/package_name>
 
+# runs an arbitrary command from a package’s "scripts" object.
+npm run <script_name> or npm run-script <script_name>
 # runs the build field from the package.json scripts field. Publish directory /dist
 npm run build
 ```
@@ -471,3 +473,5 @@ npm run build
 [1] [npm - Wikipedia](https://en.wikipedia.org/wiki/Npm_(software))
 
 [2] [npm Documentation](https://docs.npmjs.com/)
+
+[3] [npm CLI Documentation](https://docs.npmjs.com/cli-documentation/)
