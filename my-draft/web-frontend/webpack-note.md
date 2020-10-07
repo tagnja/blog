@@ -115,7 +115,11 @@ npm run build
 npm run build -- --colors
 ```
 
+
+
 ## Asset Management
+
+
 
 ### Loading CSS
 
@@ -270,6 +274,65 @@ The coolest part of everything mentioned above, is that loading assets this way 
 + |  |  |– icon.svg
 + |  |  |– img.png
 ```
+
+
+
+## Output Management
+
+HtmlWebpackPlugin
+
+Cleaning up the `/dist` folder
+
+The manifest
+
+## Development
+
+webpack.config.js
+
+```
+module.exports = {
+   mode: 'development',
+```
+
+Using source maps
+
+Development Tools
+
+- webpack's Watch Mode
+- webpack-dev-server
+- webpack-dev-middleware
+
+you've learned how to automatically compile your code and run a simple development server.
+
+
+
+
+
+## Plugins
+
+Assert management plugins
+
+```
+npm install --save-dev style-loader css-loader
+npm install --save-dev file-loader
+npm install --save-dev csv-loader xml-loader
+```
+
+Output management plugins
+
+```bash
+npm install --save-dev html-webpack-plugin
+npm install --save-dev clean-webpack-plugin
+```
+
+Development plugins
+
+```
+npm install --save-dev webpack-dev-server
+npm install --save-dev express webpack-dev-middleware
+```
+
+
 
 ## References
 
