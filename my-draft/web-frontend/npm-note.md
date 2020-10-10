@@ -423,6 +423,9 @@ npm -v
 npm init
 npm init --yes
 
+# login npm registry
+npm login
+
 # display Non-global installed packages
 npm ls (or npm list)
 # to display only main packages not its sub-packages
@@ -464,6 +467,16 @@ npm uninstall -g <@scope/package_name>
 npm run <script_name> or npm run-script <script_name>
 # runs the build field from the package.json scripts field. Publish directory /dist
 npm run build
+```
+
+npm config
+
+```
+# set taobao mirror
+npm config set registry https://registry.npm.taobao.org
+npm config set registry https://registry.npmjs.org/
+# verify
+npm config get registry
 ```
 
 
