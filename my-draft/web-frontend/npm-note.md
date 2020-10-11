@@ -476,7 +476,8 @@ npm cache
 # and verifying the integrity of the cache index and all cached data.
 npm cache verify
 
-# Delete all data out of the cache folder.
+# Delete all data out of the cache folder
+# clear directory C:\Users\Taogen\AppData\Roaming\npm-cache
 npm cache clean // alias "npm cache clear" or "npm cache rm"
 npm cache clean --force
 
