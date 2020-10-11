@@ -469,6 +469,21 @@ npm run <script_name> or npm run-script <script_name>
 npm run build
 ```
 
+npm cache
+
+```
+# Verify the contents of the cache folder, garbage collecting any unneeded data, 
+# and verifying the integrity of the cache index and all cached data.
+npm cache verify
+
+# Delete all data out of the cache folder.
+npm cache clean // alias "npm cache clear" or "npm cache rm"
+npm cache clean --force
+
+# Add the specified package to the local cache.
+npm cache add <folder>
+```
+
 npm config
 
 ```
