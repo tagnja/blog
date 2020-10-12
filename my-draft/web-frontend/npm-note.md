@@ -500,6 +500,12 @@ npm config set cache <path> --global
 npm config list
 ```
 
+npx
+
+```
+npx kill-port <port 1> <port 2>
+```
+
 
 
 ## References
