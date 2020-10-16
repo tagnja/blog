@@ -86,6 +86,7 @@ categories:
     - Multiple form input elements related update.
     - Rich text editor.
     - One to many add/edit.
+- UI Widgets
 
 
 
