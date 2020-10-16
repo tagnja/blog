@@ -59,6 +59,13 @@ categories:
 
 
 
+## System Business Functions
+
+- Sign up, sign in, sign out
+- User, role, privilege
+
+
+
 ## Web Frontend
 
 - General
