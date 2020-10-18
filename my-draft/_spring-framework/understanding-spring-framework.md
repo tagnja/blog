@@ -74,8 +74,10 @@ Data Access/Integration
 
 Web
 
-- spring-web
-- spring-webmvc
+- spring-web. 
+  - [org.springframework.web](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/package-summary.html). Common, generic interfaces that define minimal boundary points between Spring's web infrastructure and other framework modules.
+- spring-webmvc. 
+  - [org.springframework.web.servlet.mvc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/mvc/package-summary.html). Standard controller implementations for the Servlet MVC framework that comes with Spring.
 - spring-websocket
 
 Test
