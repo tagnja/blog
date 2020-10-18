@@ -9,10 +9,9 @@ categories:
 
 ## Java
 
-- IOC
-- AOP
-- Encapsulation. (Return message, exception class)
-- Custom annotations. `@JsonIgnore`
+- Java basic grammar.
+- Object-oriented programming.
+- Custom annotations. `@JsonIgnore`.
 - Select appropriate collection data types.
 - Generic programming.
 - Functional programming and stream.
@@ -39,6 +38,8 @@ categories:
 
 - Clean code.
 - Design patterns (Singleton, proxy).
+- IoC.
+- AOP.
 - Classes design principles (SOLID).
 - Classes relationships (generalization, aggregation, association).
 - Tests. Unit tests.
@@ -51,6 +52,7 @@ categories:
 - Controller parameters to Java model.
 - Controller data validation. (To prevent dirty data persistence)
 - Controller exception handling.
+- Encapsulation. (Return message, exception class)
 - Filtering HTTP requests.
 - User authentication and authorization.
 - Web application server lifecycle event listeners.
