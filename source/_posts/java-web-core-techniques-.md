@@ -58,6 +58,8 @@ categories:
 - Web application server lifecycle event listeners.
 - File upload and download.
 - HTTP, HTTPS.
+- Data Privilege. (Backend filter data)
+- Operation Privilege. (Frontend hide buttons. Backend check privileges to allow operations.)
 
 
 
@@ -73,6 +75,7 @@ categories:
 - General
   - Custom JSP form tags. `<form:select>`
   - Custom JavaScript functions. `proj.confirm()`, `proj.loading()`, `proj.getDictLabel()`, `proj.success(message)`, `proj.openDialog()`
+  -  Prevent form repeat submit.
 - Management System
   - List page
     - Page table list.
@@ -86,9 +89,35 @@ categories:
     - Ajax and async request.
     - Events. click(), change().
     - Multiple form input elements related update.
-    - Rich text editor.
     - One to many add/edit.
-- UI Widgets
+    - Form Elements
+      - Input text, hidden, password
+      - Radio
+      - Checkboxes
+      - Select
+      - File
+      - Input Submit, Reset
+      - Textarea
+      - Rich text editor
+      - Date Time picker
+      - Multiple Group Select Picker
+      - Select Picker with Search
+      - Input Tags
+- UI Framework
+  - Layout
+  - Basic Widgets (Components)
+    - Button
+    - Form
+    - Navigation
+    - Tab
+  - Widgets (Components)
+    - Alert
+    - Date picker
+    - Table
+    - Tree
+    - Transfer
+  - Icons
+  - Themes
 
 
 
@@ -96,3 +125,15 @@ categories:
 
 - RDBMS database deisgn.
 - RDBMS indexing.
+
+
+
+## References
+
+- Form Elements
+  - [HTML Input Types - w3schools](https://www.w3schools.com/html/html_form_input_types.asp)
+  - [Useful Bootstrap 4 Select Picker Options for Your Forms](https://bootstrapbay.com/blog/useful-bootstrap-4-select-picker-for-your-forms/)
+- UI Frameworks
+  - [Layui](https://www.layui.com/)
+  - [jQuery UI](https://jqueryui.com/)
+  - [Bootstrap](https://getbootstrap.com/)
