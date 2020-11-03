@@ -176,3 +176,5 @@ min-width: {fixed_value}
 [1] [CSS display properties: block, inline, and inline-block — & how to tell the difference](https://medium.com/@DaphneWatson/css-display-properties-block-inline-and-inline-block-how-to-tell-the-difference-7d3a1e6e3051)
 
 [2] [CSS Layout - Horizontal & Vertical Align - w3schools](https://www.w3schools.com/css/css_align.asp)
+
+[3] [Aligning Items in a Flex Container](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Aligning_Items_in_a_Flex_Container)
