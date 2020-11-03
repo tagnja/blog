@@ -50,7 +50,7 @@ Cache
 # set cache path, or setting in ${user}/.yarnrc file
 yarn config set cache-folder <cache_path>
 yarn config set cache-folder C:\Users\Taogen\AppData\Local\Yarn\Cache
-yarn config set cache-folder D:\$UserData\AppData\Local\Yarn\Cache
+yarn config set cache-folder D:\.user\AppData\Local\Yarn\Cache
 
 # list cache location
 # default on windows: C:\Users\Taogen\AppData\Local\Yarn\Cache\v6
