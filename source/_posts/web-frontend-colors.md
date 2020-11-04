@@ -1,5 +1,5 @@
 ---
-title: web frontend colors
+title: Web Frontend Colors
 date: 2020-11-04 10:33:48
 tags: CSS
 categories:
