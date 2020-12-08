@@ -480,7 +480,7 @@ The `data` option can contain either a query string of the form `key1=value1&key
 
 
 
-### Additional Notes:
+### Additional Notes
 
 - Due to browser security restrictions, most "Ajax" requests are subject to the [same origin policy](https://en.wikipedia.org/wiki/Same_origin_policy); the request can not successfully retrieve data from a different domain, subdomain, port, or protocol.
 - Script and JSONP requests are not subject to the same origin policy restrictions.
