@@ -367,7 +367,7 @@ Whether to trigger global Ajax event handlers for this request. The default is `
 
 The jQuery XMLHttpRequest (jqXHR) object returned by `$.ajax()` **as of jQuery 1.5** is a superset of the browser's native XMLHttpRequest object. For example, it contains `responseText` and `responseXML` properties, as well as a `getResponseHeader()` method. When the transport mechanism is something other than XMLHttpRequest (for example, a script tag for a JSONP request) the `jqXHR` object simulates native XHR functionality where possible.
 
-**overrideMimeType()**
+#### overrideMimeType()
 
 **As of jQuery 1.5.1**, the `jqXHR` object also contains the `overrideMimeType()` method (it was available in jQuery 1.4.x, as well, but was temporarily removed in jQuery 1.5). The `.overrideMimeType()` method may be used in the `beforeSend()` callback function, for example, to modify the response content-type header:
 
@@ -385,7 +385,9 @@ $.ajax({
   });
 ```
 
-**Promise interface**
+
+
+#### Promise interface
 
 The jqXHR objects returned by `$.ajax()` as of jQuery 1.5 implement the Promise interface, giving them all the properties, methods, and behavior of a Promise (see [Deferred object](https://api.jquery.com/category/deferred-object/) for more information). These methods take one or more function arguments that are called when the `$.ajax()` request terminates. This allows you to assign multiple callbacks on a single request, and even to assign callbacks after the request may have completed. (If the request is already complete, the callback is fired immediately.) Available Promise methods of the jqXHR object include:
 
