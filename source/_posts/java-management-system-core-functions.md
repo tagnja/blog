@@ -12,9 +12,8 @@ categories:
 ### Global Functions
 
 - Class hierarchy design.
-- Authentication and authorization. Sign in and sign out.
-- Exception handling.
-- Error message encapsulation.
+- Authentication and authorization. Sign in and sign out. Session Expiration Time.
+- Exception handling. Error message encapsulation.
 - Method logging with AOP and annotations.
 - File upload and download.
 - Filter error request.
@@ -27,8 +26,10 @@ categories:
 
 - Unit tests.
 - RESTful API. CRUD.
-- Request parameters to POJO.
-- Data validation, type conversion, data formatting.
+- Request parameters to POJO. E.g. spring framework`@ModelAttribute`, `@RequestBody`.
+- Data validation. E.g. spring framework`@Validated`).
+- Type conversion. E.g. spring framework `@DateTimeFormat` for datetime, `@JsonSerialize` for enumeration).
+- Data formatting. E.g. spring framework `@JsonFormat` for datetime, `@JsonValue` form enumeration).
 - Service transaction.
 - Persistence. CRUD.
 
