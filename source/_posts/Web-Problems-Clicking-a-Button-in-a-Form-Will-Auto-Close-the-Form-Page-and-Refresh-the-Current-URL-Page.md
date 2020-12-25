@@ -11,7 +11,9 @@ categories:
 
 ## Background
 
-In the CRM system, It using [Bootstrap Modal](https://getbootstrap.com/docs/4.0/components/modal/) to construct edit form pages. Originally, It has no form validation, after I take over the project, I want to add form validation. So I add [jQuery Validation Plugin](https://jqueryvalidation.org/) to do form validation. Originally, the form page has no `<form>`, but `<div>`. The jQuery validation plugin need `<form>` to work, so I replace `<div id="myForm">` with `<form id="myForm">`. However, after I added `<form>`, when I click the submit button, Some problems have occurred. The problem is after submit the form, the current URL page auto refresh. This problem confused me. The following code is to submit the form and then close the modal.
+It's a CRM system, and a single page web application, and has same URL for every page. It consists of top, left menu, right content, bottom area. It uses jQuery to fill different HTML to the content area when clicking the different menu. It using [Bootstrap Modal](https://getbootstrap.com/docs/4.0/components/modal/) to construct edit form pages.
+
+Originally, It has no form validation, after I take over the project, I want to add form validation. So I add [jQuery Validation Plugin](https://jqueryvalidation.org/) to do form validation. Originally, the form page has no `<form>`, but `<div>`. The jQuery validation plugin need `<form>` to work, so I replace `<div id="myForm">` with `<form id="myForm">`. However, after I added `<form>`, when I click the submit button, Some problems have occurred. The problem is after submitting the form, the current URL page auto-refresh. However, render pages in this project can't by refresh URL but only by fill HTML. This auto-refresh problem confused me. The following code is to submit the form and then close the modal.
 
 ```javascript
 $("#myForm").find("#submit").off("click").on("click", function () {
