@@ -102,5 +102,5 @@ cd D:\nginx-1.18.0
 **Note**
 
 1. Ports 80, 433... of Nginx listened can't be occupied.
-2. You must use Nginx commands to start and stop Nginx, else you can't to stop the Nginx. You need to kill Nginx processes on Task Manager - Details of Windows, or to restart the Windows system.
-3. Before run `start nginx`, you need to check is there an Nginx server is running. If there is an Nginx server is running, you must run `nginx -s stop` firstly. Repeatedly running `start nginx`, it will start multiple Nginx server and you can't stop all Nginx servers, then you can't to stop all Nginx. You need to kill Nginx processes on Task Manager - Details of Windows, or to restart the Windows system.
+2. You must use Nginx commands to start and stop Nginx, else you can't to stop the Nginx. Unless to kill Nginx processes on Task Manager - Details of Windows, or to restart the Windows system.
+3. Before run `start nginx`, you need to check is there an Nginx server is running. If there is an Nginx server is running, you must run `nginx -s stop` firstly. Repeatedly running `start nginx`, it will start multiple Nginx server and you can't stop all Nginx servers. Unless to kill Nginx processes on Task Manager - Details of Windows, or to restart the Windows system.
