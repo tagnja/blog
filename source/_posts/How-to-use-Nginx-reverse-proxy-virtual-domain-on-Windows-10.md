@@ -7,7 +7,7 @@ categories:
 - Java Web
 ---
 
-
+Sometimes we need to access our web projects running on local environments by domain names. We can use Nginx reverse proxy virtual domain, then we can use configured domain names to visit our local projects.
 
 ## Downloading Nginx for Windows
 
