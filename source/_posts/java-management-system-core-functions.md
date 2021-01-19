@@ -21,6 +21,7 @@ categories:
 - User, role, privilege. Data privilege and operation privilege.
 - I18n (database value, Java string value, JSP element value)
 - Prevent duplicate form submission.
+-  Using multiple data sources.
 
 ### Module Functions
 
