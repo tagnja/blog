@@ -3,7 +3,10 @@ title: >-
   React Ant Design Table Warning: Each child in a list should have a unique key
   prop
 date: 2021-01-19 13:30:53
-tags:
+categories: 
+- 其它
+- 问题解决
+tags: error
 ---
 
 ## Background
