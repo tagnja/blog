@@ -203,7 +203,7 @@ public static final int SUNDAY = 6;
 
 If you just want to consume list, you best to choose forEach(), else stream(). 
 
-### Remove elements from collection
+#### Remove elements from collection
 
 ```
 List<Book> books = new ArrayList<Book>();
@@ -274,7 +274,7 @@ List<Book> filtered = books.stream()
 
 Recommend: `removeIf()` > `stream()` or `parallelStream()`> Collect objects set and `removeAll()` > Using iterator, or Collect indexes and remove one by one, or Collect objects set and remove one by one.
 
-### Ordered Collections
+#### Ordered Collections
 
 1. Sorted Collection Classes
 
