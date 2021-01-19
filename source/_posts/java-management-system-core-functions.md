@@ -22,6 +22,7 @@ categories:
 - I18n (database value, Java string value, JSP element value)
 - Prevent duplicate form submission.
 -  Using multiple data sources.
+-  Scheduling Tasks.
 
 ### Module Functions
 
