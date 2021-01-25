@@ -552,7 +552,36 @@ Send data to the server using a HTTP POST request.
 
 Load data from the server and place the returned HTML into the matched elements.
 
+## Summary
 
+Ajax request with query string: 
+
+- traditional: true
+- processData: true
+- data: {JSON object}
+
+Ajax request with `application/json`
+
+- contentType: 'application/json'
+- processData: false
+- traditional: false
+- data: "{JSON string}"
+
+Ajax request with `application/x-www-form-urlencoded`
+
+- type: 'POST'
+- contentType: 'application/x-www-form-urlencoded'
+- processData: false
+- traditional: false
+- data: form.serialize()
+
+Ajax request with `multipart/form-data`
+
+- type: 'POST'
+- contentType: 'multipart/form-data'
+- processData: false
+- traditional: false
+- data: formdata
 
 ## References
 
