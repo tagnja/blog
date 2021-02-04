@@ -23,6 +23,7 @@ categories:
 - Prevent duplicate form submission.
 -  Using multiple data sources.
 -  Scheduling Tasks.
+-  Push messages to client browser pages. (implemented by WebSocket or Ajax loop call)
 
 ### Module Functions
 
@@ -34,6 +35,7 @@ categories:
 - Data formatting. E.g. spring framework `@JsonFormat` for datetime, `@JsonValue` form enumeration).
 - Service transaction.
 - Persistence. CRUD.
+- Data import from Excel file and export to Excel file.
 
 ### Others
 
@@ -58,13 +60,14 @@ categories:
 - Prevent duplicate form submission.
 - Alert success and error message.
 - Send CORS Ajax request with jQuery.
+- Push browser notifications.
 
 ### Module Functions
 
 - List page
   - Initialize operation privilege.
   - Initialize page. Load table, tree element. Load search input, select, date time picker elements.
-  - Add index page bind events.
+  - Index page add, edit, delete, search, import/export buttons bind events.
   - Search submit with form serialize or FormData.
   - Delete rows.
 - Edit page
