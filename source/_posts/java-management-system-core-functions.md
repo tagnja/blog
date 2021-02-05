@@ -50,6 +50,12 @@ categories:
 
 ### Global Functions
 
+- Website framework
+  - Top bar `<header>`. (Logo, website name, user center link, login/logout)
+  - Horizontal navigation bar `<nav>`.
+  - Left vertical sidebar menu `<aside>`.
+  - Content area `<main>`, `<section>`, `<article>`. (Table and pagination)
+  - Bottom footer `<footer>`.
 - Utility JS
   - Go to pages.
   - Send CRUD HTTP requests. Submit form.
@@ -76,3 +82,6 @@ categories:
   - Form data validation. Show error messages.
   - Save or update. Submit form, send request with FormData or JSON.
 
+## References
+
+[Semantic Elements in HTML](https://www.w3schools.com/html/html5_semantic_elements.asp)
