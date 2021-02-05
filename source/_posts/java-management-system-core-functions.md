@@ -66,13 +66,13 @@ categories:
 
 - List page
   - Initialize operation privilege.
-  - Initialize page. Load table, tree element. Load search input, select, date time picker elements.
+  - Initialize index page. Display breadcrumb, load search area elements (input, select, date time picker), display operation buttons row, load table and pagination, additionally, may load left area tree. 
   - Index page add, edit, delete, search, import/export buttons bind events.
-  - Search submit with form serialize or FormData.
+  - Search. Send request with form serialize or FormData.
   - Delete rows.
 - Edit page
-  - Initialize page. Load input, radio, checkbox, select, select picker, file, rich text editor, date time picker, and input tags elements.
+  - Initialize edit page title, form elements, and submit button. Form elements: input, radio, checkbox, select, select picker, file, rich text editor, date time picker, and input tags.
   - Add edit page bind events.
   - Form data validation. Show error messages.
-  - Save or update. Submit form with FormData.
+  - Save or update. Submit form, send request with FormData or JSON.
 
