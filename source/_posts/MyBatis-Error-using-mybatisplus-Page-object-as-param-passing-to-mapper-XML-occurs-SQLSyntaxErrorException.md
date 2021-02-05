@@ -11,7 +11,17 @@ tags: error
 
 ## Background
 
-When I using MyBatis-Plus' `com.baomidou.mybatisplus.extension.plugins.pagination.Page` object as one of parameters passing mapper XML to find my page data, there are some errors. 
+When I using MyBatis-Plus' `com.baomidou.mybatisplus.extension.plugins.pagination.Page` object as one of parameters passing mapper XML to find my page data, there are some errors.
+
+```java
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
+public interface CustomerMapper extends BaseMapper<Customer> {
+    List<Customer> findPage(@Param("page") Page page, @Param("entity") Customer customer);
+}
+```
+
+
 
 ## Error Info
 
