@@ -54,7 +54,8 @@ categories:
   - Top bar `<header>`. (Logo, website name, user center link, login/logout)
   - Horizontal navigation bar `<nav>`.
   - Left vertical sidebar menu `<aside>`.
-  - Content area `<main>`, `<section>`, `<article>`. (Table and pagination)
+  - Breadcrumb.
+  - Content area `<main>`, `<section>`, `<article>`. (Search, Table and pagination, Form)
   - Bottom footer `<footer>`.
 - Utility JS
   - Go to pages.
