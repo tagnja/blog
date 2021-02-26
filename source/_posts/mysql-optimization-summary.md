@@ -35,4 +35,5 @@ Using query profiling to determine which strategy is optimal, or which query is 
   - Join decomposition. Converting join to single-table queries.
   - Using query optimizer hints.
   - Optimizing specific types of queries.
+  - Do complex operations in application programs instead of in database systems. Complex operations: join, nested subqueries, group by, order by.
 
