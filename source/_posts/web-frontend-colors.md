@@ -434,7 +434,12 @@ Hex #98B4D4<br>
 RGB(152, 180, 212)<br>
 Pantone 15-4020<br>
 </div>
+## Appendixes
 
+Online Tools
+
+- [Color Calculator](https://www.sessions.edu/color-calculator/)
+- [Colors RGB](https://www.w3schools.com/colors/colors_rgb.asp)
 
 
 ## References
