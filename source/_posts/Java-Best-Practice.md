@@ -313,6 +313,20 @@ Set<String> set = new HashSet();
 ArrayList<String> list = new ArrayList(set);
 ```
 
+```java
+list.addAll(set);
+```
+
+```java
+// Java 8
+List<String> list = set.stream().collect(Collectors.toList());
+```
+
+```java
+// Java 10
+var list = List.copyOf(set);
+```
+
 Convert Array to ArrayList
 
 ```java
@@ -327,6 +341,20 @@ Convert ArrayList to Set
 ```java
 ArrayList<String> list = new ArrayList();
 Set<String> set = new HashSet(list);
+```
+
+```java
+set.addAll(aList);
+```
+
+```java
+// Java 8
+Set<String> set = list.stream().collect(Collectors.toSet());
+```
+
+```java
+// Java 10
+var set = Set.copyOf(list);
 ```
 
 Convert Array to Set
