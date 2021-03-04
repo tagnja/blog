@@ -302,6 +302,42 @@ Comparators
 
 Summary: if you don't need to keep collections always be ordered, you just use Collections sort() to get sorted collections.
 
+#### Type Conversation
+
+**To ArrayList**
+
+Convert Set to ArrayList
+
+```java
+Set<String> set = new HashSet();
+ArrayList<String> list = new ArrayList(set);
+```
+
+Convert Array to ArrayList
+
+```java
+String[] array = new String[10];
+ArrayList<String> list = new ArrayList(Arrays.asList(array));
+```
+
+**To Set**
+
+Convert ArrayList to Set
+
+```java
+ArrayList<String> list = new ArrayList();
+Set<String> set = new HashSet(list);
+```
+
+Convert Array to Set
+
+```java
+String[] array = new String[10];
+        Set<String> set = new HashSet(new ArrayList(Arrays.asList(array)));
+```
+
+
+
 ## Utility Libraries
 
 
