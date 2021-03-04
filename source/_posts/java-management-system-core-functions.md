@@ -35,6 +35,7 @@ categories:
 - Data formatting. E.g. spring framework `@JsonFormat` for datetime, `@JsonValue` form enumeration).
 - Service transaction.
 - Persistence. CRUD.
+- Data statistics.
 - Data import from Excel file and export to Excel file.
 
 ### Others
@@ -82,6 +83,9 @@ categories:
   - Add edit page bind events.
   - Form data validation. Show error messages.
   - Save or update. Submit form, send request with FormData or JSON.
+- Other page
+  - Statistical charts.
+  - Complex page layout and  style.
 
 ## References
 
