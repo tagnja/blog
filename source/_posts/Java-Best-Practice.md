@@ -333,7 +333,7 @@ Convert Array to Set
 
 ```java
 String[] array = new String[10];
-        Set<String> set = new HashSet(new ArrayList(Arrays.asList(array)));
+Set<String> set = new HashSet(Arrays.asList(array));
 ```
 
 
