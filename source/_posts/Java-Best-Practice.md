@@ -364,6 +364,15 @@ String[] array = new String[10];
 Set<String> set = new HashSet(Arrays.asList(array));
 ```
 
+#### Print collections
+
+Array
+
+```java
+int a[] = new int[]{1, 2, 3};
+System.out.println(Arrays.toString(a));
+```
+
 
 
 ## Utility Libraries
