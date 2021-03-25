@@ -327,11 +327,24 @@ List<String> list = set.stream().collect(Collectors.toList());
 var list = List.copyOf(set);
 ```
 
-Convert Array to ArrayList
+Convert Wrapper Type Array to ArrayList
 
 ```java
 String[] array = new String[10];
+Integer[] array2 = new Integer[10];
 ArrayList<String> list = new ArrayList(Arrays.asList(array));
+```
+
+Convert Primitive Array to ArrayList
+
+```java
+int[] input = new int[]{1,2,3,4};
+List<Integer> output = Arrays.stream(input).boxed().collect(Collectors.toList());
+```
+
+```java
+int[] input = new int[]{1,2,3,4};
+List<Integer> output = IntStream.of(input).boxed().collect(Collectors.toList());
 ```
 
 **To Set**
@@ -357,12 +370,25 @@ Set<String> set = list.stream().collect(Collectors.toSet());
 var set = Set.copyOf(list);
 ```
 
-Convert Array to Set
+Convert Wrapper Type Array to Set
 
 ```java
 String[] array = new String[10];
 Set<String> set = new HashSet(Arrays.asList(array));
 ```
+
+**To Map**
+
+Convert Object Fields of List to Map
+
+```java
+List<SysUser> sysUserList = getSysUserIdNamesByIds(userIds);
+Map<Long, String> idNameMap = sysUserList
+    .stream()
+    .collect(Collectors.toMap(SysUser::getId, SysUser::getName));
+```
+
+
 
 #### Print collections
 
