@@ -207,7 +207,7 @@ TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 @PastOrPresent
 ```
 
-[Java EE 8 javax.validation.constraints annotations](https://javaee.github.io/javaee-spec/javadocs/javax/validation/package-summary.html)
+For more details refer to [Java EE 8 javax.validation.constraints annotations](https://javaee.github.io/javaee-spec/javadocs/javax/validation/package-summary.html)
 
 
 
@@ -271,7 +271,7 @@ public String getName() {
 }
 ```
 
-[Jackson Annotations](https://github.com/FasterXML/jackson-annotations/wiki/Jackson-Annotations)
+For more details refer to [Jackson Annotations](https://github.com/FasterXML/jackson-annotations/wiki/Jackson-Annotations)
 
 
 
@@ -319,7 +319,7 @@ Logic delete
 @TableLogic
 ```
 
-[MyBatis-Plus Annotations](https://baomidou.com/guide/annotation.html)
+For more details refer to [MyBatis-Plus Annotations](https://baomidou.com/guide/annotation.html)
 
 ## Lombok
 
@@ -421,4 +421,6 @@ Others
 @Getter(lazy=true)
 ```
 
-[Lombok features](https://projectlombok.org/features/all)
+For more details refer to [Lombok features](https://projectlombok.org/features/all).
+
+You can rolling Lombok Back with [Delombok](https://projectlombok.org/features/delombok) tool.
