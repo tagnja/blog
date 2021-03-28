@@ -7,6 +7,16 @@ categories:
 - Java Web
 ---
 
+## Java SE
+
+```java
+@Deprecated // programmers are discouraged from using, typically because it is dangerous, or because a better alternative exists.
+@FunctionalInterface
+@Override // Indicates that a method declaration is intended to override a method declaration in a supertype.
+@SuppressWarnings // Indicates that the named compiler warnings should be suppressed in the annotated element (and in all program elements contained in the annotated element).
+@SafeVarargs // A programmer assertion that the body of the annotated method or constructor does not perform potentially unsafe operations on its varargs parameter.
+```
+
 
 
 ## Spring Projects
