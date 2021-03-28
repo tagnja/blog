@@ -321,3 +321,104 @@ Logic delete
 
 [MyBatis-Plus Annotations](https://baomidou.com/guide/annotation.html)
 
+## Lombok
+
+POJO
+
+```java
+@Data
+@Getter/@Setter
+@ToString
+@NoArgsConstructor, @RequiredArgsConstructor and @AllArgsConstructor
+@EqualsAndHashCode
+@Builder // User.builder().name("Jack").build()
+```
+
+- `@Data`: A shortcut for `@ToString`, `@EqualsAndHashCode`, `@Getter` on all fields, and `@Setter` on all non-final fields, and `@RequiredArgsConstructor`.
+
+Generate a null-check statement
+
+```java
+public NonNullExample(@NonNull Person person) {
+	super("Hello");
+	this.name = person.getName();
+}
+```
+
+Result code
+
+```java
+public NonNullExample(@NonNull Person person) {
+	super("Hello");
+	if (person == null) {
+	  throw new NullPointerException("person is marked @NonNull but is null");
+	}
+	this.name = person.getName();
+}
+```
+
+Automatic resource management: Call your close() methods safely with no hassle.
+
+```java
+public static void main(String[] args) throws IOException {
+    @Cleanup InputStream in = new FileInputStream(args[0]);
+    @Cleanup OutputStream out = new FileOutputStream(args[1]);
+    byte[] b = new byte[10000];
+    while (true) {
+      int r = in.read(b);
+      if (r == -1) break;
+      out.write(b, 0, r);
+    }
+}
+```
+
+To sneakily throw checked exceptions without actually declaring this in your method's throws clause
+
+```java
+@SneakyThrows(UnsupportedEncodingException.class)
+public String utf8ToString(byte[] bytes) {
+    return new String(bytes, "UTF-8");
+}
+```
+
+Result code
+
+```java
+public String utf8ToString(byte[] bytes) {
+    try {
+      return new String(bytes, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw Lombok.sneakyThrow(e);
+    }
+}
+```
+
+Annotate any class with a log annotation to let lombok generate a logger field.
+
+```java
+@Log
+@Log4j
+@Log4j2
+@Slf4j
+```
+
+```java
+private static final java.util.logging.Logger log = java.util.logging.Logger.getLogger(LogExample.class.getName());
+
+private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LogExample.class);
+
+private static final org.apache.logging.log4j.Logger log = org.apache.logging.log4j.LogManager.getLogger(LogExample.class);
+
+private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LogExample.class);
+```
+
+Others
+
+```java
+@Value
+@Synchronized
+@With
+@Getter(lazy=true)
+```
+
+[Lombok features](https://projectlombok.org/features/all)
