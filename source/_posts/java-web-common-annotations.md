@@ -291,7 +291,7 @@ For more details refer to [Jackson Annotations](https://github.com/FasterXML/jac
 Specify Table name
 
 ```java
-@TableName
+@TableName("t_user")
 ```
 
 Specify primary key
@@ -316,7 +316,8 @@ private String column;
 Logic delete
 
 ```java
-@TableLogic
+@TableLogic(value = "0", delval = "1")
+private Integer deleteFlag;
 ```
 
 For more details refer to [MyBatis-Plus Annotations](https://baomidou.com/guide/annotation.html)
