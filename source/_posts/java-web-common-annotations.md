@@ -118,6 +118,37 @@ Response
 @ResponseStatus
 ```
 
+Convert Request Parameter Types
+
+```java
+/**
+ * This method used in your Controller, 
+ * or you can put the method in your BaseController.
+ */
+@InitBinder
+public void initBinder(WebDataBinder binder)
+{
+	// Convert field type from string to Date
+    binder.registerCustomEditor(Date.class, new PropertyEditorSupport()
+    {
+        @Override
+        public void setAsText(String text)
+        {
+            setValue(DateUtils.parseDate(text));
+        }
+    });
+}
+```
+
+```java
+@InitBinder
+public void initBinder(WebDataBinder dataBinder) {
+    dataBinder.registerCustomEditor(YourEnum.class, new YourEnumConverter());
+}
+```
+
+
+
 Data Validation
 
 ```
