@@ -262,7 +262,7 @@ Convert JSON String to Date
 private Date createTime;
 ```
 
-Convert JSON String to Enum field
+Convert JSON String to Enum field (Note: The `@JsonValue` only deserialize for `@RequestBody` fields)
 
 ```java
 @JsonValue
