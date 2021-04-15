@@ -302,6 +302,21 @@ Comparators
 
 Summary: if you don't need to keep collections always be ordered, you just use Collections sort() to get sorted collections.
 
+Compare object list using `Collections.sort(objectList)`
+
+```
+public class Animal implements Comparable<Animal> {
+    private String name;
+    
+    @Override
+    public int compareTo(Animal o) {
+        return this.name.compareTo(o.name);
+    }
+} 
+```
+
+
+
 #### Type Conversation
 
 **To ArrayList**
