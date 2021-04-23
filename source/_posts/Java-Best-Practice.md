@@ -197,11 +197,48 @@ public static final int SUNDAY = 6;
 
 ### Container
 
-#### Basics
+#### Traversal
 
-1. forEach() vs stream()
+Array Traversal
 
-If you just want to consume list, you best to choose forEach(), else stream(). 
+- `for (int i = 0; i < array.length; i++) {...}`
+- `Arrays.stream(array).xxx`
+
+List Traversal
+
+- for loop: `for (int i = 0; i < list.size(); i++) {...}`
+- enhanced for loop: `for (Object o : list) {...}`
+- iterator and listIterator
+- `list.forEach(comsumer...)`
+- `list.stream().xxx`
+
+Map Traversal
+
+- `for (String key : map.keySet()) {...}`
+
+- `for (Map.entry entry : map.entrySet()) {...}`
+
+- Iterator
+
+  ```java
+  Iterator<Map.Entry<String, Integer>> iterator = map.entrySet().iterator();
+  while (iterator.hasNext()) {
+      Map.Entry<String, Integer> entry = iterator.next();
+      System.out.println(entry.getKey() + ":" + entry.getValue());
+  }
+  ```
+
+- `map.forEach(biComsumer...)`
+
+  ```java
+  map.forEach((k, v) -> System.out.println((k + ":" + v)));
+  ```
+
+- `map.entrySet().stream()`
+
+`forEach()` vs `stream()`
+
+- If you just want to consume list, you best to choose `forEach()`, else `stream()`. 
 
 #### Remove elements from collection
 
