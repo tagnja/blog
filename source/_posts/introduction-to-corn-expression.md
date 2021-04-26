@@ -72,6 +72,7 @@ or more complex, like this: `0/5 14,18,3-39,52 * ? JAN,MAR,SEP MON-FRI 2002-2010
 | `0 15 10 * * ? *`          | Fire at 10:15am every day                                    |
 | `0 15 10 * * ? 2005`       | Fire at 10:15am every day during the year 2005               |
 | `0 * 14 * * ?`             | Fire every minute starting at 2pm and ending at 2:59pm, every day |
+| `0 */1 * * * ?`            | Fire every minute starting at 0 second, every day            |
 | `0 0/5 14 * * ?`           | Fire every 5 minutes starting at 2pm and ending at 2:55pm, every day |
 | `0 0/5 14,18 * * ?`        | Fire every 5 minutes starting at 2pm and ending at 2:55pm, AND fire every 5 minutes starting at 6pm and ending at 6:55pm, every day |
 | `0 0-5 14 * * ?`           | Fire every minute starting at 2pm and ending at 2:05pm, every day |
