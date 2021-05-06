@@ -187,6 +187,22 @@ public static final int SATURDAY = 5;
 public static final int SUNDAY = 6;
 ```
 
+#### Type Formatting
+
+Double type formatting
+
+```java
+Double value = 9.999;
+String result = new DecimalFormat("#0.00").format(value);
+```
+
+Date formatting
+
+```java
+Date date = new Date();
+String result = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+```
+
 
 
 ## Core
