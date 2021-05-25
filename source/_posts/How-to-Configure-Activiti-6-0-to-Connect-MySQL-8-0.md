@@ -39,7 +39,7 @@ Creating database `activiti6ui` that configuring in `activiti-app/WEB-INF/classe
 Executing following Activiti initial SQL files:
 
 - `activiti-6.0.0/database/create/activiti.mysql.create.engine.sql`
-- `activiti-6.0.0/database/create/activiti.mysql.create.engine.sql`
+- `activiti-6.0.0/database/create/activiti.mysql.create.history.sql`
 - `activiti-6.0.0/database/create/activiti.mysql.create.identity.sql`
 
 ## Running and Visiting
