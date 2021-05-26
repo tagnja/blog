@@ -1,7 +1,10 @@
 ---
 title: Common MySQL JdbcUrl Properties
 date: 2021-05-26 14:09:42
-tags: 
+tags: jdbc
+categories:
+- Java
+- Java Web
 ---
 
 Character Encoding
