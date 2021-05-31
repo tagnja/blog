@@ -467,6 +467,20 @@ int a[] = new int[]{1, 2, 3};
 System.out.println(Arrays.toString(a));
 ```
 
+#### Join
+
+```java
+List<String> names = Arrays.asList("Tom", "Jack", "Lucy");
+System.out.println(names.stream().map(Object::toString).collect(Collectors.joining(",")));
+List<Integer> ids = Arrays.asList(1, 2, 3);
+System.out.println(ids.stream().map(Object::toString).collect(Collectors.joining(",")));
+```
+
+```java
+List<String> names = Arrays.asList("Tom", "Jack", "Lucy");
+System.out.println(String.join(",", names));
+```
+
 
 
 ## Utility Libraries
