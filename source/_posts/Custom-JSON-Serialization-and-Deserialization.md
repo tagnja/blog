@@ -16,7 +16,7 @@ toc: false
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.yuwoyg.crm.modules.task.enumeration.NameValueEnum;
+import com.taogen.demo.modules.task.enumeration.NameValueEnum;
 
 import java.io.IOException;
 
