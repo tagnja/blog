@@ -164,3 +164,6 @@ public class JsonArrayToStringDeserializer extends JsonDeserializer<String> {
 private String {specifiedField};
 ```
 
+## References
+
+[1] [How To Serialize and Deserialize Enums with Jackson](https://www.baeldung.com/jackson-serialize-enums)
