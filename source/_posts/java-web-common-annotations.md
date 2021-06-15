@@ -210,10 +210,10 @@ TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 ###  Validation Constraints
 
 ```java
-@NotNull
+@NotNull // a constrained CharSequence, Collection, Map, or Array is valid as long as it's not null, but it can be empty
+@NotEmpty // a constrained CharSequence, Collection, Map, or Array is valid as long as it's not null and its size/length is greater than zero
+@NotBlank // a constrained String is valid as long as it's not null and the trimmed length is greater than zero.
 @Null
-@NotBlank // The annotated element must not be null and must contain at least one non-whitespace character.
-@NotEmpty // The annotated element must not be null nor empty.
 @Size // The annotated element size must be between the specified boundaries (included).
 @Pattern // The annotated CharSequence must match the specified regular expression.
 @Email
