@@ -112,9 +112,38 @@ public static final char charVal = 'a';
 
 - Strings and Arrays
 
-```
+```java
 public static final int[] MY_ARRAY = {1, 2, 3};
 ```
+
+- List
+
+```java
+public static final List<Integer> list = new ArrayList(Arrays.asList(1, 2, 3));
+```
+
+- Set
+
+```java
+public static final Set<Integer> SET = new HashSet();
+static {
+    SET.add(1);
+    SET.add(2);
+}
+```
+
+- Map
+
+```java
+public static final Map<Integer, String> MAP = new HashMap<Integer, String>();
+static {
+    MAP.put(1, "one");
+    MAP.put(2, "two");
+    MAP.put(3, "three");
+}
+```
+
+#### Immutable Container
 
 - Immutable List
 
