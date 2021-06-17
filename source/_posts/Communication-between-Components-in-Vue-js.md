@@ -128,3 +128,14 @@ props: {
 },
 ```
 
+## Summary
+
+Update child components status
+
+- Using props to share data from parent to child. (control child status in parent)
+- Call child methods by ref. (control child status directly)
+
+Update parent components status
+
+- Emitting custom events to share data from child to parent. (control parent status in child)
+- Call parent methods by props. (control parent status directly)
