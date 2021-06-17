@@ -1,5 +1,5 @@
 ---
-title: Download Files in Modern JS
+title: Download Static Files in Modern JS
 date: 2021-06-11 13:45:20
 tags: JS
 categories:
