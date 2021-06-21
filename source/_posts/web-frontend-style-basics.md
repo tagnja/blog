@@ -81,6 +81,22 @@ Left and right align - Using float
 float: right;
 ```
 
+Some items left align some right
+
+```
+.container {
+    overflow:hidden;
+}
+.container .left-item {
+    float: left;
+    margin-right: 10px;
+}
+.container .right-item {
+    float: right;
+    margin-left: 10px;
+}
+```
+
 **Note:** If an element is taller than the element containing it, and it is floated, it will overflow outside of its container. You can use the "**clearfix**" hack to fix this. We can add `overflow: auto;` to the containing element to fix this problem
 
 ### Vertical Align
