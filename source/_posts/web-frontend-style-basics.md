@@ -83,7 +83,16 @@ float: right;
 
 Some items left align some right
 
+```html
+<div class="container">
+    <div class="left-item"></div>
+    <div class="left-item"></div>
+    <div class="right-item"></div>
+    <div class="right-item"></div>
+</div>
 ```
+
+```css
 .container {
     overflow:hidden;
 }
