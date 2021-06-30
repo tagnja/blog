@@ -1,5 +1,5 @@
 ---
-title: [error] Why is the Size of Uploaded File 0 byte
+title: '[Error] Why is the Size of Uploaded File 0 byte'
 date: 2021-06-30 13:08:03
 tags: error
 categories:
