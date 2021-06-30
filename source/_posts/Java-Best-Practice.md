@@ -75,7 +75,7 @@ Set<String> set3 = Stream.of("a", "b", "c")
 - Maps
 
 ```
-// Using Anonymous Class
+// Using Anonymous Class (Not recommend, Double Brace Initialization should not be used. Replace of to use map.put(key, value).)
 Map<Integer, String> map = new HashMap<Integer, String>() {{
     put(1, "one");
     put(2, "two");
@@ -301,7 +301,7 @@ books.add(new Book(new ISBN("0-201-63361-4")));
 
 ```
 ISBN isbn = new ISBN("0-201-63361-2");
-List<Book> found = new ArrayList<Book>();
+List<Book> found = new ArrayList<>();
 for(Book book : books){
     if(book.getIsbn().equals(isbn)){
         found.add(book);
