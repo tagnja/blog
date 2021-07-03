@@ -35,7 +35,7 @@ categories:
 - Data formatting. E.g. spring framework `@JsonFormat` for datetime, `@JsonValue` form enumeration).
 - Service transaction.
 - Persistence. CRUD.
-- Data statistics.
+- Data statistics SQL.
 - Data import from Excel file and export to Excel file.
 
 ### Others
